@@ -116,7 +116,7 @@ $(document.head).append('<style>\
 
 $(document.body).html('<div style="width: 100%"><div id="left"/><div id="right"/></div>');
 
-var oauth_token, oauth_verifier, session_key, session_secret, loginTwitter, consumer_secret;
+var oauth_token, oauth_verifier, session_key, session_secret, loginTwitter, consumer_secret = localStorage.getItem('consumer_secret');
 if (loginTwitter = localStorage.getItem('loginTwitter')) {
     loginTwitter = JSON.parse(loginTwitter);
     Ready(loginTwitter);
@@ -132,7 +132,7 @@ if (loginTwitter = localStorage.getItem('loginTwitter')) {
     var signInButton = $('<a id="signin">Sign in with twitter</a>');
     signInButton.click(SignIn1);
     $('#left').append('<input type="text" id="secret" size="60" placeholder="Periscope consumer secret" value="' +
-        (localStorage.getItem('consumer_secret') || '') + '"/><br/>').append(signInButton);
+        (consumer_secret || '') + '"/><br/>').append(signInButton);
 }
 
 
@@ -147,10 +147,10 @@ function Ready(loginInfo) {
     var signOutButton = $('<a id="signin">Sign out</a>');
     signOutButton.click(SignOut);
     $('#left').append(signOutButton)
-        .append('<img src="https://s.ytimg.com/yts/img/icn_loading_animated-vflff1Mjj.gif" id="spinner" />')
-        .append('<br/><img src="' + loginInfo.user.profile_image_urls[1].url + '"/>')
-        .append('<div id="display_name">' + loginInfo.user.display_name + '</div>')
-        .append('<div class="username">@' + loginInfo.user.username + '</div>');
+        .append('<img src="https://s.ytimg.com/yts/img/icn_loading_animated-vflff1Mjj.gif" id="spinner" height="25" />\
+        <br/><img src="' + loginInfo.user.profile_image_urls[1].url + '"/>\
+        <div id="display_name">' + loginInfo.user.display_name + '</div>\
+        <div class="username">@' + loginInfo.user.username + '</div>');
 
     //Map
     $(document.head).append('<link rel="stylesheet" href="https://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />')
@@ -161,24 +161,28 @@ function Ready(loginInfo) {
         {
             text: "Open Street Map",
             layer: L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                //attribution: 'Map data &copy; 2011 OpenStreetMap',
+                attribution: 'Map data &copy; OpenStreetMap'
             }).addTo(map)
         },
         {
             text: "cloudmade",
             layer: L.tileLayer('http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png', {
                 key: '1a1b06b230af4efdbb989ea99e9841af',
-                styleId: 1632
+                styleId: 1632,
+                attribution: 'Map data &copy; OpenStreetMap'
             })
         },
         {
             text: "mapbox",
-            layer: L.tileLayer('https://{s}.tiles.mapbox.com/v4/mapbox.emerald/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6IlhHVkZmaW8ifQ.hAMX5hSW-QnTeRCMAy9A8Q&update=iewnw') //examples.map-i86nkdio
+            layer: L.tileLayer('https://{s}.tiles.mapbox.com/v4/mapbox.emerald/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6IlhHVkZmaW8ifQ.hAMX5hSW-QnTeRCMAy9A8Q&update=iewnw', {
+                attribution: 'Map data &copy; OpenStreetMap'
+            })
         },
         {
             text: "Google",
             layer: L.tileLayer('http://mt{s}.google.com/vt/x={x}&y={y}&z={z}', {
-                subdomains: '1234'
+                subdomains: '123',
+                attribution: 'Map data &copy; Google'
             })
         }
     ];
@@ -291,10 +295,12 @@ function SignIn2(oauth_token, oauth_verifier) {
  */
 function SignIn1() {
     consumer_secret = $('#secret').val();
-    if (consumer_secret) 
-    return OAuth('request_token', function (oauth) {
-        location.href = 'https://api.twitter.com/oauth/authorize?oauth_token=' + oauth.oauth_token;
-    }, {oauth_callback: '404'});
+    if (consumer_secret) {
+        localStorage.setItem('consumer_secret', consumer_secret);
+        return OAuth('request_token', function (oauth) {
+            location.href = 'https://api.twitter.com/oauth/authorize?oauth_token=' + oauth.oauth_token;
+        }, {oauth_callback: '404'});
+    }
 }
 function SignOut() {
     localStorage.clear();
