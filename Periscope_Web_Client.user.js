@@ -274,7 +274,8 @@ function InitMap() {
             "p2_lat": mapBounds._southWest.lat,
             "p2_lng": mapBounds._southWest.lng
         }, function (r) {
-            var openLL; // for preventing of closing open
+            console.log(r);
+            var openLL; // for preventing of closing opened popup
             live.eachLayer(function (layer) {
                 if (layer.getPopup()._isOpen)
                     openLL = layer.getLatLng();
@@ -292,11 +293,15 @@ function InitMap() {
                 var title = stream.status || stream.user_display_name;
                 var marker = L.marker(new L.LatLng(stream.ip_lat, stream.ip_lng), {title: title});
                 if (!marker.getLatLng().equals(openLL)) {
+                    var date_created = new Date(stream.created_at);
                     marker.bindPopup('<div class="description"><img src="' + stream.image_url_small + '"/>\
-                    <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>\
-                    <div class="username">@' + stream.username + '</div>\
+                        <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>\
+                        <div class="username">@' + stream.username + '</div>\
+                        Created: ' + date_created.getDay() + '.' + date_created.getMonth() + '.' + date_created.getFullYear() + ' ' + date_created.getHours() + ':' + date_created.getMinutes() + '<br/>\
+                        ' + stream.country + ' ' + stream.country_state + ' ' + stream.city + '<br/>\
+                        Sort score: ' + stream.sort_score + '\
                     </div>');
-                    (stream.available_for_replay ? replay : live).addLayer(marker);
+                    (stream.state == 'RUNNING' ? live : replay).addLayer(marker);
                 }
             }
         });
@@ -311,9 +316,16 @@ function InitApiTest() {
             var method = $('#method').val().trim();
             if (method == '')
                 throw Error('Method is empty');
-            Api(method, JSON.parse($('#params').val()), function (response) {
+            var params = $('#params').val().trim();
+            if (params == '') {
+                params = '{}';
+                $('#params').text(params);
+            }
+            Api(method, JSON.parse(params), function (response) {
                 $('#response').html(JSON.stringify(response, null, 4));
                 console.log(response);
+            }, function (error) {
+                $('#response').text(error);
             });
         } catch (e) {
             $('#response').text(e.toString());
@@ -324,9 +336,9 @@ function InitApiTest() {
         ' or in <a href="https://github.com/Pmmlabs/periscope_api/blob/api/API.md" target="_blank">my fork</a>' +
         '<br/><dt>Method</dt><input id="method" type="text" placeholder="mapGeoBroadcastFeed"/><br/>' +
         '<dt>Parameters</dt><textarea id="params" placeholder="{include_replay: true, p1_lat: 1, p1_lng: 2, p2_lat: 3, p2_lng: 4}"/><br/><br/>');
-    $('#ApiTest').append(submitButton).append('<br/><br/><pre id="response"/>Response is also outputted to browser console</pre>');
+    $('#ApiTest').append(submitButton).append('<br/><br/><pre id="response"/>Response is also displayed in the browser console</pre>');
 }
-function Api(method, params, callback) {
+function Api(method, params, callback, callback_fail) {
     if (loginTwitter && loginTwitter.cookie)
         params.cookie = loginTwitter.cookie;
     $('#spinner').show();
@@ -339,8 +351,12 @@ function Api(method, params, callback) {
             if (r.status == 200) {
                 var response = JSON.parse(r.responseText);
                 callback(response);
-            } else
-                console.log('API error: ' + r.status + ' ' + r.responseText);
+            } else {
+                var error = 'API error: ' + r.status + ' ' + r.responseText;
+                console.log(error);
+                if (callback_fail)
+                    callback_fail(error);
+            }
         }
     })
 }
