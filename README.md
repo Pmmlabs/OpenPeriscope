@@ -8,7 +8,7 @@ Periscope Web Client (userscript)
 1. Navigate to http://example.net
 1. Type consumer secret of Periscope App
 1. Click "Sign in with twitter"
-1. Click "Authorize"
+1. Login to the Twitter (if not yet) and click "Authorize"
 1. Here you go!
 
 ### Third-party software

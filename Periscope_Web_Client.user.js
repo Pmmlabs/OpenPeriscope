@@ -28,13 +28,22 @@ $(document.head).append('<style>\
         font-size:1.5em;\
         display: block;\
     }\
-    #signin {\
-        background: #4C4CF8 none repeat scroll 0 0;\
+    .button {\
+        background-color: #4C4CF8;\
         color: #FFF;\
         border-radius: 5px;\
         padding: 10px;\
         text-decoration: none;\
         cursor: pointer;\
+    }\
+    .menu {\
+        background-color: #4C4CF8;\
+        color: white;\
+        padding: 5px;\
+        cursor: pointer;\
+    }\
+    .menu.active {\
+        background-color: #4192ED;\
     }\
     #spinner {\
         display: none;\
@@ -60,7 +69,7 @@ $(document.head).append('<style>\
     .username {\
         color: grey;\
     }\
-    #map {\
+    #Map {\
         width:100%;\
         height:100%;\
     }\
@@ -112,6 +121,14 @@ $(document.head).append('<style>\
         float: left;\
         margin-right: 10px;\
     }\
+    dt {\
+        width: 150px;\
+        float: left;\
+    }\
+    #ApiTest textarea {\
+        width: 200px;\
+        height: 100px;\
+    }\
 </style>');
 
 $(document.body).html('<div style="width: 100%"><div id="left"/><div id="right"/></div>');
@@ -129,7 +146,7 @@ if (loginTwitter = localStorage.getItem('loginTwitter')) {
     localStorage.setItem('oauth_verifier', oauth_verifier);
     SignIn2(oauth_token, oauth_verifier);
 } else {
-    var signInButton = $('<a id="signin">Sign in with twitter</a>');
+    var signInButton = $('<a class="button">Sign in with twitter</a>');
     signInButton.click(SignIn1);
     $('#left').append('<input type="text" id="secret" size="60" placeholder="Periscope consumer secret" value="' +
         (consumer_secret || '') + '"/><br/>').append(signInButton);
@@ -144,19 +161,42 @@ function getParameterByName(name) {
 }
 function Ready(loginInfo) {
     console.log('ready! ', loginInfo);
-    var signOutButton = $('<a id="signin">Sign out</a>');
+    var signOutButton = $('<a class="button">Sign out</a>');
     signOutButton.click(SignOut);
-    $('#left').append(signOutButton)
-        .append('<img src="https://s.ytimg.com/yts/img/icn_loading_animated-vflff1Mjj.gif" id="spinner" height="25" />\
+
+    var left = $('#left').append(signOutButton)
+        .append('<img src="https://s.ytimg.com/yts/img/icn_loading_animated-vflff1Mjj.gif" id="spinner" />\
         <br/><img src="' + loginInfo.user.profile_image_urls[1].url + '"/>\
         <div id="display_name">' + loginInfo.user.display_name + '</div>\
         <div class="username">@' + loginInfo.user.username + '</div>');
-
-    //Map
+    var menu = [
+        {text: 'Map', id: 'Map'},
+        {text: 'API test', id: 'ApiTest'}
+    ];
+    for (var i in menu) {
+        var link = $('<div class="menu">' + menu[i].text + '</div>');
+        link.click(SwitchSection.bind(null, link, menu[i].id));
+        left.append(link);
+    }
+    InitMap();
+}
+function SwitchSection(elem, section) {
+    // Switch menu
+    $('.menu.active').removeClass('active');
+    $(elem).addClass('active');
+    // Switch content
+    $('#right > div:visible').hide();
+    var sectionContainer = $('#' + section);
+    if (!sectionContainer.length)
+        this['Init' + section]();
+    else
+        sectionContainer.show();
+}
+function InitMap() {
     $(document.head).append('<link rel="stylesheet" href="https://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />')
         .append('<link rel="stylesheet" href="http://leaflet.github.io/Leaflet.markercluster/dist/MarkerCluster.css" />');
-    $('#right').append('<div id="map"/>');
-    var map = L.map('map').setView([51.6681, 39.2075], 11);
+    $('#right').append('<div id="Map"/>');
+    var map = L.map('Map').setView([51.6681, 39.2075], 11);
     var tileLayers = [
         {
             text: "Open Street Map",
@@ -252,6 +292,19 @@ function Ready(loginInfo) {
     };
     map.on('moveend', refreshMap);
     refreshMap();
+}
+function InitApiTest() {
+    var submitButton = $('<a class="button">Submit</div>');
+    submitButton.click(function(){
+        Api($('#method').val(),JSON.parse($('#params').val()),function(response){
+            $('#response').html(JSON.stringify(response,null,4));
+            console.log(response);
+        });
+    });
+    $('#right').append('<div id="ApiTest"><dt>Method</dt><input id="method" type="text" placeholder="mapGeoBroadcastFeed"/><br/>' +
+        '<dt>Parameters</dt><textarea id="params" placeholder="{include_replay: true, p1_lat: 1, p1_lng: 2, p2_lat: 3, p2_lng: 4}"/><br/><br/>' +
+        '<div id="response"/></div>');
+    $('#ApiTest').append(submitButton);
 }
 function Api(method, params, callback) {
     if (loginTwitter && loginTwitter.cookie)
