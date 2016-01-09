@@ -126,8 +126,11 @@ $(document.head).append('<style>\
         float: left;\
     }\
     #ApiTest textarea {\
-        width: 200px;\
+        width: 500px;\
         height: 100px;\
+    }\
+    pre {\
+        background-color: #f0f0f0;\
     }\
 </style>');
 
@@ -178,7 +181,7 @@ function Ready(loginInfo) {
         link.click(SwitchSection.bind(null, link, menu[i].id));
         left.append(link);
     }
-    InitMap();
+    InitApiTest();
 }
 function SwitchSection(elem, section) {
     // Switch menu
@@ -271,22 +274,30 @@ function InitMap() {
             "p2_lat": mapBounds._southWest.lat,
             "p2_lng": mapBounds._southWest.lng
         }, function (r) {
-            console.log(r);
+            var openLL; // for preventing of closing open
             live.eachLayer(function (layer) {
-                live.removeLayer(layer);
+                if (layer.getPopup()._isOpen)
+                    openLL = layer.getLatLng();
+                else
+                    live.removeLayer(layer);
             });
             replay.eachLayer(function (layer) {
-                replay.removeLayer(layer);
+                if (layer.getPopup()._isOpen)
+                    openLL = layer.getLatLng();
+                else
+                    replay.removeLayer(layer);
             });
             for (var i = 0; i < r.length; i++) {
                 var stream = r[i];
                 var title = stream.status || stream.user_display_name;
                 var marker = L.marker(new L.LatLng(stream.ip_lat, stream.ip_lng), {title: title});
-                marker.bindPopup('<div class="description"><img src="' + stream.image_url_small + '"/>\
+                if (!marker.getLatLng().equals(openLL)) {
+                    marker.bindPopup('<div class="description"><img src="' + stream.image_url_small + '"/>\
                     <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>\
                     <div class="username">@' + stream.username + '</div>\
                     </div>');
-                (stream.available_for_replay ? replay : live).addLayer(marker);
+                    (stream.available_for_replay ? replay : live).addLayer(marker);
+                }
             }
         });
     };
@@ -295,16 +306,25 @@ function InitMap() {
 }
 function InitApiTest() {
     var submitButton = $('<a class="button">Submit</div>');
-    submitButton.click(function(){
-        Api($('#method').val(),JSON.parse($('#params').val()),function(response){
-            $('#response').html(JSON.stringify(response,null,4));
-            console.log(response);
-        });
+    submitButton.click(function () {
+        try {
+            var method = $('#method').val().trim();
+            if (method == '')
+                throw Error('Method is empty');
+            Api(method, JSON.parse($('#params').val()), function (response) {
+                $('#response').html(JSON.stringify(response, null, 4));
+                console.log(response);
+            });
+        } catch (e) {
+            $('#response').text(e.toString());
+        }
     });
-    $('#right').append('<div id="ApiTest"><dt>Method</dt><input id="method" type="text" placeholder="mapGeoBroadcastFeed"/><br/>' +
-        '<dt>Parameters</dt><textarea id="params" placeholder="{include_replay: true, p1_lat: 1, p1_lng: 2, p2_lat: 3, p2_lng: 4}"/><br/><br/>' +
-        '<div id="response"/></div>');
-    $('#ApiTest').append(submitButton);
+    $('#right').append('<div id="ApiTest">Some documentation can be found in ' +
+        '<a href="https://github.com/gabrielg/periscope_api/blob/master/API.md" target="_blank">"periscope_api" repository</a>' +
+        ' or in <a href="https://github.com/Pmmlabs/periscope_api/blob/api/API.md" target="_blank">my fork</a>' +
+        '<br/><dt>Method</dt><input id="method" type="text" placeholder="mapGeoBroadcastFeed"/><br/>' +
+        '<dt>Parameters</dt><textarea id="params" placeholder="{include_replay: true, p1_lat: 1, p1_lng: 2, p2_lat: 3, p2_lng: 4}"/><br/><br/>');
+    $('#ApiTest').append(submitButton).append('<br/><br/><pre id="response"/>Response is also outputted to browser console</pre>');
 }
 function Api(method, params, callback) {
     if (loginTwitter && loginTwitter.cookie)
