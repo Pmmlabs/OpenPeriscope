@@ -135,6 +135,7 @@ $(document.head).append('<style>\
 </style>');
 
 $(document.body).html('<div style="width: 100%"><div id="left"/><div id="right"/></div>');
+document.title = 'Periscope Web Client';
 
 var oauth_token, oauth_verifier, session_key, session_secret, loginTwitter, consumer_secret = localStorage.getItem('consumer_secret');
 if (loginTwitter = localStorage.getItem('loginTwitter')) {
@@ -264,8 +265,35 @@ function InitMap() {
         singleMarkerMode: true,
         iconCreateFunction: iconCreate('live')
     }).addTo(map);
+    var getM3U = function (id) {
+        return function(e) {
+            var popup = $(e.popup._contentNode).children().first();
+            Api('getAccessPublic', {
+                broadcast_id: id
+            }, function (r) {
+                // For live
+                var hls_url = r.hls_url || r.https_hls_url;
+                if (hls_url) {
+                    popup.append('<a href="' + hls_url + '">Live M3U</a><br/>')
+                }
+                // For replay
+                var replay_url = r.replay_url;
+                if (replay_url) {
+                    var replay_base_url = replay_url.replace('playlist.m3u8', '');
+                    var params = '?';
+                    for (var i in r.cookies)
+                        params += r.cookies[i].Name.replace('CloudFront-', '') + '=' + r.cookies[i].Value + '&';
+                    params += 'Expires=0';
+                    replay_url += params;
+                    $.get(replay_url, function (m3u_text) {
+                        popup.append('<a href="data:text/plain;base64,' + btoa(m3u_text.replace(/(chunk_\d+\.ts)/g, replay_base_url + '$1' + params)) + '" download="playlist.m3u8">Replay M3U</a>')
+                    });
+                }
+            });
+        }
+    };
     var refreshMap = function (e) {
-        if (e && e.hard === false) return;
+        //if (e && e.hard === false) return;    // zoom change case
         var mapBounds = map.getBounds();
         Api('mapGeoBroadcastFeed', {
             "include_replay": true,
@@ -294,13 +322,15 @@ function InitMap() {
                 var marker = L.marker(new L.LatLng(stream.ip_lat, stream.ip_lng), {title: title});
                 if (!marker.getLatLng().equals(openLL)) {
                     var date_created = new Date(stream.created_at);
+                    var duration = stream.end ? new Date(new Date(stream.end)-date_created) : 0;
                     marker.bindPopup('<div class="description"><img src="' + stream.image_url_small + '"/>\
                         <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>\
                         <div class="username">@' + stream.username + '</div>\
-                        Created: ' + date_created.getDay() + '.' + date_created.getMonth() + '.' + date_created.getFullYear() + ' ' + date_created.getHours() + ':' + date_created.getMinutes() + '<br/>\
+                        Created: ' + date_created.getDay() + '.' + (date_created.getMonth()+1) + '.' + date_created.getFullYear() + ' ' + date_created.getHours() + ':' + date_created.getMinutes() + '<br/>\
+                        '+(duration ? 'Duration: '+duration.getHours()+':'+duration.getMinutes()+':'+duration.getSeconds() : '')+'\
                         ' + stream.country + ' ' + stream.country_state + ' ' + stream.city + '<br/>\
-                        Sort score: ' + stream.sort_score + '\
                     </div>');
+                    marker.on('popupopen', getM3U(stream.id));
                     (stream.state == 'RUNNING' ? live : replay).addLayer(marker);
                 }
             }
