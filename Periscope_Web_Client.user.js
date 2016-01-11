@@ -3,7 +3,7 @@
 // @name        Periscope Web Client
 // @namespace   https://greasyfork.org/users/23
 // @description Periscope client based on API requests. Visit example.net for launch.
-// @include     https://api.twitter.com/oauth/404*
+// @include     https://*twitter.com/oauth/404*
 // @include     http://example.net/*
 // @version     1.0
 // @author      Pmmlabs@github
@@ -18,7 +18,7 @@
 // @noframes
 // ==/UserScript==
 
-if (location.href.indexOf('https://api.twitter.com/oauth/404') == 0) {
+if (location.href.indexOf('.twitter.com/oauth/404') > 0) {
     location.href = 'http://example.net/' + location.search;
 }
 
@@ -110,9 +110,9 @@ $(document.head).append('<style>\
         color: white;\
         font-weight: bold;\
     }\
-    .description {\
+    .leaflet-popup-content .description {\
         width: 300px;\
-        height: 140px;\
+        height: 128px;\
     }\
     .description a {\
         font-weight: bold;\
@@ -129,8 +129,29 @@ $(document.head).append('<style>\
         width: 500px;\
         height: 100px;\
     }\
+    #ApiTest input {\
+        width: 500px;\
+    }\
     pre {\
         background-color: #f0f0f0;\
+    }\
+    .stream {\
+        border-left: 5px solid;\
+        margin: 5px;\
+        font: 12px/1.5 "Helvetica Neue",Arial,Helvetica,sans-serif;\
+        height: 128px;\
+    }\
+    .stream.RUNNING {\
+        border-color: #ED4D4D;;\
+    }\
+    .stream.ENDED {\
+        border-color: #4350E9;\
+    }\
+    .stream img {\
+        height: 128px;\
+    }\
+    .stream a {\
+        color: #0078A8;\
     }\
 </style>');
 
@@ -175,6 +196,7 @@ function Ready(loginInfo) {
         <div class="username">@' + loginInfo.user.username + '</div>');
     var menu = [
         {text: 'Map', id: 'Map'},
+        {text: 'Top', id: 'Top'},
         {text: 'API test', id: 'ApiTest'}
     ];
     for (var i in menu) {
@@ -182,7 +204,7 @@ function Ready(loginInfo) {
         link.click(SwitchSection.bind(null, link, menu[i].id));
         left.append(link);
     }
-    InitApiTest();
+    $('.menu').last().click();
 }
 function SwitchSection(elem, section) {
     // Switch menu
@@ -321,15 +343,7 @@ function InitMap() {
                 var title = stream.status || stream.user_display_name;
                 var marker = L.marker(new L.LatLng(stream.ip_lat, stream.ip_lng), {title: title});
                 if (!marker.getLatLng().equals(openLL)) {
-                    var date_created = new Date(stream.created_at);
-                    var duration = stream.end ? new Date(new Date(stream.end)-date_created) : 0;
-                    marker.bindPopup('<div class="description"><img src="' + stream.image_url_small + '"/>\
-                        <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>\
-                        <div class="username">@' + stream.username + '</div>\
-                        Created: ' + date_created.getDay() + '.' + (date_created.getMonth()+1) + '.' + date_created.getFullYear() + ' ' + date_created.getHours() + ':' + date_created.getMinutes() + '<br/>\
-                        '+(duration ? 'Duration: '+duration.getHours()+':'+duration.getMinutes()+':'+duration.getSeconds() : '')+'\
-                        ' + stream.country + ' ' + stream.country_state + ' ' + stream.city + '<br/>\
-                    </div>');
+                    marker.bindPopup(getDescription(stream));
                     marker.on('popupopen', getM3U(stream.id));
                     (stream.state == 'RUNNING' ? live : replay).addLayer(marker);
                 }
@@ -338,6 +352,19 @@ function InitMap() {
     };
     map.on('moveend', refreshMap);
     refreshMap();
+}
+function getDescription(stream){
+    var title = stream.status || stream.user_display_name;
+    var date_created = new Date(stream.created_at);
+    var duration = stream.end ? new Date(new Date(stream.end)-date_created) : 0;
+    return '<div class="description">\
+                <img src="' + stream.image_url_small + '"/>\
+                <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>\
+                <div class="username">@' + stream.username + ' ('+stream.user_display_name+')</div>\
+                Created: ' + date_created.getDate() + '.' + (date_created.getMonth()+1) + '.' + date_created.getFullYear() + ' ' + date_created.getHours() + ':' + date_created.getMinutes() + '<br/>\
+                '+(duration ? 'Duration: '+duration.getHours()+':'+duration.getMinutes()+':'+duration.getSeconds() : '')+'\
+                ' + stream.country + ' ' + stream.city + '<br/>\
+            </div>';
 }
 function InitApiTest() {
     var submitButton = $('<a class="button">Submit</div>');
@@ -365,8 +392,18 @@ function InitApiTest() {
         '<a href="https://github.com/gabrielg/periscope_api/blob/master/API.md" target="_blank">"periscope_api" repository</a>' +
         ' or in <a href="https://github.com/Pmmlabs/periscope_api/blob/api/API.md" target="_blank">my fork</a>' +
         '<br/><dt>Method</dt><input id="method" type="text" placeholder="mapGeoBroadcastFeed"/><br/>' +
-        '<dt>Parameters</dt><textarea id="params" placeholder="{include_replay: true, p1_lat: 1, p1_lng: 2, p2_lat: 3, p2_lng: 4}"/><br/><br/>');
+        '<dt>Parameters</dt><textarea id="params" placeholder=\'{"include_replay": true, "p1_lat": 1, "p1_lng": 2, "p2_lat": 3, "p2_lng": 4}\'/><br/><br/>');
     $('#ApiTest').append(submitButton).append('<br/><br/><pre id="response"/>Response is also displayed in the browser console</pre>');
+}
+function InitTop() {
+    $('#right').append('<div id="Top"></div>');
+    Api('rankedBroadcastFeed',{
+        languages: [(navigator.language || navigator.userLanguage).substr(0,2)],
+        "include_replay": true
+    }, function(response){
+        for (i in response)
+            $('#Top').append('<div class="stream '+response[i].state+'">'+getDescription(response[i])+'</div>');
+    });
 }
 function Api(method, params, callback, callback_fail) {
     if (loginTwitter && loginTwitter.cookie)
