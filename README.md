@@ -6,7 +6,7 @@ Periscope Web Client (userscript)
 1. Install [userscript manager](https://greasyfork.org/help/installing-user-scripts)
 1. Click to [link](https://raw.githubusercontent.com/Pmmlabs/periscope.js/master/Periscope_Web_Client.user.js) and then "Install"
 1. Navigate to http://example.net
-1. Type consumer secret of Periscope App
+1. Type consumer secret of Periscope App (_Where do I get it?_ Hunt out. Reverse the app, steal from twitter's devs, or something else)
 1. Click "Sign in with twitter"
 1. Login to the Twitter (if not yet) and click "Authorize"
 1. Here you go!
