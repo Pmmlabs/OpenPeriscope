@@ -169,7 +169,7 @@ function Ready(loginInfo) {
     signOutButton.click(SignOut);
 
     var left = $('#left').append(signOutButton)
-        .append('<img src="https://s.ytimg.com/yts/img/icn_loading_animated-vflff1Mjj.gif" id="spinner" />\
+        .append('<img src="http://s.ytimg.com/yts/img/icn_loading_animated-vflff1Mjj.gif" id="spinner" />\
         <br/><img src="' + loginInfo.user.profile_image_urls[1].url + '"/>\
         <div id="display_name">' + loginInfo.user.display_name + '</div>\
         <div class="username">@' + loginInfo.user.username + '</div>');
@@ -197,7 +197,7 @@ function SwitchSection(elem, section) {
         sectionContainer.show();
 }
 function InitMap() {
-    $(document.head).append('<link rel="stylesheet" href="https://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />')
+    $(document.head).append('<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />')
         .append('<link rel="stylesheet" href="http://leaflet.github.io/Leaflet.markercluster/dist/MarkerCluster.css" />');
     $('#right').append('<div id="Map"/>');
     var map = L.map('Map').setView([51.6681, 39.2075], 11);
@@ -218,7 +218,7 @@ function InitMap() {
         },
         {
             text: "mapbox",
-            layer: L.tileLayer('https://{s}.tiles.mapbox.com/v4/mapbox.emerald/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6IlhHVkZmaW8ifQ.hAMX5hSW-QnTeRCMAy9A8Q&update=iewnw', {
+            layer: L.tileLayer('http://{s}.tiles.mapbox.com/v4/mapbox.emerald/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6IlhHVkZmaW8ifQ.hAMX5hSW-QnTeRCMAy9A8Q&update=iewnw', {
                 attribution: 'Map data &copy; OpenStreetMap'
             })
         },
