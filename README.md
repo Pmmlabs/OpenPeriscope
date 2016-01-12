@@ -1,5 +1,5 @@
 # periscope.js
-Periscope Web Client (userscript)
+Unofficial in-browser web client for Periscope (userscript)
 
 ### Using
 

@@ -54,9 +54,7 @@ $(document.head).append('<style>\
         margin-top: 10px;\
     }\
     #left {\
-        width: 200px;\
-        height: 600px;\
-        float: left;\
+        position: fixed;\
     }\
     #right {\
         width: auto;\
@@ -121,6 +119,13 @@ $(document.head).append('<style>\
         float: left;\
         margin-right: 10px;\
     }\
+    .watching {\
+        float: right;\
+        padding-left: 20px;\
+        background-image: url("https://code.jquery.com/mobile/1.4.5/images/icons-png/user-black.png");\
+        background-repeat: no-repeat;\
+        background-position: 0 center;\
+    }\
     dt {\
         width: 150px;\
         float: left;\
@@ -138,7 +143,7 @@ $(document.head).append('<style>\
     .stream {\
         border-left: 5px solid;\
         margin: 5px;\
-        font: 12px/1.5 "Helvetica Neue",Arial,Helvetica,sans-serif;\
+        font: 14px/1.3 "Helvetica Neue",Arial,Helvetica,sans-serif;\
         height: 128px;\
     }\
     .stream.RUNNING {\
@@ -152,6 +157,9 @@ $(document.head).append('<style>\
     }\
     .stream a {\
         color: #0078A8;\
+    }\
+    #result {\
+        margin-top: 10px;\
     }\
 </style>');
 
@@ -231,14 +239,6 @@ function InitMap() {
             }).addTo(map)
         },
         {
-            text: "cloudmade",
-            layer: L.tileLayer('http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png', {
-                key: '1a1b06b230af4efdbb989ea99e9841af',
-                styleId: 1632,
-                attribution: 'Map data &copy; OpenStreetMap'
-            })
-        },
-        {
             text: "mapbox",
             layer: L.tileLayer('http://{s}.tiles.mapbox.com/v4/mapbox.emerald/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6IlhHVkZmaW8ifQ.hAMX5hSW-QnTeRCMAy9A8Q&update=iewnw', {
                 attribution: 'Map data &copy; OpenStreetMap'
@@ -287,33 +287,6 @@ function InitMap() {
         singleMarkerMode: true,
         iconCreateFunction: iconCreate('live')
     }).addTo(map);
-    var getM3U = function (id) {
-        return function(e) {
-            var popup = $(e.popup._contentNode).children().first();
-            Api('getAccessPublic', {
-                broadcast_id: id
-            }, function (r) {
-                // For live
-                var hls_url = r.hls_url || r.https_hls_url;
-                if (hls_url) {
-                    popup.append('<a href="' + hls_url + '">Live M3U</a><br/>')
-                }
-                // For replay
-                var replay_url = r.replay_url;
-                if (replay_url) {
-                    var replay_base_url = replay_url.replace('playlist.m3u8', '');
-                    var params = '?';
-                    for (var i in r.cookies)
-                        params += r.cookies[i].Name.replace('CloudFront-', '') + '=' + r.cookies[i].Value + '&';
-                    params += 'Expires=0';
-                    replay_url += params;
-                    $.get(replay_url, function (m3u_text) {
-                        popup.append('<a href="data:text/plain;base64,' + btoa(m3u_text.replace(/(chunk_\d+\.ts)/g, replay_base_url + '$1' + params)) + '" download="playlist.m3u8">Replay M3U</a>')
-                    });
-                }
-            });
-        }
-    };
     var refreshMap = function (e) {
         //if (e && e.hard === false) return;    // zoom change case
         var mapBounds = map.getBounds();
@@ -343,8 +316,14 @@ function InitMap() {
                 var title = stream.status || stream.user_display_name;
                 var marker = L.marker(new L.LatLng(stream.ip_lat, stream.ip_lng), {title: title});
                 if (!marker.getLatLng().equals(openLL)) {
-                    marker.bindPopup(getDescription(stream));
-                    marker.on('popupopen', getM3U(stream.id));
+                    var description = getDescription(stream);
+                    marker.bindPopup(description);
+                    marker.on('popupopen', getM3U.bind(null, stream.id, $(description)));
+                    marker.on('popupopen', Api.bind(null, 'getBroadcasts', {
+                        broadcast_ids: [stream.id]
+                    }, function (info) {
+                        $('.leaflet-popup-content .watching').text(info[0].n_watching + info[0].n_web_watching);
+                    }));
                     (stream.state == 'RUNNING' ? live : replay).addLayer(marker);
                 }
             }
@@ -352,19 +331,6 @@ function InitMap() {
     };
     map.on('moveend', refreshMap);
     refreshMap();
-}
-function getDescription(stream){
-    var title = stream.status || stream.user_display_name;
-    var date_created = new Date(stream.created_at);
-    var duration = stream.end ? new Date(new Date(stream.end)-date_created) : 0;
-    return '<div class="description">\
-                <img src="' + stream.image_url_small + '"/>\
-                <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>\
-                <div class="username">@' + stream.username + ' ('+stream.user_display_name+')</div>\
-                Created: ' + date_created.getDate() + '.' + (date_created.getMonth()+1) + '.' + date_created.getFullYear() + ' ' + date_created.getHours() + ':' + date_created.getMinutes() + '<br/>\
-                '+(duration ? 'Duration: '+duration.getHours()+':'+duration.getMinutes()+':'+duration.getSeconds() : '')+'\
-                ' + stream.country + ' ' + stream.city + '<br/>\
-            </div>';
 }
 function InitApiTest() {
     var submitButton = $('<a class="button">Submit</div>');
@@ -396,15 +362,100 @@ function InitApiTest() {
     $('#ApiTest').append(submitButton).append('<br/><br/><pre id="response"/>Response is also displayed in the browser console</pre>');
 }
 function InitTop() {
-    $('#right').append('<div id="Top"></div>');
-    Api('rankedBroadcastFeed',{
-        languages: [(navigator.language || navigator.userLanguage).substr(0,2)],
-        "include_replay": true
-    }, function(response){
-        for (i in response)
-            $('#Top').append('<div class="stream '+response[i].state+'">'+getDescription(response[i])+'</div>');
-    });
+    var refreshList = function() {
+        Api('rankedBroadcastFeed', {
+            languages: [$('#lang').val()]
+        }, function (response) {
+            var result = $('#result');
+            result.empty();
+            var ids =[];
+            for (var i in response) {
+                var stream = $('<div class="stream ' + response[i].state + ' '+response[i].id+'">').append(getDescription(response[i]));
+                var link = $('<a href="#">Get stream link</a>');
+                link.click(getM3U.bind(null, response[i].id, stream));
+                result.append(stream.append(link).append('<br/>'));
+                ids.push(response[i].id);
+            }
+            Api('getBroadcasts', {
+                broadcast_ids: ids
+            }, function(info){
+                for (var i in info)
+                    $('.stream.'+info[i].id+' .watching').text(info[i].n_watching+info[i].n_web_watching);
+            })
+        });
+    };
+
+    $('#right').append('<div id="Top">');
+    var refreshButton = $('<a class="button">Refresh</a>');
+    refreshButton.click(refreshList);
+    $('#Top').append(refreshButton).append('Language: <select id="lang">\
+            <option>ar</option>\
+            <option>de</option>\
+            <option>en</option>\
+            <option>es</option>\
+            <option>fi</option>\
+            <option>fr</option>\
+            <option>hy</option>\
+            <option>id</option>\
+            <option>it</option>\
+            <option>ja</option>\
+            <option>kk</option>\
+            <option>other</option>\
+            <option>pt</option>\
+            <option>ro</option>\
+            <option>ru</option>\
+            <option>sv</option>\
+            <option>tr</option>\
+            <option>uk</option>\
+            <option>zh</option>\
+        </select>\
+        <div id="result" />');
+
+    $("#lang").find(":contains("+(navigator.language || navigator.userLanguage).substr(0, 2)+")").attr("selected", "selected");
+    refreshList();
 }
+function getM3U (id, jcontainer) {
+    Api('getAccessPublic', {
+        broadcast_id: id
+    }, function (r) {
+        // For live
+        var hls_url = r.hls_url || r.https_hls_url;
+        if (hls_url) {
+            jcontainer.find('.links').html('<a href="' + hls_url + '">Live M3U link</a>');
+        }
+        // For replay
+        var replay_url = r.replay_url;
+        if (replay_url) {
+            var replay_base_url = replay_url.replace('playlist.m3u8', '');
+            var params = '?';
+            for (var i in r.cookies)
+                params += r.cookies[i].Name.replace('CloudFront-', '') + '=' + r.cookies[i].Value + '&';
+            params += 'Expires=0';
+            replay_url += params;
+            $.get(replay_url, function (m3u_text) {
+                jcontainer.find('.links').html('<a href="data:text/plain;base64,' + btoa(m3u_text.replace(/(chunk_\d+\.ts)/g, replay_base_url + '$1' + params)) + '" download="playlist.m3u8">Download replay M3U</a>');
+            });
+        }
+    });
+    return false;
+}
+function getDescription(stream) {
+    var title = stream.status || stream.user_display_name;
+    var date_created = new Date(stream.created_at);
+    var duration = stream.end || stream.timedout ? new Date(new Date(stream.end || stream.timedout) - date_created) : 0;
+    var description = $('<div class="description">\
+                <a href="'+stream.image_url+'" target="_blank"><img src="' + stream.image_url_small + '"/></a>\
+                <div class="watching"></div>\
+                <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>\
+                <div class="username">@' + stream.username + ' ('+stream.user_display_name+')</div>\
+                Created: ' + date_created.getDate() + '.' + (date_created.getMonth()+1) + '.' + date_created.getFullYear() + ' ' + date_created.getHours() + ':' + date_created.getMinutes() + '\
+                '+(duration ? '<br/>Duration: '+duration.getUTCHours()+':'+duration.getMinutes()+':'+duration.getSeconds() : '')+'\
+                <br/>' + stream.country + ' ' + stream.city + '\
+                <div class="links" />\
+            </div>');
+    return description.get(0);
+}
+
 function Api(method, params, callback, callback_fail) {
     if (loginTwitter && loginTwitter.cookie)
         params.cookie = loginTwitter.cookie;
