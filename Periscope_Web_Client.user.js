@@ -139,6 +139,9 @@ $(document.head).append('<style>\
     }\
     pre {\
         background-color: #f0f0f0;\
+        padding: 7px;\
+        white-space: pre-wrap;\
+        word-wrap: break-word;\
     }\
     .stream {\
         border-left: 5px solid;\
@@ -205,6 +208,7 @@ function Ready(loginInfo) {
     var menu = [
         {text: 'Map', id: 'Map'},
         {text: 'Top', id: 'Top'},
+        {text: 'New broadcast', id: 'Create'},
         {text: 'API test', id: 'ApiTest'}
     ];
     for (var i in menu) {
@@ -385,7 +389,7 @@ function InitTop() {
         });
     };
 
-    $('#right').append('<div id="Top">');
+    $('#right').append('<div id="Top" />');
     var refreshButton = $('<a class="button">Refresh</a>');
     refreshButton.click(refreshList);
     $('#Top').append(refreshButton).append('Language: <select id="lang">\
@@ -413,6 +417,53 @@ function InitTop() {
 
     $("#lang").find(":contains("+(navigator.language || navigator.userLanguage).substr(0, 2)+")").attr("selected", "selected");
     refreshList();
+}
+function InitCreate() {
+    $('#right').append('<div id="Create">' +
+        'Title: <input id="status" type="text" autocomplete="on"><br/>' +
+        'Width: <input id="width" type="text" autocomplete="on" placeholder="320"><br/>' +
+        'Height: <input id="height" type="text" autocomplete="on" placeholder="568"><br/>' +
+        'Filename: <input id="filename" type="text" autocomplete="on"><br/>' +
+        'Streaming bitrate: <input id="bitrate" type="text" value="200">kBps<br/>' +
+        'Server: <select id="server">' +
+            '<option>us-west-1</option>' +
+            '<option selected>eu-central-1</option>' +
+        '<select><br/>' +
+        '<br/></div>');
+    var createButton=$('<a class="button">Create</a>');
+    createButton.click(createBroadcast);
+    $('#Create').append(createButton);
+}
+function createBroadcast(){
+    Api('createBroadcast',{
+        lat: 0,
+        lng: 0,
+        region: $('#server').val(),
+        width: +$('#width').val(),
+        height: +$('#height').val()
+    }, function(createInfo){
+        //console.log(createInfo);
+        Api('publishBroadcast', {
+            broadcast_id: createInfo.broadcast.id,
+            friend_chat: false,
+            has_location: false,
+            //"locale": "ru",
+            //"lat": 0.0,    // location latitude
+            //"lng": -20.0,  // location longitude
+            status: $('#status').val().trim()
+        }, function(){
+            var code = 'ffmpeg -re -i "'+$('#filename').val()+'" -vcodec libx264 -b:v '+$('#bitrate').val()+'k' +
+                ' -strict experimental -acodec aac -b:a 128k -ac 1 -f flv' +
+                ' rtmp://'+createInfo.host+':'+createInfo.port+'/liveorigin?t='+createInfo.credential+'/'+createInfo.stream_name+' & '+
+                ' while true; do sleep 5s; curl --form "cookie=' + loginTwitter.cookie +'" --form "broadcast_id='+createInfo.broadcast.id+'" https://api.periscope.tv/api/v2/pingBroadcast;'+
+                ' done;'+
+                'curl --form "cookie=' + loginTwitter.cookie +'" --form "broadcast_id='+createInfo.broadcast.id+'" https://api.periscope.tv/api/v2/endBroadcast';
+            $('#Create').append('<pre>' + code + '</pre>' +
+                '<a target="_blank" href="https://www.periscope.tv/w/'+createInfo.broadcast.id+'">Watch your stream</a> | ' +
+                '<a href="data:text/plain;base64,' + btoa('#!/bin/bash\n'+unescape(encodeURIComponent(code))) + '" download="stream.sh">Download .SH</a>');
+        });
+        //var broadcast = response.broadcast;
+    });
 }
 function getM3U (id, jcontainer) {
     Api('getAccessPublic', {
