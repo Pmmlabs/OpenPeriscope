@@ -413,8 +413,19 @@ function InitTop() {
             <option>uk</option>\
             <option>zh</option>\
         </select>\
+        <div id="sort" class="watching" />\
         <div id="result" />');
-
+    var sort = $('<a href="#">Sort by watching</a>');
+    sort.click(function(){
+        var streams = $('.stream');
+        var sorted = streams.sort(function (a, b) {
+            return $(b).find('.watching').text() -  $(a).find('.watching').text();
+        });
+        streams.remove();
+        $('#result').append(sorted);
+        return false;
+    });
+    $('#sort').append(sort);
     $("#lang").find(":contains("+(navigator.language || navigator.userLanguage).substr(0, 2)+")").attr("selected", "selected");
     refreshList();
 }
