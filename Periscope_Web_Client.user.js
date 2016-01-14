@@ -18,7 +18,7 @@
 // @noframes
 // ==/UserScript==
 
-if (location.href.indexOf('.twitter.com/oauth/404') > 0) {
+if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     location.href = 'http://example.net/' + location.search;
 }
 
