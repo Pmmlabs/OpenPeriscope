@@ -243,8 +243,8 @@ function InitMap() {
             }).addTo(map)
         },
         {
-            text: "mapbox",
-            layer: L.tileLayer('http://{s}.tiles.mapbox.com/v4/mapbox.emerald/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6IlhHVkZmaW8ifQ.hAMX5hSW-QnTeRCMAy9A8Q&update=iewnw', {
+            text: "Mapbox",
+            layer: L.tileLayer('http://{s}.tiles.mapbox.com/v4/mapbox.streets/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpamVuY3cxbzAwMG12ZGx4cGljbGtqMGUifQ.vpDqms08MBqoRgp667Yz5Q', {
                 attribution: 'Map data &copy; OpenStreetMap'
             })
         },
@@ -384,7 +384,7 @@ function InitTop() {
                 broadcast_ids: ids
             }, function(info){
                 for (var i in info)
-                    $('.stream.'+info[i].id+' .watching').text(info[i].n_watching+info[i].n_web_watching);
+                    $('.stream.'+info[i].id+' .watching').text(info[i].n_watching);
             })
         });
     };
@@ -421,7 +421,6 @@ function InitTop() {
         var sorted = streams.sort(function (a, b) {
             return $(b).find('.watching').text() -  $(a).find('.watching').text();
         });
-        streams.remove();
         $('#result').append(sorted);
         return false;
     });
@@ -512,7 +511,7 @@ function getDescription(stream) {
                 <div class="username">@' + stream.username + ' ('+stream.user_display_name+')</div>\
                 Created: ' + date_created.getDate() + '.' + (date_created.getMonth()+1) + '.' + date_created.getFullYear() + ' ' + date_created.getHours() + ':' + date_created.getMinutes() + '\
                 '+(duration ? '<br/>Duration: '+duration.getUTCHours()+':'+duration.getMinutes()+':'+duration.getSeconds() : '')+'\
-                <br/>' + stream.country + ' ' + stream.city + '\
+                <br/>' + stream.country + ', ' + stream.city + '\
                 <div class="links" />\
             </div>');
     return description.get(0);
