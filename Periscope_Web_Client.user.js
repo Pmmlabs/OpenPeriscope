@@ -13,6 +13,7 @@
 // @require     http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js
 // @require     http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js
 // @require     http://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js
+// @require     http://releases.flowplayer.org/6.0.5/flowplayer.js
 // @downloadURL https://raw.githubusercontent.com/Pmmlabs/periscope.js/master/Periscope_Web_Client.user.js
 // @updateURL   https://raw.githubusercontent.com/Pmmlabs/snapster/master/Periscope_Web_Client.meta.js
 // @noframes
@@ -75,19 +76,19 @@ $(document.head).append('<style>\
         background-color: rgba(222, 0, 0, 0.6);\
     }\
     .live-cluster-medium div {\
-        background-color: rgba(139, 0, 0, 0.6);\
+        background-color: rgba(180, 0, 0, 0.7);\
     }\
     .live-cluster-large div {\
-        background-color: rgba(71, 0, 0, 0.6);\
+        background-color: rgba(150, 0, 0, 0.9);\
     }\
     .replay-cluster-small div {\
         background-color: rgba(59, 51, 227, 0.6);\
     }\
     .replay-cluster-medium div {\
-        background-color: rgba(41, 36, 164, 0.6);\
+        background-color: rgba(43, 38, 174, 0.7);\
     }\
     .replay-cluster-large div {\
-        background-color: rgba(21, 18, 80, 0.6);\
+        background-color: rgba(33, 29, 128, 0.9);\
     }\
     .marker-cluster {\
         background-clip: padding-box;\
@@ -145,7 +146,7 @@ $(document.head).append('<style>\
     }\
     .stream {\
         border-left: 5px solid;\
-        margin: 5px;\
+        margin: 5px 0;\
         font: 14px/1.3 "Helvetica Neue",Arial,Helvetica,sans-serif;\
         height: 128px;\
     }\
@@ -209,6 +210,7 @@ function Ready(loginInfo) {
         {text: 'Map', id: 'Map'},
         {text: 'Top', id: 'Top'},
         {text: 'New broadcast', id: 'Create'},
+        {text: 'Player', id: 'Player'},
         {text: 'API test', id: 'ApiTest'}
     ];
     for (var i in menu) {
@@ -444,6 +446,28 @@ function InitCreate() {
     createButton.click(createBroadcast);
     $('#Create').append(createButton);
 }
+function InitPlayer() {
+    //window.getComputedStyle = function(){return getComputedStyle;}();
+    $(document.head).append('<link rel="stylesheet" href="//releases.flowplayer.org/6.0.5/skin/functional.css" />');
+    $('#right').append('<div id="Player"><div class="flowplayer" data-ratio="0.5625">\
+        <video>\
+        <source type="application/x-mpegurl" src="//stream.flowplayer.org/FlowplayerHTML5forWordPress.m3u8">\
+        </video>\
+        </div></div>');
+
+    //flowplayer(function (api) {
+    //
+    //    api.on("load ready", function (e, api, video) {
+    //        var log = $("<p/>").text(e.type + ": " + video.src + ", duration: " +
+    //            (video.duration || "not available"));
+    //
+    //        $("#log").append(log);
+    //    });
+    //
+    //});
+    $('.flowplayer').flowplayer();
+    
+}
 function createBroadcast(){
     Api('createBroadcast',{
         lat: 0,
@@ -501,6 +525,9 @@ function getM3U (id, jcontainer) {
     return false;
 }
 function getDescription(stream) {
+    var zeros = function(number){
+        return (100 + number + '').substr(1);
+    };
     var title = stream.status || stream.user_display_name;
     var date_created = new Date(stream.created_at);
     var duration = stream.end || stream.timedout ? new Date(new Date(stream.end || stream.timedout) - date_created) : 0;
@@ -509,8 +536,8 @@ function getDescription(stream) {
                 <div class="watching"></div>\
                 <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>\
                 <div class="username">@' + stream.username + ' ('+stream.user_display_name+')</div>\
-                Created: ' + date_created.getDate() + '.' + (date_created.getMonth()+1) + '.' + date_created.getFullYear() + ' ' + date_created.getHours() + ':' + date_created.getMinutes() + '\
-                '+(duration ? '<br/>Duration: '+duration.getUTCHours()+':'+duration.getMinutes()+':'+duration.getSeconds() : '')+'\
+                Created: ' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth()+1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes()) + '\
+                '+(duration ? '<br/>Duration: '+zeros(duration.getUTCHours())+':'+zeros(duration.getMinutes())+':'+zeros(duration.getSeconds()) : '')+'\
                 <br/>' + stream.country + ', ' + stream.city + '\
                 <div class="links" />\
             </div>');
