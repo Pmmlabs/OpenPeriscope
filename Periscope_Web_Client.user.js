@@ -13,7 +13,6 @@
 // @require     http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js
 // @require     http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js
 // @require     http://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js
-// @require     http://releases.flowplayer.org/6.0.5/flowplayer.js
 // @downloadURL https://raw.githubusercontent.com/Pmmlabs/periscope.js/master/Periscope_Web_Client.user.js
 // @updateURL   https://raw.githubusercontent.com/Pmmlabs/snapster/master/Periscope_Web_Client.meta.js
 // @noframes
@@ -447,26 +446,7 @@ function InitCreate() {
     $('#Create').append(createButton);
 }
 function InitPlayer() {
-    //window.getComputedStyle = function(){return getComputedStyle;}();
-    $(document.head).append('<link rel="stylesheet" href="//releases.flowplayer.org/6.0.5/skin/functional.css" />');
-    $('#right').append('<div id="Player"><div class="flowplayer" data-ratio="0.5625">\
-        <video>\
-        <source type="application/x-mpegurl" src="//stream.flowplayer.org/FlowplayerHTML5forWordPress.m3u8">\
-        </video>\
-        </div></div>');
-
-    //flowplayer(function (api) {
-    //
-    //    api.on("load ready", function (e, api, video) {
-    //        var log = $("<p/>").text(e.type + ": " + video.src + ", duration: " +
-    //            (video.duration || "not available"));
-    //
-    //        $("#log").append(log);
-    //    });
-    //
-    //});
-    $('.flowplayer').flowplayer();
-    
+    $('#right').append('<div id="Player"></div>');
 }
 function createBroadcast(){
     Api('createBroadcast',{
@@ -503,10 +483,11 @@ function getM3U (id, jcontainer) {
     Api('getAccessPublic', {
         broadcast_id: id
     }, function (r) {
+        jcontainer.find('.links').empty();
         // For live
         var hls_url = r.hls_url || r.https_hls_url;
         if (hls_url) {
-            jcontainer.find('.links').html('<a href="' + hls_url + '">Live M3U link</a>');
+            jcontainer.find('.links').append('<a href="' + hls_url + '">Live M3U link</a>');
         }
         // For replay
         var replay_url = r.replay_url;
@@ -518,7 +499,7 @@ function getM3U (id, jcontainer) {
             params += 'Expires=0';
             replay_url += params;
             $.get(replay_url, function (m3u_text) {
-                jcontainer.find('.links').html('<a href="data:text/plain;base64,' + btoa(m3u_text.replace(/(chunk_\d+\.ts)/g, replay_base_url + '$1' + params)) + '" download="playlist.m3u8">Download replay M3U</a>');
+                jcontainer.find('.links').append('<a href="data:text/plain;base64,' + btoa(m3u_text.replace(/(chunk_\d+\.ts)/g, replay_base_url + '$1' + params)) + '" download="playlist.m3u8">Download replay M3U</a>');
             });
         }
     });
@@ -538,7 +519,7 @@ function getDescription(stream) {
                 <div class="username">@' + stream.username + ' ('+stream.user_display_name+')</div>\
                 Created: ' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth()+1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes()) + '\
                 '+(duration ? '<br/>Duration: '+zeros(duration.getUTCHours())+':'+zeros(duration.getMinutes())+':'+zeros(duration.getSeconds()) : '')+'\
-                <br/>' + stream.country + ', ' + stream.city + '\
+                '+(stream.country || stream.city ? '<br/>' + stream.country + ' ' + stream.city : '') + '\
                 <div class="links" />\
             </div>');
     return description.get(0);
