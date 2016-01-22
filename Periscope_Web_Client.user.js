@@ -360,8 +360,8 @@ function InitApiTest() {
         }
     });
     $('#right').append('<div id="ApiTest">Some documentation can be found in ' +
-        '<a href="https://github.com/gabrielg/periscope_api/blob/master/API.md" target="_blank">"periscope_api" repository</a>' +
-        ' or in <a href="https://github.com/Pmmlabs/periscope_api/blob/api/API.md" target="_blank">my fork</a>' +
+        '<a href="https://github.com/Pmmlabs/periscope_api/blob/api/API.md" target="_blank">periscope_api</a> repository' +
+        ' or in <a href="http://static.pmmlabs.ru/periscope.js/">docs by @cjhbtn</a>' +
         '<br/><dt>Method</dt><input id="method" type="text" placeholder="mapGeoBroadcastFeed"/><br/>' +
         '<dt>Parameters</dt><textarea id="params" placeholder=\'{"include_replay": true, "p1_lat": 1, "p1_lng": 2, "p2_lat": 3, "p2_lng": 4}\'/><br/><br/>');
     $('#ApiTest').append(submitButton).append('<br/><br/><pre id="response"/>Response is also displayed in the browser console</pre>');
