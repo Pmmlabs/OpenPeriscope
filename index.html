@@ -468,11 +468,11 @@
                                 <p>
                                     The flowchart below shows the API calls made by the iOS app upon logging in to the Periscope application.<br />
                                     <br />
-                                    The entry point in to the API is through the /loginTwitter endpoint, which converts the Twitter OAuth Token and Token Secret into a cookie value for use on all authenticated requests.<br />
+                                    The entry point in to the API is through the <a href="#/loginTwitter">/loginTwitter</a> endpoint, which converts the Twitter OAuth Token and Token Secret into a cookie value for use on all authenticated requests.<br />
                                     <br />
-                                    After this, the application proceeds to grab a list of the Featured Broadcasts, and Broadcasts from users that are being followed by the current user. These are the calls to /featuredBroadcastFeed and /followingBroadcastFeed.<br />
+                                    After this, the application proceeds to grab a list of the Featured Broadcasts, and Broadcasts from users that are being followed by the current user. These are the calls to <a href="#/featuredBroadcastFeed">/featuredBroadcastFeed</a> and <a href="#/followingBroadcastFeed">/followingBroadcastFeed.</a> </br>
                                     <br />
-                                    Finally, the application appears to register the device token against the user, most likely allowing for notifications of broadcasts to be sent to the device. This is on the /registerToken endpoint.
+                                    Finally, the application appears to register the device token against the user, most likely allowing for notifications of broadcasts to be sent to the device. This is on the <a href="#/registerToken">/registerToken</a> endpoint.
                                 </p>
                             </div>
                         </div>                    <div class="panel panel-default">
@@ -481,17 +481,17 @@
                             <p>
                                 When viewing a Broadcast, the Periscope application uses 4 endpoints from the API.<br />
                                 <br />
-                                The /accessChannel endpoint is used to initiate the viewing. It enables retrieval of the access details, such as stream locations and PubNub channel and subscriber keys. It is likely that calling this endpoint marks you as a 'viewer' of the Broadcast, and would therefore appear in the Viewer list.<br />
+                                The <a href="#/accessChannel">/accessChannel</a> endpoint is used to initiate the viewing. It enables retrieval of the access details, such as stream locations and PubNub channel and subscriber keys. It is likely that calling this endpoint marks you as a 'viewer' of the Broadcast, and would therefore appear in the Viewer list.<br />
                                 <br />
                                 The application then uses the stream URL to playback the associated video with the Broadcast.<br />
                                 <br />
                                 At this time, a connection to PubNub is established, which acts as the host of prescence, chat and heart realtime notifications. More details about this will be covered in additional documentation.<br />
                                 <br />
-                                Every 30 seconds, the /pingWatching endpoint is called, which relays back to the API details such as the number of hearts given and the number of comments sent since the last call.<br />
+                                Every 30 seconds, the <a href="#/pingWatching">/pingWatching</a> endpoint is called, which relays back to the API details such as the number of hearts given and the number of comments sent since the last call.<br />
                                 <br />
-                                When ending the viewing, the /playbackMeta endpoint is called to provide Periscope with some feedback on the quality and experience that was encountered during the playback session.<br />
+                                When ending the viewing, the <a href="#/playbackMeta">/playbackMeta</a> endpoint is called to provide Periscope with some feedback on the quality and experience that was encountered during the playback session.<br />
                                 <br />
-                                Finally, /stopWatching ends the viewing session and sends the final tally of hearts and comments sent.
+                                Finally, <a href="#/stopWatching">/stopWatching</a> ends the viewing session and sends the final tally of hearts and comments sent.
                             </p>
 
                         </div>
@@ -503,15 +503,15 @@
                                 <br />
                                 To begin with, the application uploads some padding data to a "signer" resource (located at https://signer.periscope.tv/upload) for two purposes: firstly, to gauge the connection speed for uploading purposes, and secondly to retrieve the AWS region closest to the current location.<br />
                                 <br />
-                                A request to /createBroadcast is then made, using the region received from the Signer. This returns details that allow the video to be published to an RTMP server, along with PubNub details for subscribing to presence data, the chat and heart feeds.<br />
+                                A request to <a href="#/createBroadcast">/createBroadcast</a> is then made, using the region received from the Signer. This returns details that allow the video to be published to an RTMP server, along with PubNub details for subscribing to presence data, the chat and heart feeds.<br />
                                 <br />
-                                Once the details of the broadcast are established, the video starts to be streamed to the RTMP server and a request to /publishBroadcast is made, providing details such as the Broadcast title, if the Broadcast is locked to certain users and whether the chat is locked down.<br />
+                                Once the details of the broadcast are established, the video starts to be streamed to the RTMP server and a request to <a href="#/publishBroadcast">/publishBroadcast</a> is made, providing details such as the Broadcast title, if the Broadcast is locked to certain users and whether the chat is locked down.<br />
                                 <br />
-                                As with viewing a Broadcast, a ping is sent around every 30 seconds, in this case to /pingBroadcast. This provides an update to the API that the broadcast is still running, along with a debug log of connection details.<br />
+                                As with viewing a Broadcast, a ping is sent around every 30 seconds, in this case to <a href="#/pingBroadcast">/pingBroadcast.</a> This provides an update to the API that the broadcast is still running, along with a debug log of connection details.<br />
                                 <br />
-                                When the Broadcast is ending, a call to /broadcastMeta is made with debug information about the connection quality and speed.<br />
+                                When the Broadcast is ending, a call to <a href="#/broadcastMeta">/broadcastMeta</a> is made with debug information about the connection quality and speed.<br />
                                 <br />
-                                Finally, /endBroadcast stops the Broadcast and returns some analytical data on the Broadcast, such as number of viewers and retention data.
+                                Finally, <a href="#/endBroadcast">/endBroadcast</a> stops the Broadcast and returns some analytical data on the Broadcast, such as number of viewers and retention data.
                             </p>
 
                         </div>
@@ -535,7 +535,7 @@
                                     <br />
                                     The Twitter OAuth Token and OAuth Secret are obtained from the Twitter API using the Periscope OAuth Consumer and Consumer Secret. OAuth Tokens from other application contexts will not work.<br />
                                     <br />
-                                    When using this endpoint with Twitter Digits for the first time, some account creation must take place (namely on the /verifyUsername endpoint). Without this, the user will not have a Periscope username associated with the account.
+                                    When using this endpoint with Twitter Digits for the first time, some account creation must take place (namely on the <a href="#/verifyUsername">/verifyUsername</a> endpoint). Without this, the user will not have a Periscope username associated with the account.
                                 </p>
 
                                 <hr>
@@ -816,7 +816,7 @@ Connection: close
                             <p>
                                 This endpoint is only used by iOS devices only, and appears to register the current device token with the Periscope API, most likely for notification purposes.<br />
                                 <br />
-                                When a user logs out (see the /logout endpoint), the device token is sent too, indicating that notifications should no longer be sent to this device.
+                                When a user logs out (see the <a href="#/logout">/logout</a> endpoint), the device token is sent too, indicating that notifications should no longer be sent to this device.
                             </p>
 
                             <hr>
