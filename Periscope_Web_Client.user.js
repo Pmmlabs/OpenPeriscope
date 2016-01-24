@@ -67,7 +67,7 @@ $(document.head).append('<style>\
     .username {\
         color: grey;\
     }\
-    #Map {\
+    #Map, #Chat {\
         width:100%;\
         height:100%;\
     }\
@@ -161,8 +161,54 @@ $(document.head).append('<style>\
     .stream a {\
         color: #0078A8;\
     }\
-    #result {\
-        margin-top: 10px;\
+    /* CHAT */\
+    #userlist {\
+        float: right;\
+        width: 250px;\
+    }\
+    #chat {\
+        margin-right: 250px;\
+    }\
+    #chat, #userlist {\
+        border: 1px solid #bcbcbc;\
+        height: 100%;\
+        padding: 5px;\
+        overflow-y: auto;\
+    }\
+    .user {\
+        white-space: nowrap;\
+    }\
+    #chat .user {\
+        color: #2927cc;\
+        cursor: pointer;\
+    }\
+    .user div {\
+        display: inline;\
+    }\
+    #title {\
+        margin-left: 10px;\
+        font-size: 16px;\
+    }\
+    #sendMessage, #underchat label {\
+        float: right;\
+    }\
+    #underchat label {\
+        margin-left: 10px;\
+    }\
+    #underchat div {\
+        margin-right: 190px;\
+    }\
+    #underchat {\
+        line-height: 0;\
+    }\
+    #message {\
+        width: 100%;\
+    }\
+    .service {\
+        color: green;\
+    }\
+    .error {\
+        color: red;\
     }\
 </style>');
 
@@ -209,7 +255,7 @@ function Ready(loginInfo) {
         {text: 'Map', id: 'Map'},
         {text: 'Top', id: 'Top'},
         {text: 'New broadcast', id: 'Create'},
-        {text: 'Player', id: 'Player'},
+        {text: 'Chat', id: 'Chat'},
         {text: 'API test', id: 'ApiTest'}
     ];
     for (var i in menu) {
@@ -415,7 +461,7 @@ function InitTop() {
             <option>zh</option>\
         </select>\
         <div id="sort" class="watching" />\
-        <div id="result" />');
+        <br/><br/><div id="result" />');
     var sort = $('<a href="#">Sort by watching</a>');
     sort.click(function(){
         var streams = $('.stream');
@@ -445,8 +491,147 @@ function InitCreate() {
     createButton.click(createBroadcast);
     $('#Create').append(createButton);
 }
-function InitPlayer() {
-    $('#right').append('<div id="Player"></div>');
+function InitChat() {
+    $('#right').append('<div id="Chat">id: <input id="broadcast_id" type="text" size="15"></div>');
+    var playButton = $('<button id="play">OK</button>');
+    playButton.click(playBroadcast);
+    $('#Chat').append(playButton).append('<span id="title"/>\
+        <br/><br/>\
+        <div id="userlist"/>\
+        <div id="chat"/>\
+        <pre id="underchat">\
+            <label><input type="checkbox" id="autoscroll" checked/> Autoscroll</label>\
+            <button id="sendMessage">Send</button>\
+            <div><input type="text" id="message"></div>\
+        </pre>');
+}
+var chat_interval;
+var presence_interval;
+function playBroadcast() {
+    clearInterval(chat_interval);
+    clearInterval(presence_interval);
+    $('#chat').empty();
+    $('#userlist').empty();
+    $('#title').empty();
+    Api('accessChannel', {
+        broadcast_id: $('#broadcast_id').val().trim()
+    }, function (broadcast) {
+        console.log(broadcast);
+        $('#title').html((broadcast.publisher == "" ? '<b>FORBIDDEN</b> | ' : '')
+            + '<a href="https://www.periscope.tv/w/'+broadcast.broadcast.id+'" target="_blank">'+(broadcast.broadcast.status || 'Untitled') + '</a> | '
+            + broadcast.broadcast.user_display_name + ' (<span class="username">@' + broadcast.broadcast.username + '</span>) | ' +
+            '<a href="'+broadcast.hls_url+'">M3U Link</a> | <a href="'+broadcast.rtmp_url+'">RTMP Link</a>');
+        // Update users list
+        var userlist = $('#userlist');
+        function presenceUpdate() {
+            $.get('http://pubsub.pubnub.com/v2/presence/sub_key/' + broadcast.subscriber + '/channel/' + broadcast.channel, {
+                state: 1,
+                auth: broadcast.auth_token
+            }, function (pubnub) {
+                userlist.empty();
+                var user;
+                for (var i in pubnub.uuids)
+                    if ((user = pubnub.uuids[i].state) && user.username)
+                        userlist.append('<div class="user">' + user.display_name + ' <div class="username">(' + user.username + ')</div></div>');
+            }, 'json');
+        }
+        presence_interval = setInterval(presenceUpdate, 15000);
+        presenceUpdate();
+        // Update messages list
+        var prev_time = 0;      // time of previous result
+        var xhr_done = true;    // last request finished, can send next request
+        var chat = $('#chat');
+        function messagesUpdate() {
+            if (xhr_done) {
+                xhr_done = false;
+                $.get('http://pubsub.pubnub.com/subscribe/' + broadcast.subscriber + '/' + broadcast.channel + '-pnpres,' + broadcast.channel + '/0/' + prev_time, {
+                    auth: broadcast.auth_token
+                }, function (pubnub) {
+                    prev_time = pubnub[1];
+                    xhr_done = true;
+                    // Render messages
+                    for (var i in pubnub[0]) {
+                        var event = pubnub[0][i];
+                        switch (event.type) {
+                            case 1:  // text message
+                                var date = new Date((parseInt(event.ntpForLiveFrame.toString(16).substr(0, 8), 16) - 2208988800) * 1000);
+                                var html = $('<div/>').append('[' + zeros(date.getHours()) + ':' + zeros(date.getMinutes()) + ':' + zeros(date.getSeconds()) + '] ');
+                                var username = $('<span class="user">&lt;' + event.username + '&gt;</span>');
+                                username.click(insertUsername);
+                                html.append(username).append(' ').append(event.body.replace(/(@\S+)/g, '<b>$1</b>'));
+                                if (!event.body)    // for debug
+                                    console.log('empty body!', event);
+                                chat.append(html);
+                                break;
+                            case 2: // heart
+                                break;
+                            case 3: // status messages, see event.body
+                                break;
+                            case 5: // broadcast ended
+                                chat.append('<span class="service">*** ' + event.displayName + ' (@' + event.username + ') has ended broadcast</span>');
+                                break;
+                            case 8: // replay available (?)
+                                break;
+                            case 9: // don't know
+                                break;
+                            default: // service messages (event.action = join, leave, timeout, state_changed)
+                                break;
+                        }
+                    }
+                    if ($('#autoscroll')[0].checked)
+                        chat[0].scrollTop = chat[0].scrollHeight;
+                }, 'json');
+            }
+        }
+        chat_interval = setInterval(messagesUpdate, 2000);
+        messagesUpdate();
+        // Sending messages
+        function sendMessage() {
+            $('#spinner').show();
+            var ntpstamp = parseInt((Math.floor(prev_time/10000000) + 2208988800).toString(16) + '00000000', 16); // timestamp in NTP format
+            GM_xmlhttpRequest({
+                method: 'POST',
+                url: 'https://signer.periscope.tv/sign',
+                data: JSON.stringify({
+                    body: $('#message').val(),
+                    signer_token: broadcast.signer_token,
+                    participant_index: broadcast.participant_index,
+                    type: 1,    // "text message"
+                    ntpForBroadcasterFrame: ntpstamp,
+                    ntpForLiveFrame: ntpstamp
+                }),
+                onload: function (signed) {
+                    signed = JSON.parse(signed.responseText);
+                    $.get('http://pubsub.pubnub.com/publish/'+broadcast.publisher+'/'+broadcast.subscriber+'/0/'
+                        +broadcast.channel +'/0/'+encodeURIComponent(JSON.stringify(signed.message)), {
+                        auth: broadcast.auth_token
+                    }, function(pubnub){
+                        $('#spinner').hide();
+                        $('#message').val('');
+                        if (pubnub[1]!="Sent")
+                            console.log('message not sent', pubhub);
+                    }, 'json').fail(function (error) {
+                        chat.append('<span class="error">*** Error: ' + error.responseJSON.message + '</span>');
+                    });
+                }
+            });               
+        }
+        $('#sendMessage').off().click(sendMessage);
+        $('#message').off().keypress(function(e) {
+            if(e.which == 13) {
+                sendMessage();
+                return false;
+            }
+        });
+    });
+}
+function insertUsername() {
+    var message = $('#message');
+    message.val(message.val() + '@' + $(this).text().substr(1, $(this).text().length - 2) + ' ');
+    message.focus();
+}
+function zeros(number){
+    return (100 + number + '').substr(1);
 }
 function createBroadcast(){
     Api('createBroadcast',{
@@ -498,17 +683,18 @@ function getM3U (id, jcontainer) {
                 params += r.cookies[i].Name.replace('CloudFront-', '') + '=' + r.cookies[i].Value + '&';
             params += 'Expires=0';
             replay_url += params;
-            $.get(replay_url, function (m3u_text) {
-                jcontainer.find('.links').append('<a href="data:text/plain;base64,' + btoa(m3u_text.replace(/(chunk_\d+\.ts)/g, replay_base_url + '$1' + params)) + '" download="playlist.m3u8">Download replay M3U</a>');
+            GM_xmlhttpRequest({
+                method: 'GET',
+                url: replay_url,
+                onload: function (m3u_text) {
+                    jcontainer.find('.links').append('<a href="data:text/plain;base64,' + btoa(m3u_text.responseText.replace(/(chunk_\d+\.ts)/g, replay_base_url + '$1' + params)) + '" download="playlist.m3u8">Download replay M3U</a>');
+                }
             });
         }
     });
     return false;
 }
 function getDescription(stream) {
-    var zeros = function(number){
-        return (100 + number + '').substr(1);
-    };
     var title = stream.status || stream.user_display_name;
     var date_created = new Date(stream.created_at);
     var duration = stream.end || stream.timedout ? new Date(new Date(stream.end || stream.timedout) - date_created) : 0;
@@ -522,7 +708,14 @@ function getDescription(stream) {
                 '+(stream.country || stream.city ? '<br/>' + stream.country + ' ' + stream.city : '') + '\
                 <div class="links" />\
             </div>');
-    return description.get(0);
+    var playLink = $('<a href="#">Chat</a>');
+    playLink.click(function(){
+        SwitchSection(null, 'Chat');
+        $('#broadcast_id').val(stream.id);
+        $('#play').click();
+    });
+    description.append(playLink);
+    return description[0];
 }
 
 function Api(method, params, callback, callback_fail) {
@@ -545,7 +738,7 @@ function Api(method, params, callback, callback_fail) {
                     callback_fail(error);
             }
         }
-    })
+    });
 }
 function SignIn3(session_key, session_secret) {
     Api('loginTwitter', {
