@@ -171,7 +171,7 @@ $(document.head).append('<style>\
     }\
     #chat, #userlist {\
         border: 1px solid #bcbcbc;\
-        height: 100%;\
+        height: 88%;\
         padding: 5px;\
         overflow-y: auto;\
     }\
