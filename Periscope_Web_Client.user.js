@@ -623,6 +623,8 @@ function playBroadcast() {
                 return false;
             }
         });
+    }, function (error){
+        $('#title').append('<b>' + error + '</b>');
     });
 }
 function insertUsername() {
