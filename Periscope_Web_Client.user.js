@@ -1,5 +1,5 @@
 // ==UserScript==
-// @id          Periscope@pmmlabs.ru
+// @id          OpenPeriscope@pmmlabs.ru
 // @name        Periscope Web Client
 // @namespace   https://greasyfork.org/users/23
 // @description Periscope client based on API requests. Visit example.net for launch.
@@ -13,8 +13,8 @@
 // @require     http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js
 // @require     http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js
 // @require     http://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js
-// @downloadURL https://raw.githubusercontent.com/Pmmlabs/periscope.js/master/Periscope_Web_Client.user.js
-// @updateURL   https://raw.githubusercontent.com/Pmmlabs/snapster/master/Periscope_Web_Client.meta.js
+// @downloadURL https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/Periscope_Web_Client.user.js
+// @updateURL   https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/Periscope_Web_Client.meta.js
 // @noframes
 // ==/UserScript==
 
@@ -110,7 +110,7 @@ $(document.head).append('<style>\
     }\
     .leaflet-popup-content .description {\
         width: 300px;\
-        height: 128px;\
+        min-height: 128px;\
     }\
     .description a {\
         font-weight: bold;\
@@ -407,7 +407,7 @@ function InitApiTest() {
     });
     $('#right').append('<div id="ApiTest">Some documentation can be found in ' +
         '<a href="https://github.com/Pmmlabs/periscope_api/blob/api/API.md" target="_blank">periscope_api</a> repository' +
-        ' or in <a href="http://static.pmmlabs.ru/periscope.js/">docs by @cjhbtn</a>' +
+        ' or in <a href="http://static.pmmlabs.ru/OpenPeriscope" target="_blank">docs by @cjhbtn</a>' +
         '<br/><dt>Method</dt><input id="method" type="text" placeholder="mapGeoBroadcastFeed"/><br/>' +
         '<dt>Parameters</dt><textarea id="params" placeholder=\'{"include_replay": true, "p1_lat": 1, "p1_lng": 2, "p2_lat": 3, "p2_lng": 4}\'/><br/><br/>');
     $('#ApiTest').append(submitButton).append('<br/><br/><pre id="response"/>Response is also displayed in the browser console</pre>');
