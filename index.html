@@ -390,8 +390,6 @@
                     (Unofficial) Periscope API Documentation<br/>
                     <small>Authored By: Chris Hogben &lt;chris@periscopr.uk&gt; (<a href="https://twitter.com/cjhbtn" title="cjhbtn on Twitter">@cjhbtn</a>)</small>
                 </h1>
-                <h4>Revision: 26b2724 (Sat, 27 Jun 2015 18:22:46 +0100)
-                </h4>
 
                 <hr />
 
@@ -9175,7 +9173,7 @@ Connection: close
                         <div id="/getUserPublic" class="panel-heading">/getUserPublic - [TODO - To be documented]
                         </div>
                         <div class="panel-footer">
-                            <code>https://api.periscope.tv/api/v2/getUserPublic?user_id=[user_id]&        </code>
+                            <code>https://api.periscope.tv/api/v2/getUserPublic?user_id=[user_id]</code>
                         </div>
                         <div class="panel-body">
                             <p>
@@ -9219,8 +9217,38 @@ Connection: close
                                     </table>
                                 </div>
                             </div>
-
-
+                            <hr>
+                            <div id="-getUserPublic-responses" class="panel panel-info">
+                                <div id="-getUserPublic-responses-heading" class="panel-heading">
+                                    <a class="accordion-toggle collapsed" role="button" data-toggle="collapse" data-parent="#-getUserPublic-responses" href="#-getUserPublic-responses-content" aria-expanded="false" aria-controls="-getUserPublic-responses-content">
+                                        Response Values
+                                    </a>
+                                </div>
+                                <div id="-getUserPublic-responses-content" class="panel-collapse collapse out" role="tabpanel" aria-labelledby="-getUserPublic-responses-heading">
+                                    <table class="table table-striped table-bordered">
+                                        <thead>
+                                        <tr>
+                                            <th>Key</th>
+                                            <th>Type</th>
+                                            <th>Always Available</th>
+                                            <th>Description</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr>
+                                            <td>user</td>
+                                            <td>
+                                                <a href="#User" title="User Object">
+                                                    User
+                                                </a>
+                                            </td>
+                                            <td>Yes</td>
+                                            <td></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                             <hr>
 
                             <div id="-getUserPublic-errors" class="panel panel-danger">
@@ -10549,7 +10577,7 @@ Connection: close
                                                     string
                                                 </td>
                                                 <td>Yes</td>
-                                                <td></td>
+                                                <td>Unique identifier of the user</td>
                                                 <td></td>
                                             </tr>
                                             <tr>
@@ -10577,7 +10605,7 @@ Connection: close
                                                 </td>
                                                 <td>Yes</td>
                                                 <td></td>
-                                                <td></td>
+                                                <td>false</td>
                                             </tr>
                                             <tr>
                                                 <td>is_employee</td>
@@ -10586,7 +10614,7 @@ Connection: close
                                                 </td>
                                                 <td>Yes</td>
                                                 <td></td>
-                                                <td></td>
+                                                <td>false</td>
                                             </tr>
                                             <tr>
                                                 <td>is_twitter_verified</td>
@@ -10595,7 +10623,7 @@ Connection: close
                                                 </td>
                                                 <td>Yes</td>
                                                 <td></td>
-                                                <td></td>
+                                                <td>false</td>
                                             </tr>
                                             <tr>
                                                 <td>twitter_screen_name</td>
@@ -10621,7 +10649,7 @@ Connection: close
                                                     string
                                                 </td>
                                                 <td>Yes</td>
-                                                <td></td>
+                                                <td>First and last name</td>
                                                 <td></td>
                                             </tr>
                                             <tr>
@@ -10670,6 +10698,33 @@ Connection: close
                                                 <td>Yes</td>
                                                 <td></td>
                                                 <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>is_following</td>
+                                                <td>
+                                                    boolean
+                                                </td>
+                                                <td>No</td>
+                                                <td>Returns only from private methods</td>
+                                                <td>false</td>
+                                            </tr>
+                                            <tr>
+                                                <td>is_muted</td>
+                                                <td>
+                                                    boolean
+                                                </td>
+                                                <td>No</td>
+                                                <td>Returns only from private methods</td>
+                                                <td>false</td>
+                                            </tr>
+                                            <tr>
+                                                <td>n_replay_hearts</td>
+                                                <td>
+                                                    integer
+                                                </td>
+                                                <td>No</td>
+                                                <td>Returns only from private methods</td>
+                                                <td>0</td>
                                             </tr>
                                             </tbody>
                                         </table>
