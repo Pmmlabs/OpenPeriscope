@@ -168,6 +168,7 @@ $(document.head).append('<style>\
     }\
     #chat {\
         margin-right: 250px;\
+        word-break: break-all;\
     }\
     #chat, #userlist {\
         border: 1px solid #bcbcbc;\
@@ -566,14 +567,26 @@ function playBroadcast() {
                                 break;
                             case 2: // heart
                                 break;
-                            case 3: // status messages, see event.body
+                            case 3: // status messages, see event.body (mostly "joined")
+                                break;
+                            case 4: // broadcaster moved to new place
+                                console.log('new location: ' + event.lat + ', ' + event.lng + ', ' + event.heading);
                                 break;
                             case 5: // broadcast ended
-                                chat.append('<span class="service">*** ' + event.displayName + ' (@' + event.username + ') has ended broadcast</span>');
+                                chat.append('<div class="service">*** ' + event.displayName + ' (@' + event.username + ') ended the broadcast</div>');
+                                break;
+                            case 6: // invited followers
+                                chat.append('<div class="service">*** ' + event.displayName + ' (@' + event.username + '): '+event.body.replace('*%s*', event.invited_count)+'</div>');
+                                break;
+                            case 7:
+                                chat.append('<div class="service">7 *** ' + event.displayName + ' (@' + event.username + ') '+event.body+'</div>');
+                                console.log(event);
                                 break;
                             case 8: // replay available (?)
                                 break;
                             case 9: // don't know
+                                chat.append('<div class="service">9 *** ' + event.displayName + ' (@' + event.username + ') '+event.body+'</div>');
+                                console.log(event);
                                 break;
                             default: // service messages (event.action = join, leave, timeout, state_changed)
                                 break;
