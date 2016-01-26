@@ -507,6 +507,7 @@ function InitChat() {
 }
 var chat_interval;
 var presence_interval;
+var pubnubUrl = 'http://pubsub.pubnub.com';
 function playBroadcast() {
     clearInterval(chat_interval);
     clearInterval(presence_interval);
@@ -524,7 +525,7 @@ function playBroadcast() {
         // Update users list
         var userlist = $('#userlist');
         function presenceUpdate() {
-            $.get('http://pubsub.pubnub.com/v2/presence/sub_key/' + broadcast.subscriber + '/channel/' + broadcast.channel, {
+            $.get(pubnubUrl + '/v2/presence/sub_key/' + broadcast.subscriber + '/channel/' + broadcast.channel, {
                 state: 1,
                 auth: broadcast.auth_token
             }, function (pubnub) {
@@ -544,7 +545,7 @@ function playBroadcast() {
         function messagesUpdate() {
             if (xhr_done) {
                 xhr_done = false;
-                $.get('http://pubsub.pubnub.com/subscribe/' + broadcast.subscriber + '/' + broadcast.channel + '-pnpres,' + broadcast.channel + '/0/' + prev_time, {
+                $.get(pubnubUrl + '/subscribe/' + broadcast.subscriber + '/' + broadcast.channel + '-pnpres,' + broadcast.channel + '/0/' + prev_time, {
                     auth: broadcast.auth_token
                 }, function (pubnub) {
                     prev_time = pubnub[1];
@@ -602,7 +603,7 @@ function playBroadcast() {
                 }),
                 onload: function (signed) {
                     signed = JSON.parse(signed.responseText);
-                    $.get('http://pubsub.pubnub.com/publish/'+broadcast.publisher+'/'+broadcast.subscriber+'/0/'
+                    $.get(pubnubUrl + '/publish/'+broadcast.publisher+'/'+broadcast.subscriber+'/0/'
                         +broadcast.channel +'/0/'+encodeURIComponent(JSON.stringify(signed.message)), {
                         auth: broadcast.auth_token
                     }, function(pubnub){
