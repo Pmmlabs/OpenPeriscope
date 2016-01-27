@@ -20,41 +20,75 @@
 
 if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     location.href = 'http://example.net/' + location.search;
-}
-
-$('style').remove();
-$(document.head).append('<style>\
+} else {
+    $('style').remove();
+    $(document.head).append('<style>\
+    body {\
+        margin: 0;\
+        font-family: Roboto;\
+    }\
+    body > div {\
+        padding: 10px;\
+    }\
+    body > input, body > a {\
+        margin: 10px;\
+    }\
     #secret {\
         font-size:1.5em;\
         display: block;\
     }\
     .button {\
-        background-color: #4C4CF8;\
+        box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);\
+        border-radius: 2px;\
+        display: inline-block;\
+        line-height: 36px;\
+        outline: 0px none;\
+        padding: 0px 2rem;\
+        text-transform: uppercase;\
         color: #FFF;\
-        border-radius: 5px;\
-        padding: 10px;\
-        text-decoration: none;\
+        background-color: #26A69A;\
+        letter-spacing: 0.5px;\
         cursor: pointer;\
+        display: inline-block;\
+        vertical-align: middle;\
+        will-change: opacity, transform;\
+        transition: all 0.3s ease-out 0s;\
+    }\
+    .button:hover {\
+        background-color: #2bbbad;\
     }\
     .menu {\
-        background-color: #4C4CF8;\
+        /*background-color: #4C4CF8;\
         color: white;\
-        padding: 5px;\
+        padding: 5px;*/\
         cursor: pointer;\
+        transition: all 0.25s ease 0s;\
+        color: #26A69A;\
+        background-color: #FFF;\
+        line-height: 1.5rem;\
+        padding: 10px 20px;\
+        margin: 0px;\
+        border-bottom: 1px solid #E0E0E0;\
     }\
     .menu.active {\
-        background-color: #4192ED;\
+        background-color: #26A69A;\
+        color: #EAFAF9;\
+    }\
+    .menu:hover:not(.active) {\
+        background-color: #f0f0f0;\
     }\
     #spinner {\
         display: none;\
         float:right;\
     }\
-    #left > * {\
+    #left > a, #left > img {\
         margin-bottom: 5px;\
         margin-top: 10px;\
     }\
     #left {\
         position: fixed;\
+        box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);\
+        height: 100%;\
     }\
     #right {\
         width: auto;\
@@ -213,28 +247,28 @@ $(document.head).append('<style>\
     }\
 </style>');
 
-$(document.body).html('<div style="width: 100%"><div id="left"/><div id="right"/></div>');
-document.title = 'Periscope Web Client';
+    $(document.body).html('<div id="left"/><div id="right"/>');
+    document.title = 'Periscope Web Client';
 
-var oauth_token, oauth_verifier, session_key, session_secret, loginTwitter, consumer_secret = localStorage.getItem('consumer_secret');
-if (loginTwitter = localStorage.getItem('loginTwitter')) {
-    loginTwitter = JSON.parse(loginTwitter);
-    Ready(loginTwitter);
-} else if ((session_key = localStorage.getItem('session_key')) && (session_secret = localStorage.getItem('session_secret'))) {
-    SignIn3(session_key, session_secret);
-} else if ((oauth_token = localStorage.getItem('oauth_token')) && (oauth_verifier = localStorage.getItem('oauth_verifier'))) {
-    SignIn2(oauth_token, oauth_verifier);
-} else if ((oauth_token = getParameterByName('oauth_token')) && (oauth_verifier = getParameterByName('oauth_verifier'))) {
-    localStorage.setItem('oauth_token', oauth_token);
-    localStorage.setItem('oauth_verifier', oauth_verifier);
-    SignIn2(oauth_token, oauth_verifier);
-} else {
-    var signInButton = $('<a class="button">Sign in with twitter</a>');
-    signInButton.click(SignIn1);
-    $('#left').append('<input type="text" id="secret" size="60" placeholder="Periscope consumer secret" value="' +
-        (consumer_secret || '') + '"/><br/>').append(signInButton);
+    var oauth_token, oauth_verifier, session_key, session_secret, loginTwitter, consumer_secret = localStorage.getItem('consumer_secret');
+    if (loginTwitter = localStorage.getItem('loginTwitter')) {
+        loginTwitter = JSON.parse(loginTwitter);
+        Ready(loginTwitter);
+    } else if ((session_key = localStorage.getItem('session_key')) && (session_secret = localStorage.getItem('session_secret'))) {
+        SignIn3(session_key, session_secret);
+    } else if ((oauth_token = localStorage.getItem('oauth_token')) && (oauth_verifier = localStorage.getItem('oauth_verifier'))) {
+        SignIn2(oauth_token, oauth_verifier);
+    } else if ((oauth_token = getParameterByName('oauth_token')) && (oauth_verifier = getParameterByName('oauth_verifier'))) {
+        localStorage.setItem('oauth_token', oauth_token);
+        localStorage.setItem('oauth_verifier', oauth_verifier);
+        SignIn2(oauth_token, oauth_verifier);
+    } else {
+        var signInButton = $('<a class="button">Sign in with twitter</a>');
+        signInButton.click(SignIn1);
+        $(document.body).html('<input type="text" id="secret" size="60" placeholder="Periscope consumer secret" value="' +
+            (consumer_secret || '') + '"/><br/>').append(signInButton);
+    }
 }
-
 
 function getParameterByName(name) {
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
