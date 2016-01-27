@@ -122,7 +122,7 @@ $(document.head).append('<style>\
     .watching {\
         float: right;\
         padding-left: 20px;\
-        background-image: url("https://code.jquery.com/mobile/1.4.5/images/icons-png/user-black.png");\
+        background-image: url("//raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/user-black.png");\
         background-repeat: no-repeat;\
         background-position: 0 center;\
     }\
@@ -247,7 +247,7 @@ function Ready(loginInfo) {
     signOutButton.click(SignOut);
 
     var left = $('#left').append(signOutButton)
-        .append('<img src="http://s.ytimg.com/yts/img/icn_loading_animated-vflff1Mjj.gif" id="spinner" />\
+        .append('<img src="//raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/spinner.gif" id="spinner" />\
         <br/><img src="' + loginInfo.user.profile_image_urls[1].url + '"/>\
         <div id="display_name">' + loginInfo.user.display_name + '</div>\
         <div class="username">@' + loginInfo.user.username + '</div>');
