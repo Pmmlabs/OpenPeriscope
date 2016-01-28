@@ -532,8 +532,7 @@ function InitTop() {
         </select></dt></div>');
     var refreshButton = $('<a class="button">Refresh</a>');
     refreshButton.click(refreshList);
-    $('#Top').append(refreshButton).append('<div id="sort" class="watching" /><br/><br/><div id="result" />');
-    var sort = $('<a>Sort by watching</a>');
+    var sort = $('<a id="sort" class="watching">Sort by watching</a>');
     sort.click(function(){
         var streams = $('.stream');
         var sorted = streams.sort(function (a, b) {
@@ -542,7 +541,7 @@ function InitTop() {
         $('#result').append(sorted);
         return false;
     });
-    $('#sort').append(sort);
+    $('#Top').append(refreshButton).append(sort).append('<br/><br/><div id="result" />');
     $("#lang").find(":contains("+(navigator.language || navigator.userLanguage).substr(0, 2)+")").attr("selected", "selected");
     refreshList();
 }
@@ -794,15 +793,14 @@ function getDescription(stream) {
                 Created: ' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth()+1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes()) + '\
                 '+(duration ? '<br/>Duration: '+zeros(duration.getUTCHours())+':'+zeros(duration.getMinutes())+':'+zeros(duration.getSeconds()) : '')+'\
                 '+(stream.country || stream.city ? '<br/>' + stream.country + ' ' + stream.city : '') + '\
-                <div class="links" />\
-            </div>');
-    var playLink = $('<a class="chatlink">Chat</a>');
-    playLink.click(function(){
+        </div>');
+    var chatLink = $('<a class="chatlink">Chat</a>');
+    chatLink.click(function(){
         SwitchSection(null, 'Chat');
         $('#broadcast_id').val(stream.id);
         $('#play').click();
     });
-    description.append(playLink);
+    description.append(chatLink).append('<div class="links" />');
     return description[0];
 }
 
