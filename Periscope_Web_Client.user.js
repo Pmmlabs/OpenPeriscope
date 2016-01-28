@@ -701,6 +701,7 @@ function playBroadcast() {
                             console.log('message not sent', pubnub);
                     }, 'json').fail(function (error) {
                         chat.append('<span class="error">*** Error: ' + error.responseJSON.message + '</span>');
+                        $('#spinner').hide();
                     });
                 }
             });               
