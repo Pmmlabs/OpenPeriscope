@@ -39,8 +39,9 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         border-radius: 0;\
         outline: none;\
         height: 2rem;\
-        margin: 0 0 15px 0;\
+        margin: 0 10px 10px 0;\
         transition: box-shadow .3s;\
+        background: transparent;\
     }\
     input[type="text"] {\
         font-size: 1rem;\
@@ -57,7 +58,6 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         display: block;\
     }\
     .button {\
-        box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);\
         border-radius: 2px;\
         line-height: 36px;\
         outline: 0px none;\
@@ -71,6 +71,9 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         vertical-align: middle;\
         will-change: opacity, transform;\
         transition: all 0.3s ease-out 0s;\
+    }\
+    .button, .stream {\
+        box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);\
     }\
     .button:hover {\
         background-color: #2bbbad;\
@@ -176,7 +179,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         background-position: 0 center;\
     }\
     dt {\
-        width: 140px;\
+        width: 150px;\
         float: left;\
         padding-top: 0.5rem;\
     }\
@@ -194,19 +197,27 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         word-wrap: break-word;\
     }\
     .stream {\
-        border-left: 5px solid;\
-        margin: 5px 0;\
         font: 14px/1.3 "Helvetica Neue",Arial,Helvetica,sans-serif;\
         height: 128px;\
+        margin: 0.5rem 0 1rem 0;\
+        background-color: #fff;\
+        transition: box-shadow .25s;\
+        border-radius: 2px;\
     }\
-    .stream.RUNNING {\
+    .stream .description {\
+        padding-top: 10px;\
+        padding-right: 10px;\
+    }\
+    .stream.RUNNING img {\
         border-color: #ED4D4D;;\
     }\
-    .stream.ENDED {\
+    .stream.ENDED img {\
         border-color: #4350E9;\
     }\
     .stream img {\
         height: 128px;\
+        border-right: 5px solid;\
+        margin-top: -10px;\
     }\
     .stream a {\
         color: #0078A8;\
@@ -222,7 +233,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     }\
     #chat, #userlist {\
         border: 1px solid #bcbcbc;\
-        height: 87%;\
+        height: 84%;\
         padding: 5px;\
         overflow-y: auto;\
     }\
@@ -243,14 +254,14 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     #sendMessage, #underchat label {\
         float: right;\
     }\
+    #underchat {\
+        padding-top: 5px;\
+    }\
     #underchat label {\
         margin-left: 10px;\
     }\
     #underchat div {\
-        margin-right: 190px;\
-    }\
-    #underchat {\
-        line-height: 0;\
+        margin-right: 230px;\
     }\
     #message {\
         width: 100%;\
@@ -488,10 +499,7 @@ function InitTop() {
         });
     };
 
-    $('#right').append('<div id="Top" />');
-    var refreshButton = $('<a class="button">Refresh</a>');
-    refreshButton.click(refreshList);
-    $('#Top').append(refreshButton).append('Language: <select id="lang">\
+    $('#right').append('<div id="Top"><dt>Language: <select id="lang">\
             <option>ar</option>\
             <option>de</option>\
             <option>en</option>\
@@ -511,9 +519,10 @@ function InitTop() {
             <option>tr</option>\
             <option>uk</option>\
             <option>zh</option>\
-        </select>\
-        <div id="sort" class="watching" />\
-        <br/><br/><div id="result" />');
+        </select></dt></div>');
+    var refreshButton = $('<a class="button">Refresh</a>');
+    refreshButton.click(refreshList);
+    $('#Top').append(refreshButton).append('<div id="sort" class="watching" /><br/><br/><div id="result" />');
     var sort = $('<a href="#">Sort by watching</a>');
     sort.click(function(){
         var streams = $('.stream');
@@ -545,17 +554,17 @@ function InitCreate() {
 }
 function InitChat() {
     $('#right').append('<div id="Chat">id: <input id="broadcast_id" type="text" size="15"></div>');
-    var playButton = $('<button id="play">OK</button>');
+    var playButton = $('<a class="button" id="play">OK</a>');
     playButton.click(playBroadcast);
     $('#Chat').append(playButton).append('<span id="title"/>\
         <br/><br/>\
         <div id="userlist"/>\
         <div id="chat"/>\
-        <pre id="underchat">\
+        <div id="underchat">\
             <label><input type="checkbox" id="autoscroll" checked/> Autoscroll</label>\
-            <button id="sendMessage">Send</button>\
+            <a class="button" id="sendMessage">Send</a>\
             <div><input type="text" id="message"></div>\
-        </pre>');
+        </div>');
 }
 var chat_interval;
 var presence_interval;
@@ -634,8 +643,10 @@ function playBroadcast() {
                                 console.log(event);
                                 break;
                             case 8: // replay available (?)
+                                chat.append('<div class="service">8 *** ' + event.displayName + ' (@' + event.username + ') '+event.body+'</div>');
+                                console.log(event);
                                 break;
-                            case 9: // don't know
+                            case 9: // don't know. Some action by the broadcaster. timestampPlaybackOffset
                                 chat.append('<div class="service">9 *** ' + event.displayName + ' (@' + event.username + ') '+event.body+'</div>');
                                 console.log(event);
                                 break;
