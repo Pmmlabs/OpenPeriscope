@@ -33,6 +33,11 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     body > input, body > a {\
         margin: 10px;\
     }\
+    a {\
+        color: #039be5;\
+        text-decoration: none;\
+        cursor: pointer;\
+    }\
     input[type="text"], textarea {\
         border: none;\
         border-bottom: 1px solid #9e9e9e;\
@@ -171,12 +176,17 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         float: left;\
         margin-right: 10px;\
     }\
-    .watching {\
+    .chatlink, .watching {\
         float: right;\
         padding-left: 20px;\
-        background-image: url("//raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/user-black.png");\
         background-repeat: no-repeat;\
         background-position: 0 center;\
+    }\
+    .chatlink {\
+        background-image: url("//raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/comment-black.png");\
+    }\
+    .watching {\
+        background-image: url("//raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/user-black.png");\
     }\
     dt {\
         width: 150px;\
@@ -485,7 +495,7 @@ function InitTop() {
             var ids =[];
             for (var i in response) {
                 var stream = $('<div class="stream ' + response[i].state + ' '+response[i].id+'">').append(getDescription(response[i]));
-                var link = $('<a href="#">Get stream link</a>');
+                var link = $('<a>Get stream link</a>');
                 link.click(getM3U.bind(null, response[i].id, stream));
                 result.append(stream.append(link).append('<br/>'));
                 ids.push(response[i].id);
@@ -523,7 +533,7 @@ function InitTop() {
     var refreshButton = $('<a class="button">Refresh</a>');
     refreshButton.click(refreshList);
     $('#Top').append(refreshButton).append('<div id="sort" class="watching" /><br/><br/><div id="result" />');
-    var sort = $('<a href="#">Sort by watching</a>');
+    var sort = $('<a>Sort by watching</a>');
     sort.click(function(){
         var streams = $('.stream');
         var sorted = streams.sort(function (a, b) {
@@ -786,7 +796,7 @@ function getDescription(stream) {
                 '+(stream.country || stream.city ? '<br/>' + stream.country + ' ' + stream.city : '') + '\
                 <div class="links" />\
             </div>');
-    var playLink = $('<a href="#">Chat</a>');
+    var playLink = $('<a class="chatlink">Chat</a>');
     playLink.click(function(){
         SwitchSection(null, 'Chat');
         $('#broadcast_id').val(stream.id);
