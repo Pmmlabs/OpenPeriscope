@@ -325,18 +325,18 @@ function Ready(loginInfo) {
         <div id="display_name">' + loginInfo.user.display_name + '</div>\
         <div class="username">@' + loginInfo.user.username + '</div>');
     var menu = [
+        {text: 'API test', id: 'ApiTest'},
         {text: 'Map', id: 'Map'},
         {text: 'Top', id: 'Top'},
         {text: 'New broadcast', id: 'Create'},
-        {text: 'Chat', id: 'Chat'},
-        {text: 'API test', id: 'ApiTest'}
+        {text: 'Chat', id: 'Chat'}
     ];
     for (var i in menu) {
         var link = $('<div class="menu">' + menu[i].text + '</div>');
         link.click(SwitchSection.bind(null, link, menu[i].id));
         left.append(link);
     }
-    $('.menu').last().click();
+    $('.menu').first().click();
 }
 function SwitchSection(elem, section) {
     // Switch menu
@@ -652,12 +652,9 @@ function playBroadcast() {
                                 console.log(event);
                                 break;
                             case 8: // replay available (?)
-                                chat.append('<div class="service">8 *** ' + event.displayName + ' (@' + event.username + ') '+event.body+'</div>');
-                                console.log(event);
                                 break;
                             case 9: // don't know. Some action by the broadcaster. timestampPlaybackOffset
-                                chat.append('<div class="service">9 *** ' + event.displayName + ' (@' + event.username + ') '+event.body+'</div>');
-                                console.log(event);
+                                console.log('TYPE: 9', event);
                                 break;
                             default: // service messages (event.action = join, leave, timeout, state_changed)
                                 break;
@@ -665,7 +662,9 @@ function playBroadcast() {
                     }
                     if ($('#autoscroll')[0].checked)
                         chat[0].scrollTop = chat[0].scrollHeight;
-                }, 'json');
+                }, 'json').fail(function () {
+                    xhr_done = true;
+                });
             }
         }
         chat_interval = setInterval(messagesUpdate, 2000);
@@ -694,7 +693,7 @@ function playBroadcast() {
                         $('#spinner').hide();
                         $('#message').val('');
                         if (pubnub[1]!="Sent")
-                            console.log('message not sent', pubhub);
+                            console.log('message not sent', pubnub);
                     }, 'json').fail(function (error) {
                         chat.append('<span class="error">*** Error: ' + error.responseJSON.message + '</span>');
                     });
