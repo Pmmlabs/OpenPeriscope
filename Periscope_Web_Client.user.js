@@ -421,7 +421,7 @@ function InitMap() {
             "p2_lat": mapBounds._southWest.lat,
             "p2_lng": mapBounds._southWest.lng
         }, function (r) {
-            console.log(r);
+            //console.log(r);
             var openLL; // for preventing of closing opened popup
             live.eachLayer(function (layer) {
                 if (layer.getPopup()._isOpen)
@@ -435,12 +435,13 @@ function InitMap() {
                 else
                     replay.removeLayer(layer);
             });
+            // adding markers
             for (var i = 0; i < r.length; i++) {
                 var stream = r[i];
                 var title = stream.status || stream.user_display_name;
                 var marker = L.marker(new L.LatLng(stream.ip_lat, stream.ip_lng), {title: title});
                 if (!marker.getLatLng().equals(openLL)) {
-                    var description = getDescription(stream);
+                    var description = getDescription(stream, true);
                     marker.bindPopup(description);
                     marker.on('popupopen', getM3U.bind(null, stream.id, $(description)));
                     marker.on('popupopen', Api.bind(null, 'getBroadcasts', {
@@ -448,6 +449,10 @@ function InitMap() {
                     }, function (info) {
                         $('.leaflet-popup-content .watching').text(info[0].n_watching + info[0].n_web_watching);
                     }));
+                    marker.on('popupopen', function(e){
+                        var img = $(e.popup._content).find('img');
+                        img.attr('src', img.attr('lazysrc'));
+                    });
                     (stream.state == 'RUNNING' ? live : replay).addLayer(marker);
                 }
             }
@@ -780,12 +785,12 @@ function getM3U (id, jcontainer) {
     });
     return false;
 }
-function getDescription(stream) {
+function getDescription(stream, lazyload) {
     var title = stream.status || stream.user_display_name;
     var date_created = new Date(stream.created_at);
     var duration = stream.end || stream.timedout ? new Date(new Date(stream.end || stream.timedout) - date_created) : 0;
     var description = $('<div class="description">\
-                <a href="'+stream.image_url+'" target="_blank"><img src="' + stream.image_url_small + '"/></a>\
+                <a href="'+stream.image_url+'" target="_blank"><img '+(lazyload ? 'lazy' : '')+'src="' + stream.image_url_small + '"/></a>\
                 <div class="watching"></div>\
                 <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>\
                 <div class="username">@' + stream.username + ' ('+stream.user_display_name+')</div>\
