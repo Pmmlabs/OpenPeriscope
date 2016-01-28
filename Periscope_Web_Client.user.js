@@ -25,13 +25,32 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     $(document.head).append('<style>\
     body {\
         margin: 0;\
-        font-family: Roboto;\
+        font-family: "Roboto", sans-serif;\
     }\
     body > div {\
         padding: 10px;\
     }\
     body > input, body > a {\
         margin: 10px;\
+    }\
+    input[type="text"], textarea {\
+        border: none;\
+        border-bottom: 1px solid #9e9e9e;\
+        border-radius: 0;\
+        outline: none;\
+        height: 2rem;\
+        margin: 0 0 15px 0;\
+        transition: box-shadow .3s;\
+    }\
+    input[type="text"] {\
+        font-size: 1rem;\
+    }\
+    textarea:focus {\
+        border: 1px solid #E0E0E0;\
+    }\
+    input[type="text"]:focus, textarea:focus {\
+        border-bottom: 1px solid #26a69a;\
+        box-shadow: 0 1px 0 0 #26a69a;\
     }\
     #secret {\
         font-size:1.5em;\
@@ -40,7 +59,6 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     .button {\
         box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);\
         border-radius: 2px;\
-        display: inline-block;\
         line-height: 36px;\
         outline: 0px none;\
         padding: 0px 2rem;\
@@ -58,9 +76,6 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         background-color: #2bbbad;\
     }\
     .menu {\
-        /*background-color: #4C4CF8;\
-        color: white;\
-        padding: 5px;*/\
         cursor: pointer;\
         transition: all 0.25s ease 0s;\
         color: #26A69A;\
@@ -161,8 +176,9 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         background-position: 0 center;\
     }\
     dt {\
-        width: 150px;\
+        width: 140px;\
         float: left;\
+        padding-top: 0.5rem;\
     }\
     #ApiTest textarea {\
         width: 500px;\
@@ -206,7 +222,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     }\
     #chat, #userlist {\
         border: 1px solid #bcbcbc;\
-        height: 88%;\
+        height: 87%;\
         padding: 5px;\
         overflow-y: auto;\
     }\
@@ -245,7 +261,8 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     .error {\
         color: red;\
     }\
-</style>');
+</style>')
+        .append('<link href="https://fonts.googleapis.com/css?family=Roboto&subset=latin,cyrillic" rel="stylesheet" type="text/css">');
 
     $(document.body).html('<div id="left"/><div id="right"/>');
     document.title = 'Periscope Web Client';
@@ -512,12 +529,12 @@ function InitTop() {
 }
 function InitCreate() {
     $('#right').append('<div id="Create">' +
-        'Title: <input id="status" type="text" autocomplete="on"><br/>' +
-        'Width: <input id="width" type="text" autocomplete="on" placeholder="320"><br/>' +
-        'Height: <input id="height" type="text" autocomplete="on" placeholder="568"><br/>' +
-        'Filename: <input id="filename" type="text" autocomplete="on"><br/>' +
-        'Streaming bitrate: <input id="bitrate" type="text" value="200">kBps<br/>' +
-        'Server: <select id="server">' +
+        '<dt>Title:</dt><input id="status" type="text" autocomplete="on"><br/>' +
+        '<dt>Width:</dt><input id="width" type="text" autocomplete="on" placeholder="320"><br/>' +
+        '<dt>Height:</dt><input id="height" type="text" autocomplete="on" placeholder="568"><br/>' +
+        '<dt>Filename:</dt><input id="filename" type="text" autocomplete="on"><br/>' +
+        '<dt>Streaming bitrate:</dt><input id="bitrate" type="text" value="200">kBps<br/>' +
+        '<dt>Server:</dt><select id="server">' +
             '<option>us-west-1</option>' +
             '<option selected>eu-central-1</option>' +
         '<select><br/>' +
