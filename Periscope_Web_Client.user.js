@@ -122,7 +122,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     #display_name {\
         font-size: 16px;\
     }\
-    .username {\
+    .username, .leaflet-container a.username {\
         color: grey;\
     }\
     #Map, #Chat {\
@@ -230,9 +230,6 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         border-right: 5px solid;\
         margin-top: -10px;\
     }\
-    .stream a {\
-        color: #0078A8;\
-    }\
     /* CHAT */\
     #userlist {\
         float: right;\
@@ -308,6 +305,11 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     img.emoji {\
         width: 1.5em;\
         height: 1.5em;\
+    }\
+    /* USER */\
+    .avatar {\
+        float: left;\
+        margin-right: 10px;\
     }\
 </style>')
         .append('<link href="https://fonts.googleapis.com/css?family=Roboto&subset=latin,cyrillic" rel="stylesheet" type="text/css">');
@@ -523,7 +525,7 @@ function InitTop() {
         Api('rankedBroadcastFeed', {
             languages: [$('#lang').val()]
         }, function (response) {
-            var result = $('#result');
+            var result = $('#resultTop');
             result.empty();
             var ids =[];
             for (var i in response) {
@@ -571,10 +573,10 @@ function InitTop() {
         var sorted = streams.sort(function (a, b) {
             return $(b).find('.watching').text() -  $(a).find('.watching').text();
         });
-        $('#result').append(sorted);
+        $('#resultTop').append(sorted);
         return false;
     });
-    $('#Top').append(refreshButton).append(sort).append('<br/><br/><div id="result" />');
+    $('#Top').append(refreshButton).append(sort).append('<br/><br/><div id="resultTop" />');
     $("#lang").find(":contains("+(navigator.language || navigator.userLanguage).substr(0, 2)+")").attr("selected", "selected");
     refreshList();
 }
@@ -596,7 +598,7 @@ function InitCreate() {
 }
 function InitChat() {
     $('#right').append('<div id="Chat">id: <input id="broadcast_id" type="text" size="15"></div>');
-    var playButton = $('<a class="button" id="play">OK</a>');
+    var playButton = $('<a class="button" id="startchat">OK</a>');
     playButton.click(playBroadcast);
     $('#Chat').append(playButton).append('<span id="title"/>\
         <br/><br/>\
@@ -613,10 +615,16 @@ function InitUser() {
         Api('user', {
             user_id: $('#user_id').val().trim()
         }, function (user) {
-            var result = $('#result');
-            result.empty();
-            result.append('<a href="'+user.user.profile_image_urls[2].url+'" target="_blank"><img src="'+user.user.profile_image_urls[1].url+'"></a><br>' +
-                user.user.display_name+'<br>');
+            var result = $('#resultUser');
+            user.user.profile_image_urls.sort(function (a, b) {
+                return a.width * a.height - b.width * b.height;
+            });
+            result.html('<a class="avatar" href="' + user.user.profile_image_urls[user.user.profile_image_urls.length - 1].url + '" target="_blank"><img src="' + user.user.profile_image_urls[0].url + '"></a>' +
+                user.user.display_name + ' (@' + user.user.username + ') '
+                + (user.user.is_twitter_verified ? '<svg viewBox="0 0 17 17" width="1em" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g transform="translate(-767.000000, -573.000000)"><g transform="translate(-80.000000, -57.000000)"><g transform="translate(100.000000, 77.000000)"><g transform="translate(400.000000, 401.000000)"><g><g><g transform="translate(347.000000, 152.000000)"><path d="M1.74035847,11.2810213 C1.61434984,11.617947 1.54545455,11.982746 1.54545455,12.3636364 C1.54545455,14.0706983 2.92930168,15.4545455 4.63636364,15.4545455 C5.01725401,15.4545455 5.38205302,15.3856502 5.71897873,15.2596415 C6.22025271,16.2899361 7.2772042,17 8.5,17 C9.7227958,17 10.7797473,16.2899361 11.2810213,15.2596415 L11.2810213,15.2596415 C11.617947,15.3856502 11.982746,15.4545455 12.3636364,15.4545455 C14.0706983,15.4545455 15.4545455,14.0706983 15.4545455,12.3636364 C15.4545455,11.982746 15.3856502,11.617947 15.2596415,11.2810213 C16.2899361,10.7797473 17,9.7227958 17,8.5 C17,7.2772042 16.2899361,6.22025271 15.2596415,5.71897873 C15.3856502,5.38205302 15.4545455,5.01725401 15.4545455,4.63636364 C15.4545455,2.92930168 14.0706983,1.54545455 12.3636364,1.54545455 C11.982746,1.54545455 11.617947,1.61434984 11.2810213,1.74035847 C10.7797473,0.71006389 9.7227958,0 8.5,0 C7.2772042,0 6.22025272,0.71006389 5.71897873,1.74035847 C5.38205302,1.61434984 5.01725401,1.54545455 4.63636364,1.54545455 C2.92930168,1.54545455 1.54545455,2.92930168 1.54545455,4.63636364 C1.54545455,5.01725401 1.61434984,5.38205302 1.74035847,5.71897873 C0.71006389,6.22025272 0,7.2772042 0,8.5 C0,9.7227958 0.71006389,10.7797473 1.74035847,11.2810213 L1.74035847,11.2810213 Z" class="verified-bg" opacity="1" fill="#88C9F9"></path><path d="M11.2963464,5.28945679 L6.24739023,10.2894568 L7.63289664,10.2685106 L5.68185283,8.44985845 C5.27786241,8.07328153 4.64508754,8.09550457 4.26851062,8.499495 C3.8919337,8.90348543 3.91415674,9.53626029 4.31814717,9.91283721 L6.26919097,11.7314894 C6.66180802,12.0974647 7.27332289,12.0882198 7.65469737,11.7105432 L12.7036536,6.71054321 C13.0960757,6.32192607 13.0991603,5.68876861 12.7105432,5.29634643 C12.3219261,4.90392425 11.6887686,4.90083965 11.2963464,5.28945679 L11.2963464,5.28945679 Z" class="verified-check" fill="#FFFFFF"></path></g></g></g></g></g></g></g></g></svg>' : '')
+                + '<br/>'
+                + 'Created: ' + (new Date(user.user.created_at)).toLocaleString()+'<br/>'
+                + '<div style="clear:both"/>');
             Api('userBroadcasts', {
                 user_id: $('#user_id').val().trim(),
                 all: true
@@ -639,9 +647,9 @@ function InitUser() {
         });
     };
     $('#right').append('<div id="User">id: <input id="user_id" type="text" size="15"></div>');
-    var showButton = $('<a class="button" id="showbutton">OK</a>');
+    var showButton = $('<a class="button" id="showuser">OK</a>');
     showButton.click(refreshList);
-    $('#User').append(showButton).append('<br/><br/><div id="result" />');
+    $('#User').append(showButton).append('<br/><br/><div id="resultUser" />');
 }
 var chat_interval;
 var presence_interval;
@@ -656,10 +664,13 @@ function playBroadcast() {
         broadcast_id: $('#broadcast_id').val().trim()
     }, function (broadcast) {
         console.log(broadcast);
+        var userLink = $('<a class="username">(@' + broadcast.broadcast.username + ')</a>');
+        userLink.click(openUser.bind(null, broadcast.broadcast.user_id));
         $('#title').html((broadcast.publisher == "" ? '<b>FORBIDDEN</b> | ' : '')
             + '<a href="https://www.periscope.tv/w/'+broadcast.broadcast.id+'" target="_blank">'+emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
-            + emoji.replace_unified(broadcast.broadcast.user_display_name) + ' (<span class="username">@' + broadcast.broadcast.username + '</span>) | ' +
-            '<a href="'+broadcast.hls_url+'">M3U Link</a> | <a href="'+broadcast.rtmp_url+'">RTMP Link</a>');
+            + emoji.replace_unified(broadcast.broadcast.user_display_name) + ' ')
+            .append(userLink)
+            .append(' | <a href="'+broadcast.hls_url+'">M3U Link</a> | <a href="'+broadcast.rtmp_url+'">RTMP Link</a>');
         // Update users list
         var userlist = $('#userlist');
         function presenceUpdate() {
@@ -856,15 +867,17 @@ function getM3U (id, jcontainer) {
     return false;
 }
 function getDescription(stream, lazyload) {
-    var title = emoji.replace_unified(stream.status || stream.user_display_name);
+    var title = emoji.replace_unified(stream.status || 'Untitled');
     var date_created = new Date(stream.created_at);
     var duration = stream.end || stream.timedout ? new Date(new Date(stream.end || stream.timedout) - date_created) : 0;
+    var userLink = $('<a class="username">'+emoji.replace_unified(stream.user_display_name)+' (@' + stream.username + ')</a>');
+    userLink.click(openUser.bind(null, stream.user_id));
     var description = $('<div class="description">\
                 <a href="'+stream.image_url+'" target="_blank"><img '+(lazyload ? 'lazy' : '')+'src="' + stream.image_url_small + '"/></a>\
                 <div class="watching"/>\
-                <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>\
-                <div class="username">@' + stream.username + ' ('+emoji.replace_unified(stream.user_display_name)+')</div>\
-                Created: ' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth()+1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes()) + '\
+                <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a><br/>')
+        .append(userLink)
+        .append('<br/>Created: ' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth()+1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes()) + '\
                 '+(duration ? '<br/>Duration: '+zeros(duration.getUTCHours())+':'+zeros(duration.getMinutes())+':'+zeros(duration.getSeconds()) : '')+'\
                 '+(stream.country || stream.city ? '<br/>' + stream.country + ' ' + stream.city : '') + '\
         </div>');
@@ -876,7 +889,12 @@ function getDescription(stream, lazyload) {
 function openChat(broadcast_id){
     SwitchSection(null, 'Chat');
     $('#broadcast_id').val(broadcast_id);
-    $('#play').click();
+    $('#startchat').click();
+}
+function openUser(user_id){
+    SwitchSection(null, 'User');
+    $('#user_id').val(user_id);
+    $('#showuser').click();
 }
 
 function Api(method, params, callback, callback_fail) {
