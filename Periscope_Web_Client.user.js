@@ -356,7 +356,8 @@ function Ready(loginInfo) {
         {text: 'Map', id: 'Map'},
         {text: 'Top', id: 'Top'},
         {text: 'New broadcast', id: 'Create'},
-        {text: 'Chat', id: 'Chat'}
+        {text: 'Chat', id: 'Chat'},
+        {text: 'User', id: 'User'}
     ];
     for (var i in menu) {
         var link = $('<div class="menu">' + menu[i].text + '</div>');
@@ -606,6 +607,41 @@ function InitChat() {
             <a class="button" id="sendMessage">Send</a>\
             <div><input type="text" id="message"></div>\
         </div>');
+}
+function InitUser() {
+    var refreshList = function() {
+        Api('user', {
+            user_id: $('#user_id').val().trim()
+        }, function (user) {
+            var result = $('#result');
+            result.empty();
+            result.append('<a href="'+user.user.profile_image_urls[2].url+'" target="_blank"><img src="'+user.user.profile_image_urls[1].url+'"></a><br>' +
+                user.user.display_name+'<br>');
+            Api('userBroadcasts', {
+                user_id: $('#user_id').val().trim(),
+                all: true
+            }, function(streams){
+                var ids =[];
+                for (var i in streams) {
+                    var stream = $('<div class="stream ' + streams[i].state + ' '+streams[i].id+'">').append(getDescription(streams[i]));
+                    var link = $('<a>Get stream link</a>');
+                    link.click(getM3U.bind(null, streams[i].id, stream));
+                    result.append(stream.append(link).append('<br/>'));
+                    ids.push(streams[i].id);
+                }
+                Api('getBroadcasts', {
+                    broadcast_ids: ids
+                }, function(info){
+                    for (var i in info)
+                        $('.stream.'+info[i].id+' .watching').text(info[i].n_watching);
+                })
+            })
+        });
+    };
+    $('#right').append('<div id="User">id: <input id="user_id" type="text" size="15"></div>');
+    var showButton = $('<a class="button" id="showbutton">OK</a>');
+    showButton.click(refreshList);
+    $('#User').append(showButton).append('<br/><br/><div id="result" />');
 }
 var chat_interval;
 var presence_interval;
