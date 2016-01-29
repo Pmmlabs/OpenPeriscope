@@ -270,6 +270,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     }\
     #underchat label {\
         margin-left: 10px;\
+        margin-top: 0.5em;\
     }\
     #underchat div {\
         margin-right: 230px;\
@@ -751,12 +752,18 @@ function zeros(number){
     return (100 + number + '').substr(1);
 }
 function createBroadcast(){
-    Api('createBroadcast',{
+    var widthInput = $('#width');
+    var heightInput = $('#height');
+    if (widthInput.val().trim() == '')
+        widthInput.val(320);
+    if (heightInput.val().trim() == '')
+        heightInput.val(568);
+    Api('createBroadcast', {
         lat: 0,
         lng: 0,
         region: $('#server').val(),
-        width: +$('#width').val(),
-        height: +$('#height').val()
+        width: +widthInput.val(),
+        height: +heightInput.val()
     }, function(createInfo){
         //console.log(createInfo);
         Api('publishBroadcast', {
@@ -774,9 +781,9 @@ function createBroadcast(){
                 ' while true; do sleep 5s; curl --form "cookie=' + loginTwitter.cookie +'" --form "broadcast_id='+createInfo.broadcast.id+'" https://api.periscope.tv/api/v2/pingBroadcast;'+
                 ' done;'+
                 'curl --form "cookie=' + loginTwitter.cookie +'" --form "broadcast_id='+createInfo.broadcast.id+'" https://api.periscope.tv/api/v2/endBroadcast';
-            $('#Create').append('<pre>' + code + '</pre>' +
-                '<a target="_blank" href="https://www.periscope.tv/w/'+createInfo.broadcast.id+'">Watch your stream</a> | ' +
-                '<a href="data:text/plain;base64,' + btoa('#!/bin/bash\n'+unescape(encodeURIComponent(code))) + '" download="stream.sh">Download .SH</a>');
+            $('#Create').append('<pre>' + code + '</pre><a target="_blank" href="https://www.periscope.tv/w/'+createInfo.broadcast.id+'">Watch your stream</a> | ')
+                .append($('<a>Chat</a>').click(openChat.bind(null, createInfo.broadcast.id)))
+                .append(' | <a href="data:text/plain;base64,' + btoa('#!/bin/bash\n'+unescape(encodeURIComponent(code))) + '" download="stream.sh">Download .SH</a>');
         });
         //var broadcast = response.broadcast;
     });
@@ -825,13 +832,14 @@ function getDescription(stream, lazyload) {
                 '+(stream.country || stream.city ? '<br/>' + stream.country + ' ' + stream.city : '') + '\
         </div>');
     var chatLink = $('<a class="chatlink">Chat</a>');
-    chatLink.click(function(){
-        SwitchSection(null, 'Chat');
-        $('#broadcast_id').val(stream.id);
-        $('#play').click();
-    });
+    chatLink.click(openChat.bind(null, stream.id));
     description.append(chatLink).append('<div class="links" />');
     return description[0];
+}
+function openChat(broadcast_id){
+    SwitchSection(null, 'Chat');
+    $('#broadcast_id').val(broadcast_id);
+    $('#play').click();
 }
 
 function Api(method, params, callback, callback_fail) {
