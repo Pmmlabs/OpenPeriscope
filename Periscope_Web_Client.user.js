@@ -13,6 +13,7 @@
 // @require     http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js
 // @require     http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js
 // @require     http://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js
+// @require     https://github.com/iamcal/js-emoji/raw/master/lib/emoji.js
 // @downloadURL https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/Periscope_Web_Client.user.js
 // @updateURL   https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/Periscope_Web_Client.meta.js
 // @noframes
@@ -30,7 +31,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     body > div {\
         padding: 10px;\
     }\
-    body > input, body > a {\
+    #secret, body > a {\
         margin: 10px;\
     }\
     a {\
@@ -269,6 +270,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     }\
     #underchat label {\
         margin-left: 10px;\
+        margin-top: 0.5em;\
     }\
     #underchat div {\
         margin-right: 230px;\
@@ -281,6 +283,31 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     }\
     .error {\
         color: red;\
+    }\
+    /* EMOJI */\
+    span.emoji {\
+        display: inline-block;\
+        width: 1.5em;\
+        height: 1.5em;\
+        background-size: contain;\
+    }\
+    span.emoji-sizer {\
+        margin: -2px 0;\
+    }\
+    span.emoji-outer {\
+        display: inline-block;\
+        height: 1.5em;\
+        width: 1.5em;\
+    }\
+    span.emoji-inner {\
+        display: inline-block;\
+        width: 100%;\
+        height: 100%;\
+        vertical-align: baseline;\
+    }\
+    img.emoji {\
+        width: 1.5em;\
+        height: 1.5em;\
     }\
 </style>')
         .append('<link href="https://fonts.googleapis.com/css?family=Roboto&subset=latin,cyrillic" rel="stylesheet" type="text/css">');
@@ -322,14 +349,15 @@ function Ready(loginInfo) {
     var left = $('#left').append(signOutButton)
         .append('<img src="//raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/spinner.gif" id="spinner" />\
         <br/><img src="' + loginInfo.user.profile_image_urls[1].url + '"/>\
-        <div id="display_name">' + loginInfo.user.display_name + '</div>\
-        <div class="username">@' + loginInfo.user.username + '</div>');
+        <div id="display_name">' + emoji.replace_unified(loginInfo.user.display_name) + '</div>\
+        <div class="username">@' + (loginInfo.user.username || loginInfo.user.twitter_screen_name) + '</div>');
     var menu = [
         {text: 'API test', id: 'ApiTest'},
         {text: 'Map', id: 'Map'},
         {text: 'Top', id: 'Top'},
         {text: 'New broadcast', id: 'Create'},
-        {text: 'Chat', id: 'Chat'}
+        {text: 'Chat', id: 'Chat'},
+        {text: 'User', id: 'User'}
     ];
     for (var i in menu) {
         var link = $('<div class="menu">' + menu[i].text + '</div>');
@@ -337,6 +365,7 @@ function Ready(loginInfo) {
         left.append(link);
     }
     $('.menu').first().click();
+    emoji.img_sets[emoji.img_set].path = 'http://unicodey.com/emoji-data/img-apple-64/';
 }
 function SwitchSection(elem, section) {
     // Switch menu
@@ -438,8 +467,7 @@ function InitMap() {
             // adding markers
             for (var i = 0; i < r.length; i++) {
                 var stream = r[i];
-                var title = stream.status || stream.user_display_name;
-                var marker = L.marker(new L.LatLng(stream.ip_lat, stream.ip_lng), {title: title});
+                var marker = L.marker(new L.LatLng(stream.ip_lat, stream.ip_lng), {title: stream.status || stream.user_display_name});
                 if (!marker.getLatLng().equals(openLL)) {
                     var description = getDescription(stream, true);
                     marker.bindPopup(description);
@@ -580,6 +608,41 @@ function InitChat() {
             <div><input type="text" id="message"></div>\
         </div>');
 }
+function InitUser() {
+    var refreshList = function() {
+        Api('user', {
+            user_id: $('#user_id').val().trim()
+        }, function (user) {
+            var result = $('#result');
+            result.empty();
+            result.append('<a href="'+user.user.profile_image_urls[2].url+'" target="_blank"><img src="'+user.user.profile_image_urls[1].url+'"></a><br>' +
+                user.user.display_name+'<br>');
+            Api('userBroadcasts', {
+                user_id: $('#user_id').val().trim(),
+                all: true
+            }, function(streams){
+                var ids =[];
+                for (var i in streams) {
+                    var stream = $('<div class="stream ' + streams[i].state + ' '+streams[i].id+'">').append(getDescription(streams[i]));
+                    var link = $('<a>Get stream link</a>');
+                    link.click(getM3U.bind(null, streams[i].id, stream));
+                    result.append(stream.append(link).append('<br/>'));
+                    ids.push(streams[i].id);
+                }
+                Api('getBroadcasts', {
+                    broadcast_ids: ids
+                }, function(info){
+                    for (var i in info)
+                        $('.stream.'+info[i].id+' .watching').text(info[i].n_watching);
+                })
+            })
+        });
+    };
+    $('#right').append('<div id="User">id: <input id="user_id" type="text" size="15"></div>');
+    var showButton = $('<a class="button" id="showbutton">OK</a>');
+    showButton.click(refreshList);
+    $('#User').append(showButton).append('<br/><br/><div id="result" />');
+}
 var chat_interval;
 var presence_interval;
 var pubnubUrl = 'http://pubsub.pubnub.com';
@@ -594,8 +657,8 @@ function playBroadcast() {
     }, function (broadcast) {
         console.log(broadcast);
         $('#title').html((broadcast.publisher == "" ? '<b>FORBIDDEN</b> | ' : '')
-            + '<a href="https://www.periscope.tv/w/'+broadcast.broadcast.id+'" target="_blank">'+(broadcast.broadcast.status || 'Untitled') + '</a> | '
-            + broadcast.broadcast.user_display_name + ' (<span class="username">@' + broadcast.broadcast.username + '</span>) | ' +
+            + '<a href="https://www.periscope.tv/w/'+broadcast.broadcast.id+'" target="_blank">'+emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
+            + emoji.replace_unified(broadcast.broadcast.user_display_name) + ' (<span class="username">@' + broadcast.broadcast.username + '</span>) | ' +
             '<a href="'+broadcast.hls_url+'">M3U Link</a> | <a href="'+broadcast.rtmp_url+'">RTMP Link</a>');
         // Update users list
         var userlist = $('#userlist');
@@ -608,7 +671,7 @@ function playBroadcast() {
                 var user;
                 for (var i in pubnub.uuids)
                     if ((user = pubnub.uuids[i].state) && user.username)
-                        userlist.append('<div class="user">' + user.display_name + ' <div class="username">(' + user.username + ')</div></div>');
+                        userlist.append('<div class="user">' + emoji.replace_unified(user.display_name) + ' <div class="username">(' + user.username + ')</div></div>');
             }, 'json');
         }
         presence_interval = setInterval(presenceUpdate, 15000);
@@ -634,7 +697,7 @@ function playBroadcast() {
                                 var html = $('<div/>').append('[' + zeros(date.getHours()) + ':' + zeros(date.getMinutes()) + ':' + zeros(date.getSeconds()) + '] ');
                                 var username = $('<span class="user">&lt;' + event.username + '&gt;</span>');
                                 username.click(insertUsername);
-                                html.append(username).append(' ').append(event.body.replace(/(@\S+)/g, '<b>$1</b>'));
+                                html.append(username).append(' ').append(emoji.replace_unified(event.body).replace(/(@\S+)/g, '<b>$1</b>'));
                                 if (!event.body)    // for debug
                                     console.log('empty body!', event);
                                 chat.append(html);
@@ -726,12 +789,18 @@ function zeros(number){
     return (100 + number + '').substr(1);
 }
 function createBroadcast(){
-    Api('createBroadcast',{
+    var widthInput = $('#width');
+    var heightInput = $('#height');
+    if (widthInput.val().trim() == '')
+        widthInput.val(320);
+    if (heightInput.val().trim() == '')
+        heightInput.val(568);
+    Api('createBroadcast', {
         lat: 0,
         lng: 0,
         region: $('#server').val(),
-        width: +$('#width').val(),
-        height: +$('#height').val()
+        width: +widthInput.val(),
+        height: +heightInput.val()
     }, function(createInfo){
         //console.log(createInfo);
         Api('publishBroadcast', {
@@ -749,9 +818,9 @@ function createBroadcast(){
                 ' while true; do sleep 5s; curl --form "cookie=' + loginTwitter.cookie +'" --form "broadcast_id='+createInfo.broadcast.id+'" https://api.periscope.tv/api/v2/pingBroadcast;'+
                 ' done;'+
                 'curl --form "cookie=' + loginTwitter.cookie +'" --form "broadcast_id='+createInfo.broadcast.id+'" https://api.periscope.tv/api/v2/endBroadcast';
-            $('#Create').append('<pre>' + code + '</pre>' +
-                '<a target="_blank" href="https://www.periscope.tv/w/'+createInfo.broadcast.id+'">Watch your stream</a> | ' +
-                '<a href="data:text/plain;base64,' + btoa('#!/bin/bash\n'+unescape(encodeURIComponent(code))) + '" download="stream.sh">Download .SH</a>');
+            $('#Create').append('<pre>' + code + '</pre><a target="_blank" href="https://www.periscope.tv/w/'+createInfo.broadcast.id+'">Watch your stream</a> | ')
+                .append($('<a>Chat</a>').click(openChat.bind(null, createInfo.broadcast.id)))
+                .append(' | <a href="data:text/plain;base64,' + btoa('#!/bin/bash\n'+unescape(encodeURIComponent(code))) + '" download="stream.sh">Download .SH</a>');
         });
         //var broadcast = response.broadcast;
     });
@@ -787,26 +856,27 @@ function getM3U (id, jcontainer) {
     return false;
 }
 function getDescription(stream, lazyload) {
-    var title = stream.status || stream.user_display_name;
+    var title = emoji.replace_unified(stream.status || stream.user_display_name);
     var date_created = new Date(stream.created_at);
     var duration = stream.end || stream.timedout ? new Date(new Date(stream.end || stream.timedout) - date_created) : 0;
     var description = $('<div class="description">\
                 <a href="'+stream.image_url+'" target="_blank"><img '+(lazyload ? 'lazy' : '')+'src="' + stream.image_url_small + '"/></a>\
-                <div class="watching"></div>\
+                <div class="watching"/>\
                 <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>\
-                <div class="username">@' + stream.username + ' ('+stream.user_display_name+')</div>\
+                <div class="username">@' + stream.username + ' ('+emoji.replace_unified(stream.user_display_name)+')</div>\
                 Created: ' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth()+1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes()) + '\
                 '+(duration ? '<br/>Duration: '+zeros(duration.getUTCHours())+':'+zeros(duration.getMinutes())+':'+zeros(duration.getSeconds()) : '')+'\
                 '+(stream.country || stream.city ? '<br/>' + stream.country + ' ' + stream.city : '') + '\
         </div>');
     var chatLink = $('<a class="chatlink">Chat</a>');
-    chatLink.click(function(){
-        SwitchSection(null, 'Chat');
-        $('#broadcast_id').val(stream.id);
-        $('#play').click();
-    });
+    chatLink.click(openChat.bind(null, stream.id));
     description.append(chatLink).append('<div class="links" />');
     return description[0];
+}
+function openChat(broadcast_id){
+    SwitchSection(null, 'Chat');
+    $('#broadcast_id').val(broadcast_id);
+    $('#play').click();
 }
 
 function Api(method, params, callback, callback_fail) {
@@ -839,6 +909,17 @@ function SignIn3(session_key, session_secret) {
         localStorage.setItem('loginTwitter', JSON.stringify(response));
         loginTwitter = response;
         Ready(loginTwitter);
+        if (!loginTwitter.user.username)    // User registration
+            Api('verifyUsername', {
+                username: loginTwitter.suggested_username,
+                display_name: loginTwitter.user.display_name
+            }, function (verified) {
+                if (verified.success) {
+                    loginTwitter.user = verified.user;
+                    localStorage.setItem('loginTwitter', JSON.stringify(loginTwitter));
+                } else
+                    console.log('User verification failed!', verified);
+            });
     })
 }
 function SignIn2(oauth_token, oauth_verifier) {
