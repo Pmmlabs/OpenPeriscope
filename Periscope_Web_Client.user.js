@@ -31,7 +31,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     body > div {\
         padding: 10px;\
     }\
-    body > input, body > a {\
+    #secret, body > a {\
         margin: 10px;\
     }\
     a {\
@@ -350,7 +350,7 @@ function Ready(loginInfo) {
         .append('<img src="//raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/spinner.gif" id="spinner" />\
         <br/><img src="' + loginInfo.user.profile_image_urls[1].url + '"/>\
         <div id="display_name">' + emoji.replace_unified(loginInfo.user.display_name) + '</div>\
-        <div class="username">@' + loginInfo.user.username + '</div>');
+        <div class="username">@' + (loginInfo.user.username || loginInfo.user.twitter_screen_name) + '</div>');
     var menu = [
         {text: 'API test', id: 'ApiTest'},
         {text: 'Map', id: 'Map'},
@@ -872,6 +872,17 @@ function SignIn3(session_key, session_secret) {
         localStorage.setItem('loginTwitter', JSON.stringify(response));
         loginTwitter = response;
         Ready(loginTwitter);
+        if (!loginTwitter.user.username)    // User registration
+            Api('verifyUsername', {
+                username: loginTwitter.suggested_username,
+                display_name: loginTwitter.user.display_name
+            }, function (verified) {
+                if (verified.success) {
+                    loginTwitter.user = verified.user;
+                    localStorage.setItem('loginTwitter', JSON.stringify(loginTwitter));
+                } else
+                    console.log('User verification failed!', verified);
+            });
     })
 }
 function SignIn2(oauth_token, oauth_verifier) {
