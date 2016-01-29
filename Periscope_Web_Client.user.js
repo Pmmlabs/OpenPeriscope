@@ -351,18 +351,18 @@ function Ready(loginInfo) {
         <div id="display_name">' + emoji.replace_unified(loginInfo.user.display_name) + '</div>\
         <div class="username">@' + loginInfo.user.username + '</div>');
     var menu = [
+        {text: 'API test', id: 'ApiTest'},
         {text: 'Map', id: 'Map'},
         {text: 'Top', id: 'Top'},
         {text: 'New broadcast', id: 'Create'},
-        {text: 'Chat', id: 'Chat'},
-        {text: 'API test', id: 'ApiTest'}
+        {text: 'Chat', id: 'Chat'}
     ];
     for (var i in menu) {
         var link = $('<div class="menu">' + menu[i].text + '</div>');
         link.click(SwitchSection.bind(null, link, menu[i].id));
         left.append(link);
     }
-    $('.menu').last().click();
+    $('.menu').first().click();
     emoji.img_sets[emoji.img_set].path = 'http://unicodey.com/emoji-data/img-apple-64/';
 }
 function SwitchSection(elem, section) {
@@ -448,7 +448,7 @@ function InitMap() {
             "p2_lat": mapBounds._southWest.lat,
             "p2_lng": mapBounds._southWest.lng
         }, function (r) {
-            console.log(r);
+            //console.log(r);
             var openLL; // for preventing of closing opened popup
             live.eachLayer(function (layer) {
                 if (layer.getPopup()._isOpen)
@@ -462,11 +462,12 @@ function InitMap() {
                 else
                     replay.removeLayer(layer);
             });
+            // adding markers
             for (var i = 0; i < r.length; i++) {
                 var stream = r[i];
                 var marker = L.marker(new L.LatLng(stream.ip_lat, stream.ip_lng), {title: stream.status || stream.user_display_name});
                 if (!marker.getLatLng().equals(openLL)) {
-                    var description = getDescription(stream);
+                    var description = getDescription(stream, true);
                     marker.bindPopup(description);
                     marker.on('popupopen', getM3U.bind(null, stream.id, $(description)));
                     marker.on('popupopen', Api.bind(null, 'getBroadcasts', {
@@ -474,6 +475,10 @@ function InitMap() {
                     }, function (info) {
                         $('.leaflet-popup-content .watching').text(info[0].n_watching + info[0].n_web_watching);
                     }));
+                    marker.on('popupopen', function(e){
+                        var img = $(e.popup._content).find('img');
+                        img.attr('src', img.attr('lazysrc'));
+                    });
                     (stream.state == 'RUNNING' ? live : replay).addLayer(marker);
                 }
             }
@@ -678,12 +683,9 @@ function playBroadcast() {
                                 console.log(event);
                                 break;
                             case 8: // replay available (?)
-                                chat.append('<div class="service">8 *** ' + event.displayName + ' (@' + event.username + ') '+event.body+'</div>');
-                                console.log(event);
                                 break;
                             case 9: // don't know. Some action by the broadcaster. timestampPlaybackOffset
-                                chat.append('<div class="service">9 *** ' + event.displayName + ' (@' + event.username + ') '+event.body+'</div>');
-                                console.log(event);
+                                console.log('TYPE: 9', event);
                                 break;
                             default: // service messages (event.action = join, leave, timeout, state_changed)
                                 break;
@@ -691,7 +693,9 @@ function playBroadcast() {
                     }
                     if ($('#autoscroll')[0].checked)
                         chat[0].scrollTop = chat[0].scrollHeight;
-                }, 'json');
+                }, 'json').fail(function () {
+                    xhr_done = true;
+                });
             }
         }
         chat_interval = setInterval(messagesUpdate, 2000);
@@ -720,7 +724,7 @@ function playBroadcast() {
                         $('#spinner').hide();
                         $('#message').val('');
                         if (pubnub[1]!="Sent")
-                            console.log('message not sent', pubhub);
+                            console.log('message not sent', pubnub);
                     }, 'json').fail(function (error) {
                         chat.append('<span class="error">*** Error: ' + error.responseJSON.message + '</span>');
                     });
@@ -807,12 +811,12 @@ function getM3U (id, jcontainer) {
     });
     return false;
 }
-function getDescription(stream) {
+function getDescription(stream, lazyload) {
     var title = emoji.replace_unified(stream.status || stream.user_display_name);
     var date_created = new Date(stream.created_at);
     var duration = stream.end || stream.timedout ? new Date(new Date(stream.end || stream.timedout) - date_created) : 0;
     var description = $('<div class="description">\
-                <a href="'+stream.image_url+'" target="_blank"><img src="' + stream.image_url_small + '"/></a>\
+                <a href="'+stream.image_url+'" target="_blank"><img '+(lazyload ? 'lazy' : '')+'src="' + stream.image_url_small + '"/></a>\
                 <div class="watching"/>\
                 <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>\
                 <div class="username">@' + stream.username + ' ('+emoji.replace_unified(stream.user_display_name)+')</div>\
