@@ -13,6 +13,7 @@
 // @require     http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js
 // @require     http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js
 // @require     http://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js
+// @require     https://github.com/iamcal/js-emoji/raw/master/lib/emoji.js
 // @downloadURL https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/Periscope_Web_Client.user.js
 // @updateURL   https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/Periscope_Web_Client.meta.js
 // @noframes
@@ -282,6 +283,31 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     .error {\
         color: red;\
     }\
+    /* EMOJI */\
+    span.emoji {\
+        display: inline-block;\
+        width: 1.5em;\
+        height: 1.5em;\
+        background-size: contain;\
+    }\
+    span.emoji-sizer {\
+        margin: -2px 0;\
+    }\
+    span.emoji-outer {\
+        display: inline-block;\
+        height: 1.5em;\
+        width: 1.5em;\
+    }\
+    span.emoji-inner {\
+        display: inline-block;\
+        width: 100%;\
+        height: 100%;\
+        vertical-align: baseline;\
+    }\
+    img.emoji {\
+        width: 1.5em;\
+        height: 1.5em;\
+    }\
 </style>')
         .append('<link href="https://fonts.googleapis.com/css?family=Roboto&subset=latin,cyrillic" rel="stylesheet" type="text/css">');
 
@@ -322,7 +348,7 @@ function Ready(loginInfo) {
     var left = $('#left').append(signOutButton)
         .append('<img src="//raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/spinner.gif" id="spinner" />\
         <br/><img src="' + loginInfo.user.profile_image_urls[1].url + '"/>\
-        <div id="display_name">' + loginInfo.user.display_name + '</div>\
+        <div id="display_name">' + emoji.replace_unified(loginInfo.user.display_name) + '</div>\
         <div class="username">@' + loginInfo.user.username + '</div>');
     var menu = [
         {text: 'Map', id: 'Map'},
@@ -337,6 +363,7 @@ function Ready(loginInfo) {
         left.append(link);
     }
     $('.menu').last().click();
+    emoji.img_sets[emoji.img_set].path = 'http://unicodey.com/emoji-data/img-apple-64/';
 }
 function SwitchSection(elem, section) {
     // Switch menu
@@ -437,8 +464,7 @@ function InitMap() {
             });
             for (var i = 0; i < r.length; i++) {
                 var stream = r[i];
-                var title = stream.status || stream.user_display_name;
-                var marker = L.marker(new L.LatLng(stream.ip_lat, stream.ip_lng), {title: title});
+                var marker = L.marker(new L.LatLng(stream.ip_lat, stream.ip_lng), {title: stream.status || stream.user_display_name});
                 if (!marker.getLatLng().equals(openLL)) {
                     var description = getDescription(stream);
                     marker.bindPopup(description);
@@ -589,8 +615,8 @@ function playBroadcast() {
     }, function (broadcast) {
         console.log(broadcast);
         $('#title').html((broadcast.publisher == "" ? '<b>FORBIDDEN</b> | ' : '')
-            + '<a href="https://www.periscope.tv/w/'+broadcast.broadcast.id+'" target="_blank">'+(broadcast.broadcast.status || 'Untitled') + '</a> | '
-            + broadcast.broadcast.user_display_name + ' (<span class="username">@' + broadcast.broadcast.username + '</span>) | ' +
+            + '<a href="https://www.periscope.tv/w/'+broadcast.broadcast.id+'" target="_blank">'+emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
+            + emoji.replace_unified(broadcast.broadcast.user_display_name) + ' (<span class="username">@' + broadcast.broadcast.username + '</span>) | ' +
             '<a href="'+broadcast.hls_url+'">M3U Link</a> | <a href="'+broadcast.rtmp_url+'">RTMP Link</a>');
         // Update users list
         var userlist = $('#userlist');
@@ -603,7 +629,7 @@ function playBroadcast() {
                 var user;
                 for (var i in pubnub.uuids)
                     if ((user = pubnub.uuids[i].state) && user.username)
-                        userlist.append('<div class="user">' + user.display_name + ' <div class="username">(' + user.username + ')</div></div>');
+                        userlist.append('<div class="user">' + emoji.replace_unified(user.display_name) + ' <div class="username">(' + user.username + ')</div></div>');
             }, 'json');
         }
         presence_interval = setInterval(presenceUpdate, 15000);
@@ -629,7 +655,7 @@ function playBroadcast() {
                                 var html = $('<div/>').append('[' + zeros(date.getHours()) + ':' + zeros(date.getMinutes()) + ':' + zeros(date.getSeconds()) + '] ');
                                 var username = $('<span class="user">&lt;' + event.username + '&gt;</span>');
                                 username.click(insertUsername);
-                                html.append(username).append(' ').append(event.body.replace(/(@\S+)/g, '<b>$1</b>'));
+                                html.append(username).append(' ').append(emoji.replace_unified(event.body).replace(/(@\S+)/g, '<b>$1</b>'));
                                 if (!event.body)    // for debug
                                     console.log('empty body!', event);
                                 chat.append(html);
@@ -782,14 +808,14 @@ function getM3U (id, jcontainer) {
     return false;
 }
 function getDescription(stream) {
-    var title = stream.status || stream.user_display_name;
+    var title = emoji.replace_unified(stream.status || stream.user_display_name);
     var date_created = new Date(stream.created_at);
     var duration = stream.end || stream.timedout ? new Date(new Date(stream.end || stream.timedout) - date_created) : 0;
     var description = $('<div class="description">\
                 <a href="'+stream.image_url+'" target="_blank"><img src="' + stream.image_url_small + '"/></a>\
-                <div class="watching"></div>\
+                <div class="watching"/>\
                 <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>\
-                <div class="username">@' + stream.username + ' ('+stream.user_display_name+')</div>\
+                <div class="username">@' + stream.username + ' ('+emoji.replace_unified(stream.user_display_name)+')</div>\
                 Created: ' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth()+1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes()) + '\
                 '+(duration ? '<br/>Duration: '+zeros(duration.getUTCHours())+':'+zeros(duration.getMinutes())+':'+zeros(duration.getSeconds()) : '')+'\
                 '+(stream.country || stream.city ? '<br/>' + stream.country + ' ' + stream.city : '') + '\

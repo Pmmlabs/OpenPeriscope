@@ -21,3 +21,4 @@ Docs by @cjhbtn, actualized by me: http://static.pmmlabs.ru/OpenPeriscope
 1. CryptoJS http://crypto-js.googlecode.com
 1. Leaflet http://leafletjs.com/
 1. Leaflet.markercluster https://github.com/Leaflet/Leaflet.markercluster
+1. js-emoji https://github.com/iamcal/js-emoji
