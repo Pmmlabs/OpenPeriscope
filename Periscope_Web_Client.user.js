@@ -77,6 +77,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         vertical-align: middle;\
         will-change: opacity, transform;\
         transition: all 0.3s ease-out 0s;\
+        margin-right: 10px;\
     }\
     .button, .stream {\
         box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);\
@@ -256,7 +257,6 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         display: inline;\
     }\
     #title {\
-        margin-left: 10px;\
         font-size: 16px;\
     }\
     #sendMessage, #underchat label {\
@@ -266,7 +266,6 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         padding-top: 5px;\
     }\
     #underchat label {\
-        margin-left: 10px;\
         margin-top: 0.5em;\
     }\
     #underchat div {\
@@ -356,7 +355,7 @@ function Ready(loginInfo) {
     var menu = [
         {text: 'API test', id: 'ApiTest'},
         {text: 'Map', id: 'Map'},
-        {text: 'Top', id: 'Top'},
+        {text: 'Feeds', id: 'Top'},
         {text: 'New broadcast', id: 'Create'},
         {text: 'Chat', id: 'Chat'},
         {text: 'User', id: 'User'}
@@ -521,10 +520,8 @@ function InitApiTest() {
     $('#ApiTest').append(submitButton).append('<br/><br/><pre id="response"/>Response is also displayed in the browser console</pre>');
 }
 function InitTop() {
-    var refreshList = function() {
-        Api('rankedBroadcastFeed', {
-            languages: [$('#lang').val()]
-        }, function (response) {
+    var refreshList = function(method, params) {
+        Api(method, params, function (response) {
             var result = $('#resultTop');
             result.empty();
             var ids =[];
@@ -535,12 +532,13 @@ function InitTop() {
                 result.append(stream.append(link).append('<br/>'));
                 ids.push(response[i].id);
             }
-            Api('getBroadcasts', {
-                broadcast_ids: ids
-            }, function(info){
-                for (var i in info)
-                    $('.stream.'+info[i].id+' .watching').text(info[i].n_watching);
-            })
+            if (response.length)
+                Api('getBroadcasts', {
+                    broadcast_ids: ids
+                }, function(info){
+                    for (var i in info)
+                        $('.stream.'+info[i].id+' .watching').text(info[i].n_watching);
+                })
         });
     };
 
@@ -565,8 +563,24 @@ function InitTop() {
             <option>uk</option>\
             <option>zh</option>\
         </select></dt></div>');
-    var refreshButton = $('<a class="button">Refresh</a>');
-    refreshButton.click(refreshList);
+    $("#lang").find(":contains("+(navigator.language || navigator.userLanguage).substr(0, 2)+")").attr("selected", "selected");
+    var tabs = [
+        {text: 'Ranked', method: 'rankedBroadcastFeed', params: {
+            languages: [$('#lang').val()]
+        }},
+        {text: 'Following', method: 'followingBroadcastFeed'},
+        {text: 'Featured', method: 'featuredBroadcastFeed'},
+        {text: 'Live', method: 'liveBroadcastFeed'},
+        {text: 'Newest', method: 'mapBroadcastFeed', params: {
+            //since: Math.floor(new Date() / 1000),
+            count: 253
+        }}
+    ];
+    for (var i in tabs) {
+        var button = $('<a class="button">'+tabs[i].text+'</a>');
+        button.click(refreshList.bind(null, tabs[i].method, tabs[i].params));
+        $('#Top').append(button);
+    }
     var sort = $('<a id="sort" class="watching">Sort by watching</a>');
     sort.click(function(){
         var streams = $('.stream');
@@ -576,9 +590,8 @@ function InitTop() {
         $('#resultTop').append(sorted);
         return false;
     });
-    $('#Top').append(refreshButton).append(sort).append('<br/><br/><div id="resultTop" />');
-    $("#lang").find(":contains("+(navigator.language || navigator.userLanguage).substr(0, 2)+")").attr("selected", "selected");
-    refreshList();
+    $('#Top').append(sort).append('<div id="resultTop" />');
+    $('#Top .button').first().click();
 }
 function InitCreate() {
     $('#right').append('<div id="Create">' +
@@ -612,19 +625,31 @@ function InitChat() {
 }
 function InitUser() {
     var refreshList = function() {
+        var result = $('#resultUser');
+        result.empty();
         Api('user', {
             user_id: $('#user_id').val().trim()
-        }, function (user) {
-            var result = $('#resultUser');
-            user.user.profile_image_urls.sort(function (a, b) {
+        }, function (response) {
+            var user = response.user;
+            user.profile_image_urls.sort(function (a, b) {
                 return a.width * a.height - b.width * b.height;
             });
-            result.html('<a class="avatar" href="' + user.user.profile_image_urls[user.user.profile_image_urls.length - 1].url + '" target="_blank"><img src="' + user.user.profile_image_urls[0].url + '"></a>' +
-                user.user.display_name + ' (@' + user.user.username + ') '
-                + (user.user.is_twitter_verified ? '<svg viewBox="0 0 17 17" width="1em" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g transform="translate(-767.000000, -573.000000)"><g transform="translate(-80.000000, -57.000000)"><g transform="translate(100.000000, 77.000000)"><g transform="translate(400.000000, 401.000000)"><g><g><g transform="translate(347.000000, 152.000000)"><path d="M1.74035847,11.2810213 C1.61434984,11.617947 1.54545455,11.982746 1.54545455,12.3636364 C1.54545455,14.0706983 2.92930168,15.4545455 4.63636364,15.4545455 C5.01725401,15.4545455 5.38205302,15.3856502 5.71897873,15.2596415 C6.22025271,16.2899361 7.2772042,17 8.5,17 C9.7227958,17 10.7797473,16.2899361 11.2810213,15.2596415 L11.2810213,15.2596415 C11.617947,15.3856502 11.982746,15.4545455 12.3636364,15.4545455 C14.0706983,15.4545455 15.4545455,14.0706983 15.4545455,12.3636364 C15.4545455,11.982746 15.3856502,11.617947 15.2596415,11.2810213 C16.2899361,10.7797473 17,9.7227958 17,8.5 C17,7.2772042 16.2899361,6.22025271 15.2596415,5.71897873 C15.3856502,5.38205302 15.4545455,5.01725401 15.4545455,4.63636364 C15.4545455,2.92930168 14.0706983,1.54545455 12.3636364,1.54545455 C11.982746,1.54545455 11.617947,1.61434984 11.2810213,1.74035847 C10.7797473,0.71006389 9.7227958,0 8.5,0 C7.2772042,0 6.22025272,0.71006389 5.71897873,1.74035847 C5.38205302,1.61434984 5.01725401,1.54545455 4.63636364,1.54545455 C2.92930168,1.54545455 1.54545455,2.92930168 1.54545455,4.63636364 C1.54545455,5.01725401 1.61434984,5.38205302 1.74035847,5.71897873 C0.71006389,6.22025272 0,7.2772042 0,8.5 C0,9.7227958 0.71006389,10.7797473 1.74035847,11.2810213 L1.74035847,11.2810213 Z" class="verified-bg" opacity="1" fill="#88C9F9"></path><path d="M11.2963464,5.28945679 L6.24739023,10.2894568 L7.63289664,10.2685106 L5.68185283,8.44985845 C5.27786241,8.07328153 4.64508754,8.09550457 4.26851062,8.499495 C3.8919337,8.90348543 3.91415674,9.53626029 4.31814717,9.91283721 L6.26919097,11.7314894 C6.66180802,12.0974647 7.27332289,12.0882198 7.65469737,11.7105432 L12.7036536,6.71054321 C13.0960757,6.32192607 13.0991603,5.68876861 12.7105432,5.29634643 C12.3219261,4.90392425 11.6887686,4.90083965 11.2963464,5.28945679 L11.2963464,5.28945679 Z" class="verified-check" fill="#FFFFFF"></path></g></g></g></g></g></g></g></g></svg>' : '')
-                + '<br/>'
-                + 'Created: ' + (new Date(user.user.created_at)).toLocaleString()+'<br/>'
-                + '<div style="clear:both"/>');
+            result.append('<a class="avatar" href="' + user.profile_image_urls[user.profile_image_urls.length - 1].url + '" target="_blank"><img width="128" src="' + user.profile_image_urls[0].url + '"></a>' +
+                user.display_name + ' (@' + user.username + ') '
+                + (user.is_twitter_verified ? '<svg viewBox="0 0 17 17" width="1em" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g transform="translate(-767.000000, -573.000000)"><g transform="translate(-80.000000, -57.000000)"><g transform="translate(100.000000, 77.000000)"><g transform="translate(400.000000, 401.000000)"><g><g><g transform="translate(347.000000, 152.000000)"><path d="M1.74035847,11.2810213 C1.61434984,11.617947 1.54545455,11.982746 1.54545455,12.3636364 C1.54545455,14.0706983 2.92930168,15.4545455 4.63636364,15.4545455 C5.01725401,15.4545455 5.38205302,15.3856502 5.71897873,15.2596415 C6.22025271,16.2899361 7.2772042,17 8.5,17 C9.7227958,17 10.7797473,16.2899361 11.2810213,15.2596415 L11.2810213,15.2596415 C11.617947,15.3856502 11.982746,15.4545455 12.3636364,15.4545455 C14.0706983,15.4545455 15.4545455,14.0706983 15.4545455,12.3636364 C15.4545455,11.982746 15.3856502,11.617947 15.2596415,11.2810213 C16.2899361,10.7797473 17,9.7227958 17,8.5 C17,7.2772042 16.2899361,6.22025271 15.2596415,5.71897873 C15.3856502,5.38205302 15.4545455,5.01725401 15.4545455,4.63636364 C15.4545455,2.92930168 14.0706983,1.54545455 12.3636364,1.54545455 C11.982746,1.54545455 11.617947,1.61434984 11.2810213,1.74035847 C10.7797473,0.71006389 9.7227958,0 8.5,0 C7.2772042,0 6.22025272,0.71006389 5.71897873,1.74035847 C5.38205302,1.61434984 5.01725401,1.54545455 4.63636364,1.54545455 C2.92930168,1.54545455 1.54545455,2.92930168 1.54545455,4.63636364 C1.54545455,5.01725401 1.61434984,5.38205302 1.74035847,5.71897873 C0.71006389,6.22025272 0,7.2772042 0,8.5 C0,9.7227958 0.71006389,10.7797473 1.74035847,11.2810213 L1.74035847,11.2810213 Z" class="verified-bg" opacity="1" fill="#88C9F9"></path><path d="M11.2963464,5.28945679 L6.24739023,10.2894568 L7.63289664,10.2685106 L5.68185283,8.44985845 C5.27786241,8.07328153 4.64508754,8.09550457 4.26851062,8.499495 C3.8919337,8.90348543 3.91415674,9.53626029 4.31814717,9.91283721 L6.26919097,11.7314894 C6.66180802,12.0974647 7.27332289,12.0882198 7.65469737,11.7105432 L12.7036536,6.71054321 C13.0960757,6.32192607 13.0991603,5.68876861 12.7105432,5.29634643 C12.3219261,4.90392425 11.6887686,4.90083965 11.2963464,5.28945679 L11.2963464,5.28945679 Z" class="verified-check" fill="#FFFFFF"></path></g></g></g></g></g></g></g></g></svg>' : '')
+                + '<br/>Created: ' + (new Date(user.created_at)).toLocaleString()
+                + (user.description ? '<br/>' + user.description : ''))
+                .append('<br/>')
+                .append($('<a class="button">'+(user.is_following ? 'unfollow' : 'follow')+'</a>').click(function(){
+                    var el = this;
+                    Api(el.innerHTML, { // follow or unfollow
+                        user_id: user.id
+                    }, function(r){
+                        if (r.success)
+                            el.innerHTML = el.innerHTML == 'follow' ? 'unfollow' : 'follow';
+                    })
+                }))
+                .append('<div style="clear:both"/>');
             Api('userBroadcasts', {
                 user_id: $('#user_id').val().trim(),
                 all: true
@@ -674,11 +699,11 @@ function playBroadcast() {
         // Update users list
         var userlist = $('#userlist');
         function presenceUpdate() {
+            userlist.empty();
             $.get(pubnubUrl + '/v2/presence/sub_key/' + broadcast.subscriber + '/channel/' + broadcast.channel, {
                 state: 1,
                 auth: broadcast.auth_token
             }, function (pubnub) {
-                userlist.empty();
                 var user;
                 for (var i in pubnub.uuids)
                     if ((user = pubnub.uuids[i].state) && user.username)
@@ -837,10 +862,10 @@ function createBroadcast(){
     });
 }
 function getM3U (id, jcontainer) {
+    jcontainer.find('.links').empty();
     Api('getAccessPublic', {
         broadcast_id: id
     }, function (r) {
-        jcontainer.find('.links').empty();
         // For live
         var hls_url = r.hls_url || r.https_hls_url;
         if (hls_url) {
@@ -879,7 +904,7 @@ function getDescription(stream, lazyload) {
         .append(userLink)
         .append('<br/>Created: ' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth()+1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes()) + '\
                 '+(duration ? '<br/>Duration: '+zeros(duration.getUTCHours())+':'+zeros(duration.getMinutes())+':'+zeros(duration.getSeconds()) : '')+'\
-                '+(stream.country || stream.city ? '<br/>' + stream.country + ' ' + stream.city : '') + '\
+                '+(stream.country || stream.city ? '<br/>' + stream.country + ', ' + stream.city : '') + '\
         </div>');
     var chatLink = $('<a class="chatlink">Chat</a>');
     chatLink.click(openChat.bind(null, stream.id));
@@ -898,6 +923,8 @@ function openUser(user_id){
 }
 
 function Api(method, params, callback, callback_fail) {
+    if (!params)
+        params = {};
     if (loginTwitter && loginTwitter.cookie)
         params.cookie = loginTwitter.cookie;
     $('#spinner').show();
