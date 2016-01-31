@@ -79,7 +79,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         transition: all 0.3s ease-out 0s;\
         margin-right: 10px;\
     }\
-    .button, .stream {\
+    .button, .card {\
         box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);\
     }\
     .button:hover {\
@@ -211,7 +211,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         white-space: pre-wrap;\
         word-wrap: break-word;\
     }\
-    .stream {\
+    .card {\
         font: 14px/1.3 "Helvetica Neue",Arial,Helvetica,sans-serif;\
         height: 128px;\
         margin: 0.5rem 0 1rem 0;\
@@ -219,17 +219,17 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         transition: box-shadow .25s;\
         border-radius: 2px;\
     }\
-    .stream .description {\
+    .card .description {\
         padding-top: 10px;\
         padding-right: 10px;\
     }\
-    .stream.RUNNING img {\
+    .card.RUNNING img {\
         border-color: #ED4D4D;;\
     }\
-    .stream.ENDED img {\
+    .card.ENDED img {\
         border-color: #4350E9;\
     }\
-    .stream img {\
+    .card img {\
         height: 128px;\
         border-right: 5px solid;\
         margin-top: -10px;\
@@ -312,6 +312,9 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     img.avatar {\
         border: none;\
     }\
+    #People .username {\
+        font-size: 17px;\
+    }\
 </style>')
         .append('<link href="https://fonts.googleapis.com/css?family=Roboto&subset=latin,cyrillic" rel="stylesheet" type="text/css">');
 
@@ -357,7 +360,7 @@ function Ready(loginInfo) {
     var menu = [
         {text: 'API test', id: 'ApiTest'},
         {text: 'Map', id: 'Map'},
-        {text: 'Feeds', id: 'Top'},
+        {text: 'Feeds', id: 'Feeds'},
         {text: 'New broadcast', id: 'Create'},
         {text: 'Chat', id: 'Chat'},
         {text: 'Suggested people', id: 'People'},
@@ -543,14 +546,18 @@ function InitApiTest() {
         '<dt>Parameters</dt><textarea id="params" placeholder=\'{"include_replay": true, "p1_lat": 1, "p1_lng": 2, "p2_lat": 3, "p2_lng": 4}\'/><br/><br/>');
     $('#ApiTest').append(submitButton).append('<br/><br/><pre id="response"/>Response is also displayed in the browser console</pre>');
 }
-function InitTop() {
-    var refreshList = function(method, params) {
-        Api(method, params, function (response) {
-            var result = $('#resultTop');
+function InitFeeds() {
+    var result = $('<div/>');
+    var refreshList = function(method) {
+        Api(method, {
+            languages: [$('#Feeds .lang').val()],
+            //since: Math.floor(new Date() / 1000),
+            count: 253
+        }, function (response) {
             result.empty();
             var ids =[];
             for (var i in response) {
-                var stream = $('<div class="stream ' + response[i].state + ' '+response[i].id+'"/>').append(getDescription(response[i]));
+                var stream = $('<div class="card ' + response[i].state + ' '+response[i].id+'"/>').append(getDescription(response[i]));
                 var link = $('<a>Get stream link</a>');
                 link.click(getM3U.bind(null, response[i].id, stream));
                 result.append(stream.append(link));
@@ -561,41 +568,36 @@ function InitTop() {
                     broadcast_ids: ids
                 }, function(info){
                     for (var i in info)
-                        $('.stream.'+info[i].id+' .watching').text(info[i].n_watching);
+                        $('.card.'+info[i].id+' .watching').text(info[i].n_watching);
                 })
         });
     };
 
-    $('#right').append($('<div id="Top"/>').append(languageSelect));
-    $("#Top .lang").find(":contains("+(navigator.language || navigator.userLanguage).substr(0, 2)+")").attr("selected", "selected");
+    $('#right').append($('<div id="Feeds"/>').append(languageSelect));
+    $("#Feeds .lang").find(":contains("+(navigator.language || navigator.userLanguage).substr(0, 2)+")").attr("selected", "selected");
     var tabs = [
-        {text: 'Ranked', method: 'rankedBroadcastFeed', params: {
-            languages: [$('#Top .lang').val()]
-        }},
+        {text: 'Ranked', method: 'rankedBroadcastFeed'},
         {text: 'Following', method: 'followingBroadcastFeed'},
         {text: 'Featured', method: 'featuredBroadcastFeed'},
         {text: 'Live', method: 'liveBroadcastFeed'},
-        {text: 'Newest', method: 'mapBroadcastFeed', params: {
-            //since: Math.floor(new Date() / 1000),
-            count: 253
-        }}
+        {text: 'Newest', method: 'mapBroadcastFeed'}
     ];
     for (var i in tabs) {
         var button = $('<a class="button">'+tabs[i].text+'</a>');
         button.click(refreshList.bind(null, tabs[i].method, tabs[i].params));
-        $('#Top').append(button);
+        $('#Feeds').append(button);
     }
     var sort = $('<a id="sort" class="watching">Sort by watching</a>');
     sort.click(function(){
-        var streams = $('.stream');
-        var sorted = streams.sort(function (a, b) {
+        var cards = $('#Feeds .card');
+        var sorted = cards.sort(function (a, b) {
             return $(b).find('.watching').text() -  $(a).find('.watching').text();
         });
-        $('#resultTop').append(sorted);
+        result.append(sorted);
         return false;
     });
-    $('#Top').append(sort).append('<div id="resultTop" />');
-    $('#Top .button').first().click();
+    $('#Feeds').append(sort).append(result);
+    $('#Feeds .button').first().click();
 }
 function InitCreate() {
     $('#right').append('<div id="Create">' +
@@ -642,7 +644,7 @@ function InitUser() {
             }, function(streams){
                 var ids =[];
                 for (var i in streams) {
-                    var stream = $('<div class="stream ' + streams[i].state + ' '+streams[i].id+'">').append(getDescription(streams[i]));
+                    var stream = $('<div class="card ' + streams[i].state + ' '+streams[i].id+'">').append(getDescription(streams[i]));
                     var link = $('<a>Get stream link</a>');
                     link.click(getM3U.bind(null, streams[i].id, stream));
                     result.append(stream.append(link));
@@ -652,7 +654,7 @@ function InitUser() {
                     broadcast_ids: ids
                 }, function(info){
                     for (var i in info)
-                        $('.stream.'+info[i].id+' .watching').text(info[i].n_watching);
+                        $('.card.'+info[i].id+' .watching').text(info[i].n_watching);
                 })
             })
         });
@@ -670,14 +672,14 @@ function InitPeople() {
             var result = $('#resultPeople');
             result.html('<h1>Featured</h1>');
             for (var i in response.featured)
-                result.append($('<div class="stream"/>').append(getUserDescription(response.featured[i])));
+                result.append($('<div class="card"/>').append(getUserDescription(response.featured[i])));
             result.append('<h1>Popular</h1>');
             for (var i in response.popular)
-                result.append($('<div class="stream"/>').append(getUserDescription(response.popular[i])));
+                result.append($('<div class="card"/>').append(getUserDescription(response.popular[i])));
             Api('suggestedPeople', {}, function (response) {
                 result.append('<h1>Hearted</h1>');
                 for (var i in response.hearted)
-                    result.append($('<div class="stream"/>').append(getUserDescription(response.hearted[i])));
+                    result.append($('<div class="card"/>').append(getUserDescription(response.hearted[i])));
             });
         });
     });
