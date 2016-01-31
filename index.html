@@ -40,7 +40,6 @@
             <div class="list-group">
                 <a href="#intro" class="list-group-item">Introduction</a>
                 <a href="#changelog" class="list-group-item">Changelog</a>
-                <a href="#libs" class="list-group-item">Libraries</a>
             </div>
 
             <div class="panel-group" id="flowcharts-side" role="tablist" aria-multiselectable="true">
@@ -123,7 +122,11 @@
                                 <span class="badge" title="This endpoint requires authentication"><i
                                         class="fa fa-lock"></i></span>
                             </a>
-                            <a href="#/globalBroadcastFeed" class="list-group-item">/globalBroadcastFeed
+                            <a href="#/globalBroadcastFeed" class="list-group-item"><s>/globalBroadcastFeed</s>
+                                <span class="badge" title="This endpoint requires authentication"><i
+                                        class="fa fa-lock"></i></span>
+                            </a>
+                            <a href="#/rankedBroadcastFeed" class="list-group-item">/rankedBroadcastFeed
                                 <span class="badge" title="This endpoint requires authentication"><i
                                         class="fa fa-lock"></i></span>
                             </a>
@@ -183,6 +186,8 @@
                                         class="fa fa-lock"></i></span>
                             </a>
                             <a href="#/getAccessPublic" class="list-group-item">/getAccessPublic
+                            </a>
+                            <a href="#/publicReplayThumbnailPlaylist" class="list-group-item">/publicReplayThumbnailPlaylist
                             </a>
                             <a href="#/getBroadcastPublic" class="list-group-item">/getBroadcastPublic
                             </a>
@@ -471,6 +476,7 @@
                             <a href="#StatsBroadcasting" class="list-group-item">StatsBroadcasting</a>
                             <a href="#StatsMeta" class="list-group-item">StatsMeta</a>
                             <a href="#ReplayCookie" class="list-group-item">ReplayCookie</a>
+                            <a href="#Chunk" class="list-group-item">Chunk</a>
                         </div>
                     </div>
                 </div>
@@ -2204,7 +2210,7 @@ Connection: close
                             </div>
                             <div class="panel-body">
                                 <p>
-                                    [TODO - To be documented]
+                                    Broadcasts from users that are being followed by the current user.
                                 </p>
 
                                 <hr>
@@ -2871,16 +2877,16 @@ Content-Length: 14004
 
                                 <hr>
 
-                                <div id="-requests" class="panel panel-success">
-                                    <div id="-requests-heading" class="panel-heading">
+                                <div id="rankedBroadcastFeed-requests" class="panel panel-success">
+                                    <div id="rankedBroadcastFeed-requests-heading" class="panel-heading">
                                         <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
-                                           data-parent="#-requests" href="#-requests-content"
-                                           aria-expanded="false" aria-controls="-requests-content">
+                                           data-parent="#rankedBroadcastFeed-requests" href="#rankedBroadcastFeed-requests-content"
+                                           aria-expanded="false" aria-controls="rankedBroadcastFeed-requests-content">
                                             Request Parameters
                                         </a>
                                     </div>
-                                    <div id="-requests-content" class="panel-collapse collapse out"
-                                         role="tabpanel" aria-labelledby="-requests-heading">
+                                    <div id="rankedBroadcastFeed-requests-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="rankedBroadcastFeed-requests-heading">
                                         <table class="table table-striped table-bordered">
                                             <thead>
                                             <tr>
@@ -2917,16 +2923,16 @@ Content-Length: 14004
 
                                 <hr>
 
-                                <div id="-responses" class="panel panel-info">
-                                    <div id="-responses-heading" class="panel-heading">
+                                <div id="rankedBroadcastFeed-responses" class="panel panel-info">
+                                    <div id="rankedBroadcastFeed-responses-heading" class="panel-heading">
                                         <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
-                                           data-parent="#-responses" href="#-responses-content"
-                                           aria-expanded="false" aria-controls="-responses-content">
+                                           data-parent="#rankedBroadcastFeed-responses" href="#rankedBroadcastFeed-responses-content"
+                                           aria-expanded="false" aria-controls="rankedBroadcastFeed-responses-content">
                                             Response Values
                                         </a>
                                     </div>
-                                    <div id="-responses-content" class="panel-collapse collapse out"
-                                         role="tabpanel" aria-labelledby="-responses-heading">
+                                    <div id="rankedBroadcastFeed-responses-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="rankedBroadcastFeed-responses-heading">
                                         <table class="table table-striped table-bordered">
                                             <thead>
                                             <tr>
@@ -2938,14 +2944,14 @@ Content-Length: 14004
                                             </thead>
                                             <tbody>
                                             <tr>
-                                                <th>[none]</th>
-                                                <th>
+                                                <td>[none]</td>
+                                                <td>
                                                     <a href="#Broadcast" title="Broadcast Object">
                                                         array of Broadcast
                                                     </a>
-                                                </th>
-                                                <th>Yes</th>
-                                                <th>Top broadcasts</th>
+                                                </td>
+                                                <td>Yes</td>
+                                                <td>Top broadcasts</td>
                                             </tr>
                                             </tbody>
                                         </table>
@@ -2954,16 +2960,16 @@ Content-Length: 14004
 
                                 <hr>
 
-                                <div id="-errors" class="panel panel-danger">
-                                    <div id="-errors-heading" class="panel-heading">
+                                <div id="rankedBroadcastFeed-errors" class="panel panel-danger">
+                                    <div id="rankedBroadcastFeed-errors-heading" class="panel-heading">
                                         <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
-                                           data-parent="#-errors" href="#-errors-content"
-                                           aria-expanded="false" aria-controls="-errors-content">
+                                           data-parent="#rankedBroadcastFeed-errors" href="#rankedBroadcastFeed-errors-content"
+                                           aria-expanded="false" aria-controls="rankedBroadcastFeed-errors-content">
                                             Error Responses
                                         </a>
                                     </div>
-                                    <div id="-errors-content" class="panel-collapse collapse out"
-                                         role="tabpanel" aria-labelledby="-errors-heading">
+                                    <div id="rankedBroadcastFeed-errors-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="rankedBroadcastFeed-errors-heading">
                                         <table class="table table-striped table-bordered">
                                             <thead>
                                             <tr>
@@ -4942,16 +4948,16 @@ Connection: close
                                 documented]
                             </div>
                             <div class="panel-footer">
-                                <code>https://api.periscope.tv/api/v2/getAccessPublic?token=[token]& </code>
+                                <code>https://api.periscope.tv/api/v2/getAccessPublic?broadcast_id=[broadcast_id]</code>
                             </div>
                             <div class="panel-body">
                                 <p>
-                                    [TODO - To be documented]<br/>
+                                    Returns information for playing broadcast in browser
                                     <br/>
                                     *NOTE*<br/>
                                     <br/>
-                                    This is a GET request, with the token parameter appearing as a query string
-                                    parameter, and not as a JSON payload.
+                                    This can be a GET request, with the broadcast_id parameter appearing as a query string
+                                    parameter, and can be POST request with JSON payload.
                                 </p>
 
                                 <hr>
@@ -4979,7 +4985,7 @@ Connection: close
                                             </thead>
                                             <tbody>
                                             <tr>
-                                                <td>token</td>
+                                                <td>broadcast_id</td>
                                                 <td>
                                                     string
                                                 </td>
@@ -5021,7 +5027,7 @@ Connection: close
                                                     string
                                                 </td>
                                                 <td>Yes</td>
-                                                <td></td>
+                                                <td>Key for "subscribe" requests to PubNub</td>
                                             </tr>
                                             <tr>
                                                 <td>publisher</td>
@@ -5029,7 +5035,7 @@ Connection: close
                                                     string
                                                 </td>
                                                 <td>Yes</td>
-                                                <td></td>
+                                                <td>key for "publish" requests to PubNub</td>
                                             </tr>
                                             <tr>
                                                 <td>auth_token</td>
@@ -5053,7 +5059,7 @@ Connection: close
                                                     string
                                                 </td>
                                                 <td>Yes</td>
-                                                <td></td>
+                                                <td>Signer token for requests to signer.periscope.tv/sign</td>
                                             </tr>
                                             <tr>
                                                 <td>participant_index</td>
@@ -5061,7 +5067,7 @@ Connection: close
                                                     integer
                                                 </td>
                                                 <td>Yes</td>
-                                                <td></td>
+                                                <td>Participant index for requests to signer.periscope.tv/sign</td>
                                             </tr>
                                             <tr>
                                                 <td>channel</td>
@@ -5107,9 +5113,8 @@ Connection: close
                                                 <td>key</td>
                                                 <td>
                                                     array of integer
-                                                    </a>
                                                 </td>
-                                                <td>Yes</td>
+                                                <td>No</td>
                                                 <td></td>
                                             </tr>
                                             <tr>
@@ -5118,7 +5123,7 @@ Connection: close
                                                     string
                                                 </td>
                                                 <td>Yes</td>
-                                                <td></td>
+                                                <td>Url of chatman</td>
                                             </tr>
                                             <tr>
                                                 <td>session</td>
@@ -5134,7 +5139,7 @@ Connection: close
                                                     string
                                                 </td>
                                                 <td>No</td>
-                                                <td></td>
+                                                <td>Link to playlist.m3u8 with replay</td>
                                             </tr>
                                             <tr>
                                                 <td>cookies</td>
@@ -5265,6 +5270,148 @@ Connection: keep-alive
 	&quot;type&quot; : &quot;StreamTypeWeb&quot;
 }</pre>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div id="/publicReplayThumbnailPlaylist" class="panel-heading">/publicReplayThumbnailPlaylist - [TODO - To be
+                                documented]
+                            </div>
+                            <div class="panel-footer">
+                                <code>https://api.periscope.tv/api/v2/publicReplayThumbnailPlaylist?broadcast_id=[broadcast_id]</code>
+                            </div>
+                            <div class="panel-body">
+                                <p>
+                                    Returns urls of screenshots
+                                </p>
+
+                                <hr>
+
+                                <div id="-publicReplayThumbnailPlaylist-requests" class="panel panel-success">
+                                    <div id="-publicReplayThumbnailPlaylist-requests-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#-publicReplayThumbnailPlaylist-requests"
+                                           href="#-publicReplayThumbnailPlaylist-requests-content" aria-expanded="false"
+                                           aria-controls="-publicReplayThumbnailPlaylist-requests-content">
+                                            Request Parameters
+                                        </a>
+                                    </div>
+                                    <div id="-publicReplayThumbnailPlaylist-requests-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="-publicReplayThumbnailPlaylist-requests-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Parameter</th>
+                                                <th>Type</th>
+                                                <th>Optional</th>
+                                                <th>Description</th>
+                                                <th>Default Value</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>broadcast_id</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>No</td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>session_id</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>No</td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div id="-publicReplayThumbnailPlaylist-responses" class="panel panel-info">
+                                    <div id="-publicReplayThumbnailPlaylist-responses-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#-publicReplayThumbnailPlaylist-responses"
+                                           href="#-publicReplayThumbnailPlaylist-responses-content" aria-expanded="false"
+                                           aria-controls="-publicReplayThumbnailPlaylist-responses-content">
+                                            Response Values
+                                        </a>
+                                    </div>
+                                    <div id="-publicReplayThumbnailPlaylist-responses-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="-publicReplayThumbnailPlaylist-responses-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Key</th>
+                                                <th>Type</th>
+                                                <th>Always Available</th>
+                                                <th>Description</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>chunks</td>
+                                                <td>
+                                                    array of <a href="#Chunk" title="Chunk Object">chunks</a>
+                                                </td>
+                                                <td>Yes</td>
+                                                <td></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div id="-publicReplayThumbnailPlaylist-errors" class="panel panel-danger">
+                                    <div id="-publicReplayThumbnailPlaylist-errors-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#-publicReplayThumbnailPlaylist-errors"
+                                           href="#-publicReplayThumbnailPlaylist-errors-content" aria-expanded="false"
+                                           aria-controls="-publicReplayThumbnailPlaylist-errors-content">
+                                            Error Responses
+                                        </a>
+                                    </div>
+                                    <div id="-publicReplayThumbnailPlaylist-errors-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="-publicReplayThumbnailPlaylist-errors-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Status Code</th>
+                                                <th>Error Text</th>
+                                                <th>Description</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>400</td>
+                                                <td>Bad Request</td>
+                                                <td>Request did not meet requirements - potentially missing parameter
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div id="-publicReplayThumbnailPlaylist-example" class="panel panel-warning">
+                                    <div id="-publicReplayThumbnailPlaylist-example-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#-publicReplayThumbnailPlaylist-example"
+                                           href="#-publicReplayThumbnailPlaylist-example-content" aria-expanded="false"
+                                           aria-controls="-publicReplayThumbnailPlaylist-example-content">
+                                            Example Request and Response
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -9411,7 +9558,7 @@ Connection: close
                             </div>
                             <div class="panel-body">
                                 <p>
-                                    [TODO - To be documented]
+                                    List of users, which Periscope suggests you to follow.
                                 </p>
 
                                 <hr>
@@ -9452,7 +9599,7 @@ Connection: close
                                                 <td>
                                                     string
                                                 </td>
-                                                <td>No</td>
+                                                <td>Yes</td>
                                                 <td>Twitter OAuth Token</td>
                                                 <td></td>
                                             </tr>
@@ -9461,9 +9608,18 @@ Connection: close
                                                 <td>
                                                     string
                                                 </td>
-                                                <td>No</td>
+                                                <td>Yes</td>
                                                 <td>Twitter OAuth Token Secret</td>
                                                 <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>languages</td>
+                                                <td>
+                                                    array of string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td>Array of lang codes, for example ["en","ru"]</td>
+                                                <td>If defined, "popular" field returns, else "hearted" field returns.</td>
                                             </tr>
                                             </tbody>
                                         </table>
@@ -9494,14 +9650,24 @@ Connection: close
                                             </thead>
                                             <tbody>
                                             <tr>
-                                                <td>twitter</td>
+                                                <td>featured</td>
                                                 <td>
                                                     <a href="#User" title="User Object">
                                                         array of User
                                                     </a>
                                                 </td>
                                                 <td>Yes</td>
-                                                <td></td>
+                                                <td>Users, featured by Periscope</td>
+                                            </tr>
+                                            <tr>
+                                                <td>popular</td>
+                                                <td>
+                                                    <a href="#User" title="User Object">
+                                                        array of User
+                                                    </a>
+                                                </td>
+                                                <td>No</td>
+                                                <td>Available only if "languages" parameter was passed</td>
                                             </tr>
                                             <tr>
                                                 <td>hearted</td>
@@ -9510,18 +9676,8 @@ Connection: close
                                                         array of User
                                                     </a>
                                                 </td>
-                                                <td>Yes</td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td>featured</td>
-                                                <td>
-                                                    <a href="#User" title="User Object">
-                                                        array of User
-                                                    </a>
-                                                </td>
-                                                <td>Yes</td>
-                                                <td></td>
+                                                <td>No</td>
+                                                <td>Available only if "languages" parameter was omitted</td>
                                             </tr>
                                             </tbody>
                                         </table>
@@ -11732,13 +11888,13 @@ Connection: close
                                 <div id="a-responses" class="panel panel-info">
                                     <div id="a-responses-heading" class="panel-heading">
                                         <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
-                                           data-parent="#-responses" href="#-responses-content"
+                                           data-parent="#a-responses" href="#a-responses-content"
                                            aria-expanded="false" aria-controls="-responses-content">
                                             Response Values
                                         </a>
                                     </div>
                                     <div id="a-responses-content" class="panel-collapse collapse out"
-                                         role="tabpanel" aria-labelledby="-responses-heading">
+                                         role="tabpanel" aria-labelledby="a-responses-heading">
                                         <table class="table table-striped table-bordered">
                                             <thead>
                                             <tr>
@@ -11760,13 +11916,13 @@ Connection: close
                                 <div id="a-errors" class="panel panel-danger">
                                     <div id="a-errors-heading" class="panel-heading">
                                         <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
-                                           data-parent="#-errors" href="#-errors-content"
+                                           data-parent="#a-errors" href="#a-errors-content"
                                            aria-expanded="false" aria-controls="-errors-content">
                                             Error Responses
                                         </a>
                                     </div>
-                                    <div id="-errors-content" class="panel-collapse collapse out"
-                                         role="tabpanel" aria-labelledby="-errors-heading">
+                                    <div id="a-errors-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="a-errors-heading">
                                         <table class="table table-striped table-bordered">
                                             <thead>
                                             <tr>
@@ -11855,13 +12011,13 @@ Connection: close
                                 <div id="b-responses" class="panel panel-info">
                                     <div id="b-responses-heading" class="panel-heading">
                                         <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
-                                           data-parent="#-responses" href="#-responses-content"
-                                           aria-expanded="false" aria-controls="-responses-content">
+                                           data-parent="#b-responses" href="#b-responses-content"
+                                           aria-expanded="false" aria-controls="b-responses-content">
                                             Response Values
                                         </a>
                                     </div>
                                     <div id="b-responses-content" class="panel-collapse collapse out"
-                                         role="tabpanel" aria-labelledby="-responses-heading">
+                                         role="tabpanel" aria-labelledby="b-responses-heading">
                                         <table class="table table-striped table-bordered">
                                             <thead>
                                             <tr>
@@ -14082,6 +14238,69 @@ Connection: close
                                                 <td>Yes</td>
                                                 <td></td>
                                                 <td>[null]</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div id="Chunk" class="panel-heading">Chunk</div>
+                            <div class="panel-body">
+                                <p>
+                                    One part of video
+                                </p>
+
+                                <hr>
+
+                                <div id="Chunk-panel" class="panel panel-info">
+                                    <div id="Chunk-panel-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#Chunk-panel" href="#Chunk-panel-content"
+                                           aria-expanded="false" aria-controls="Chunk-responses-content">
+                                            Attributes
+                                        </a>
+                                    </div>
+                                    <div id="Chunk-panel-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="Chunk-panel-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Key</th>
+                                                <th>Type</th>
+                                                <th>Always Available</th>
+                                                <th>Description</th>
+                                                <th>Default Value</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>chunk</td>
+                                                <td>
+                                                    integer
+                                                </td>
+                                                <td>No</td>
+                                                <td>Number of chunk. Only even numbers.</td>
+                                                <td>-1</td>
+                                            </tr>
+                                            <tr>
+                                                <td>time</td>
+                                                <td>
+                                                    integer
+                                                </td>
+                                                <td>No</td>
+                                                <td>Time offset, usually every 8 seconds</td>
+                                                <td>0</td>
+                                            </tr>
+                                            <tr>
+                                                <td>tn</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td>URL of .jpg image</td>
+                                                <td></td>
                                             </tr>
                                             </tbody>
                                         </table>
