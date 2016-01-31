@@ -397,7 +397,7 @@ function Ready(loginInfo) {
         $.data(this, 'scrollTimer', setTimeout(function() {
             var windowHeight = $(window).height();
             var scrollTop = $(window).scrollTop();
-            right.find('img[lazysrc]').each(function(){
+            right.find('img[lazysrc]:visible').each(function(){
                 var el = $(this);
                 var top = el.offset().top;
                 if (scrollTop < top + el.height() + 100 && scrollTop + windowHeight + 100 > top) {  // 100 is handicap
@@ -751,11 +751,53 @@ var chat_interval;
 var presence_interval;
 var pubnubUrl = 'http://pubsub.pubnub.com';
 function playBroadcast() {
+    var chat = $('#chat');
     clearInterval(chat_interval);
     clearInterval(presence_interval);
-    $('#chat').empty();
+    chat.empty();
     $('#userlist').empty();
     $('#title').empty();
+    var renderMessages = function(messages, container){
+        for (var i in messages) {
+            var event = messages[i];
+            switch (event.type) {
+                case 1:  // text message
+                    var date = new Date((parseInt(event.ntpForLiveFrame.toString(16).substr(0, 8), 16) - 2208988800) * 1000);
+                    var html = $('<div/>').append('[' + zeros(date.getHours()) + ':' + zeros(date.getMinutes()) + ':' + zeros(date.getSeconds()) + '] ');
+                    var username = $('<span class="user">&lt;' + event.username + '&gt;</span>');
+                    username.click(insertUsername);
+                    html.append(username).append(' ').append(emoji.replace_unified(event.body).replace(/(@\S+)/g, '<b>$1</b>'));
+                    if (!event.body)    // for debug
+                        console.log('empty body!', event);
+                    container.append(html);
+                    break;
+                case 2: // heart
+                    break;
+                case 3: // status messages, see event.body (mostly "joined")
+                    break;
+                case 4: // broadcaster moved to new place
+                    console.log('new location: ' + event.lat + ', ' + event.lng + ', ' + event.heading);
+                    break;
+                case 5: // broadcast ended
+                    container.append('<div class="service">*** ' + event.displayName + ' (@' + event.username + ') ended the broadcast</div>');
+                    break;
+                case 6: // invited followers
+                    container.append('<div class="service">*** ' + event.displayName + ' (@' + event.username + '): '+event.body.replace('*%s*', event.invited_count)+'</div>');
+                    break;
+                case 7:
+                    container.append('<div class="service">7 *** ' + event.displayName + ' (@' + event.username + ') '+event.body+'</div>');
+                    console.log(event);
+                    break;
+                case 8: // replay available (?)
+                    break;
+                case 9: // don't know. Some action by the broadcaster. timestampPlaybackOffset
+                    console.log('TYPE: 9', event);
+                    break;
+                default: // service messages (event.action = join, leave, timeout, state_changed)
+                    break;
+            }
+        }
+    };
     Api('accessChannel', {
         broadcast_id: $('#broadcast_id').val().trim()
     }, function (broadcast) {
@@ -767,14 +809,33 @@ function playBroadcast() {
             + emoji.replace_unified(broadcast.broadcast.user_display_name) + ' ')
             .append(userLink)
             .append(' | <a href="'+broadcast.hls_url+'">M3U Link</a> | <a href="'+broadcast.rtmp_url+'">RTMP Link</a>');
+        // Load history
+        var historyDiv = $('<div/>');
+        var historyLoad = function (start) {
+            $.get(pubnubUrl + '/v2/history/sub-key/' + broadcast.subscriber + '/channel/' + broadcast.channel, {
+                stringtoken: true,
+                count: 100,
+                reverse: true,
+                start: start,
+                auth: broadcast.auth_token
+            }, function (history) {
+                if (history[2] != 0)
+                    historyLoad(history[2]);
+                renderMessages(history[0], historyDiv);
+            }, 'json');
+        };
+        chat.append(historyDiv).append($('<center><a>Load history</a></center>').click(function () {
+            historyLoad('');
+            $(this).remove();
+        }));
         // Update users list
         var userlist = $('#userlist');
         function presenceUpdate() {
-            userlist.empty();
             $.get(pubnubUrl + '/v2/presence/sub_key/' + broadcast.subscriber + '/channel/' + broadcast.channel, {
                 state: 1,
                 auth: broadcast.auth_token
             }, function (pubnub) {
+                userlist.empty();
                 var user;
                 for (var i in pubnub.uuids)
                     if ((user = pubnub.uuids[i].state) && user.username)
@@ -786,7 +847,6 @@ function playBroadcast() {
         // Update messages list
         var prev_time = 0;      // time of previous result
         var xhr_done = true;    // last request finished, can send next request
-        var chat = $('#chat');
         function messagesUpdate() {
             if (xhr_done) {
                 xhr_done = false;
@@ -795,46 +855,7 @@ function playBroadcast() {
                 }, function (pubnub) {
                     prev_time = pubnub[1];
                     xhr_done = true;
-                    // Render messages
-                    for (var i in pubnub[0]) {
-                        var event = pubnub[0][i];
-                        switch (event.type) {
-                            case 1:  // text message
-                                var date = new Date((parseInt(event.ntpForLiveFrame.toString(16).substr(0, 8), 16) - 2208988800) * 1000);
-                                var html = $('<div/>').append('[' + zeros(date.getHours()) + ':' + zeros(date.getMinutes()) + ':' + zeros(date.getSeconds()) + '] ');
-                                var username = $('<span class="user">&lt;' + event.username + '&gt;</span>');
-                                username.click(insertUsername);
-                                html.append(username).append(' ').append(emoji.replace_unified(event.body).replace(/(@\S+)/g, '<b>$1</b>'));
-                                if (!event.body)    // for debug
-                                    console.log('empty body!', event);
-                                chat.append(html);
-                                break;
-                            case 2: // heart
-                                break;
-                            case 3: // status messages, see event.body (mostly "joined")
-                                break;
-                            case 4: // broadcaster moved to new place
-                                console.log('new location: ' + event.lat + ', ' + event.lng + ', ' + event.heading);
-                                break;
-                            case 5: // broadcast ended
-                                chat.append('<div class="service">*** ' + event.displayName + ' (@' + event.username + ') ended the broadcast</div>');
-                                break;
-                            case 6: // invited followers
-                                chat.append('<div class="service">*** ' + event.displayName + ' (@' + event.username + '): '+event.body.replace('*%s*', event.invited_count)+'</div>');
-                                break;
-                            case 7:
-                                chat.append('<div class="service">7 *** ' + event.displayName + ' (@' + event.username + ') '+event.body+'</div>');
-                                console.log(event);
-                                break;
-                            case 8: // replay available (?)
-                                break;
-                            case 9: // don't know. Some action by the broadcaster. timestampPlaybackOffset
-                                console.log('TYPE: 9', event);
-                                break;
-                            default: // service messages (event.action = join, leave, timeout, state_changed)
-                                break;
-                        }
-                    }
+                    renderMessages(pubnub[0], chat);
                     if ($('#autoscroll')[0].checked)
                         chat[0].scrollTop = chat[0].scrollHeight;
                 }, 'json').fail(function () {
