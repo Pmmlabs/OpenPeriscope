@@ -233,6 +233,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         height: 128px;\
         border-right: 5px solid;\
         margin-top: -10px;\
+        min-width: 72px;\
     }\
     /* CHAT */\
     #userlist {\
