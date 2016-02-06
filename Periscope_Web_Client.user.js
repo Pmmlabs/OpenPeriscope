@@ -390,6 +390,7 @@ function Ready(loginInfo) {
         left.append(link);
     }
     $('.menu').first().click();
+    left.append('<label title="All API requests will be logged to console"><input type="checkbox" id="debug"/> Debug mode</label>');
     emoji.img_sets[emoji.img_set].path = 'http://unicodey.com/emoji-data/img-apple-64/';
     // Lazy load
     var right = $('#right');
@@ -513,7 +514,6 @@ function InitMap() {
             "p2_lat": mapBounds._southWest.lat,
             "p2_lng": mapBounds._southWest.lng
         }, function (r) {
-            //console.log(r);
             var openLL; // for preventing of closing opened popup
             live.eachLayer(function (layer) {
                 if (layer.getPopup()._isOpen)
@@ -567,7 +567,6 @@ function InitApiTest() {
             }
             Api(method, JSON.parse(params), function (response) {
                 $('#response').html(JSON.stringify(response, null, 4));
-                console.log(response);
             }, function (error) {
                 $('#response').text(error);
             });
@@ -576,11 +575,10 @@ function InitApiTest() {
         }
     });
     $('#right').append('<div id="ApiTest">Some documentation can be found in ' +
-        '<a href="https://github.com/Pmmlabs/periscope_api/blob/api/API.md" target="_blank">periscope_api</a> repository' +
-        ' or in <a href="http://static.pmmlabs.ru/OpenPeriscope" target="_blank">docs by @cjhbtn</a>' +
+        '<a href="http://static.pmmlabs.ru/OpenPeriscope" target="_blank">docs by @cjhbtn</a>' +
         '<br/><dt>Method</dt><input id="method" type="text" placeholder="mapGeoBroadcastFeed"/><br/>' +
         '<dt>Parameters</dt><textarea id="params" placeholder=\'{"include_replay": true, "p1_lat": 1, "p1_lng": 2, "p2_lat": 3, "p2_lng": 4}\'/><br/><br/>');
-    $('#ApiTest').append(submitButton).append('<br/><br/><pre id="response"/>Response is also displayed in the browser console</pre>');
+    $('#ApiTest').append(submitButton).append('<br/><br/><pre id="response"/>Response is also displayed in the browser console, if [Debug mode] is checked</pre>');
 }
 function InitFeeds() {
     var result = $('<div/>');
@@ -630,7 +628,6 @@ function InitFeeds() {
             return $(b).find('.watching').text() -  $(a).find('.watching').text();
         });
         result.append(sorted);
-        return false;
     });
     $('#Feeds').append(sort).append(result);
     $('#Feeds .button').first().click();
@@ -802,14 +799,14 @@ function playBroadcast() {
     Api('accessChannel', {
         broadcast_id: $('#broadcast_id').val().trim()
     }, function (broadcast) {
-        console.log(broadcast);
         var userLink = $('<a class="username">(@' + broadcast.broadcast.username + ')</a>');
         userLink.click(openUser.bind(null, broadcast.broadcast.user_id));
         $('#title').html((broadcast.publisher == "" ? '<b>FORBIDDEN</b> | ' : '')
             + '<a href="https://www.periscope.tv/w/'+broadcast.broadcast.id+'" target="_blank">'+emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
             + emoji.replace_unified(broadcast.broadcast.user_display_name) + ' ')
             .append(userLink)
-            .append(' | <a href="'+broadcast.hls_url+'">M3U Link</a> | <a href="'+broadcast.rtmp_url+'">RTMP Link</a>');
+            .append((broadcast.hls_url ? ' | <a href="'+broadcast.hls_url+'">M3U Link</a>' : '')
+                + (broadcast.rtmp_url ? '| <a href="'+broadcast.rtmp_url+'">RTMP Link</a>' : ''));
         // Load history
         var historyDiv = $('<div/>');
         var historyLoad = function (start) {
@@ -931,7 +928,6 @@ function createBroadcast(){
         width: +widthInput.val(),
         height: +heightInput.val()
     }, function(createInfo){
-        //console.log(createInfo);
         Api('publishBroadcast', {
             broadcast_id: createInfo.broadcast.id,
             friend_chat: false,
@@ -982,7 +978,6 @@ function getM3U (id, jcontainer) {
             });
         }
     });
-    return false;
 }
 function getDescription(stream) {
     var title = emoji.replace_unified(stream.status || 'Untitled');
@@ -1039,7 +1034,7 @@ function openUser(user_id){
     $('#user_id').val(user_id);
     $('#showuser').click();
 }
-
+/* LEVEL 0 */
 function Api(method, params, callback, callback_fail) {
     if (!params)
         params = {};
@@ -1055,6 +1050,8 @@ function Api(method, params, callback, callback_fail) {
             if (r.status == 200) {
                 var response = JSON.parse(r.responseText);
                 callback(response);
+                if ($('#debug')[0].checked)
+                    console.log('Method:', method, 'params:', params, 'response:', response);
                 $(window).trigger('scroll');    // for lazy load
             } else {
                 var error = 'API error: ' + r.status + ' ' + r.responseText;
@@ -1095,14 +1092,11 @@ function SignIn2(oauth_token, oauth_verifier) {
         SignIn3(session_key, session_secret);
     }, {oauth_token: oauth_token, oauth_verifier: oauth_verifier});
 }
-/**
- * @return {boolean}
- */
 function SignIn1() {
     consumer_secret = $('#secret').val();
     if (consumer_secret) {
         localStorage.setItem('consumer_secret', consumer_secret);
-        return OAuth('request_token', function (oauth) {
+        OAuth('request_token', function (oauth) {
             location.href = 'https://api.twitter.com/oauth/authorize?oauth_token=' + oauth.oauth_token;
         }, {oauth_callback: '404'});
     }
@@ -1112,9 +1106,6 @@ function SignOut() {
     localStorage.setItem('consumer_secret', consumer_secret);
     location.search = '';
 }
-/**
- * @return {boolean}
- */
 function OAuth(endpoint, callback, extra) {
     var method = 'POST';
     var url = 'https://api.twitter.com/oauth/' + endpoint;
@@ -1169,5 +1160,4 @@ function OAuth(endpoint, callback, extra) {
                 console.log('oauth error: ' + r.status + ' ' + r.responseText);
         }
     });
-    return false;
 }
