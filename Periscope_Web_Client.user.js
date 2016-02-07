@@ -52,8 +52,15 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     input[type="text"] {\
         font-size: 1rem;\
     }\
+    textarea {\
+        width: 500px;\
+        height: 100px;\
+        border-left: 1px solid transparent;\
+        border-top: 1px solid transparent;\
+        border-right: 1px solid transparent;\
+    }\
     textarea:focus {\
-        border: 1px solid #E0E0E0;\
+        border-color: #E0E0E0;\
     }\
     input[type="text"]:focus, textarea:focus {\
         border-bottom: 1px solid #26a69a;\
@@ -108,12 +115,12 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     }\
     #left > a, #left > img {\
         margin-bottom: 5px;\
-        margin-top: 10px;\
     }\
     #left {\
         position: fixed;\
         box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);\
         height: 100%;\
+        overflow: auto;\
     }\
     #right {\
         width: auto;\
@@ -197,10 +204,6 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         width: 150px;\
         float: left;\
         padding-top: 0.5rem;\
-    }\
-    #ApiTest textarea {\
-        width: 500px;\
-        height: 100px;\
     }\
     #ApiTest input {\
         width: 500px;\
@@ -378,7 +381,9 @@ function Ready(loginInfo) {
     var menu = [
         {text: 'API test', id: 'ApiTest'},
         {text: 'Map', id: 'Map'},
-        {text: 'Feeds', id: 'Feeds'},
+        {text: 'Top', id: 'Top'},
+        {text: 'Following', id: 'Following'},
+        {text: 'Newest', id: 'Newest'},
         {text: 'New broadcast', id: 'Create'},
         {text: 'Chat', id: 'Chat'},
         {text: 'Suggested people', id: 'People'},
@@ -580,57 +585,37 @@ function InitApiTest() {
         '<dt>Parameters</dt><textarea id="params" placeholder=\'{"include_replay": true, "p1_lat": 1, "p1_lng": 2, "p2_lat": 3, "p2_lng": 4}\'/><br/><br/>');
     $('#ApiTest').append(submitButton).append('<br/><br/><pre id="response"/>Response is also displayed in the browser console, if [Debug mode] is checked</pre>');
 }
-function InitFeeds() {
-    var result = $('<div/>');
-    var refreshList = function(method) {
-        Api(method, {
-            languages: [$('#Feeds .lang').val()],
-            //since: Math.floor(new Date() / 1000),
-            count: 253
-        }, function (response) {
-            result.empty();
-            var ids =[];
-            for (var i in response) {
-                var stream = $('<div class="card ' + response[i].state + ' '+response[i].id+'"/>').append(getDescription(response[i]));
-                var link = $('<a>Get stream link</a>');
-                link.click(getM3U.bind(null, response[i].id, stream));
-                result.append(stream.append(link));
-                ids.push(response[i].id);
-            }
-            if (response.length)
-                Api('getBroadcasts', {
-                    broadcast_ids: ids
-                }, function(info){
-                    for (var i in info)
-                        $('.card.'+info[i].id+' .watching').text(info[i].n_watching);
-                })
-        });
-    };
-
-    $('#right').append($('<div id="Feeds"/>').append(languageSelect));
-    $("#Feeds .lang").find(":contains("+(navigator.language || navigator.userLanguage).substr(0, 2)+")").attr("selected", "selected");
-    var tabs = [
-        {text: 'Ranked', method: 'rankedBroadcastFeed'},
-        {text: 'Following', method: 'followingBroadcastFeed'},
-        {text: 'Featured', method: 'featuredBroadcastFeed'},
-        {text: 'Live', method: 'liveBroadcastFeed'},
-        {text: 'Newest', method: 'mapBroadcastFeed'}
-    ];
-    for (var i in tabs) {
-        var button = $('<a class="button">'+tabs[i].text+'</a>');
-        button.click(refreshList.bind(null, tabs[i].method));
-        $('#Feeds').append(button);
-    }
-    var sort = $('<a id="sort" class="watching">Sort by watching</a>');
-    sort.click(function(){
-        var cards = $('#Feeds .card');
-        var sorted = cards.sort(function (a, b) {
-            return $(b).find('.watching').text() -  $(a).find('.watching').text();
-        });
-        result.append(sorted);
+function InitTop() {
+    var featured = $('<div/>');
+    var ranked = $('<div/>');
+    var langDt = $(languageSelect);
+    langDt.find(":contains("+(navigator.language || navigator.userLanguage).substr(0, 2)+")").attr("selected", "selected");
+    var button = $('<a class="button">Refresh</a>').click(function() {
+        Api('featuredBroadcastFeed', {}, refreshList(featured));
+        Api('rankedBroadcastFeed',{ languages: [langDt.find('.lang').val()] }, refreshList(ranked));
     });
-    $('#Feeds').append(sort).append(result);
-    $('#Feeds .button').first().click();
+    var sort = $('<a class="watching">Sort by watching</a>').click(sortClick.bind(null, ranked));
+    $('#right').append($('<div id="Top"/>').append(langDt, button, '<h3>Featured</h3>', featured, sort, '<h3>Ranked</h3>', ranked));
+    button.click();
+}
+function InitFollowing() {
+    var result = $('<div/>');
+    var button = $('<a class="button">Refresh</a>').click(Api.bind(null, 'followingBroadcastFeed', {}, refreshList(result)));
+    var sort = $('<a class="watching">Sort by watching</a>').click(sortClick.bind(null, result));
+    $('#right').append($('<div id="Following"/>').append(button, sort, result));
+    button.click();
+}
+function InitNewest() {
+    var result = $('<div/>');
+    var count = $('<input type="text" placeholder="253" size="3" value="10">');
+    var since = $('<input type="text" placeholder="'+(Date.now() / 1000 | 0)+'" size="12">');
+    var button = $('<a class="button">Refresh</a>').click(Api.bind(null, 'mapBroadcastFeed', {
+        count: +count.val().trim() || 253,
+        since: +since.val().trim() || (Date.now() / 1000 | 0 ) - 60
+    }, refreshList(result)));
+    var sort = $('<a class="watching">Sort by watching</a>').click(sortClick.bind(null, result));
+    $('#right').append($('<div id="Newest"/>').append('Count: ', count, 'Since: ', since, button, sort, result));
+    button.click();
 }
 function InitCreate() {
     $('#right').append('<div id="Create">' +
@@ -675,21 +660,23 @@ function InitUser() {
                 user_id: user.id,
                 all: true
             }, function(streams){
-                result.append('<h1>Broadcasts</h1>');
-                var ids =[];
-                for (var i in streams) {
-                    var stream = $('<div class="card ' + streams[i].state + ' '+streams[i].id+'">').append(getDescription(streams[i]));
-                    var link = $('<a>Get stream link</a>');
-                    link.click(getM3U.bind(null, streams[i].id, stream));
-                    result.append(stream.append(link));
-                    ids.push(streams[i].id);
+                if (streams.length) {
+                    result.append('<h1>Broadcasts</h1>');
+                    var ids = [];
+                    for (var i in streams) {
+                        var stream = $('<div class="card ' + streams[i].state + ' ' + streams[i].id + '">').append(getDescription(streams[i]));
+                        var link = $('<a>Get stream link</a>');
+                        link.click(getM3U.bind(null, streams[i].id, stream));
+                        result.append(stream.append(link));
+                        ids.push(streams[i].id);
+                    }
+                    Api('getBroadcasts', {
+                        broadcast_ids: ids
+                    }, function (info) {
+                        for (var i in info)
+                            $('.card.' + info[i].id + ' .watching').text(info[i].n_watching);
+                    });
                 }
-                Api('getBroadcasts', {
-                    broadcast_ids: ids
-                }, function(info){
-                    for (var i in info)
-                        $('.card.'+info[i].id+' .watching').text(info[i].n_watching);
-                });
                 var followersDiv = $('<div id="followers"><h1>Followers</h1></div>');
                 var followingDiv = $('<div id="following"><h1>Following</h1></div>');
                 result.append(followersDiv).append(followingDiv);
@@ -789,7 +776,6 @@ function playBroadcast() {
                 case 8: // replay available (?)
                     break;
                 case 9: // don't know. Some action by the broadcaster. timestampPlaybackOffset
-                    console.log('TYPE: 9', event);
                     break;
                 default: // service messages (event.action = join, leave, timeout, state_changed)
                     break;
@@ -806,7 +792,8 @@ function playBroadcast() {
             + emoji.replace_unified(broadcast.broadcast.user_display_name) + ' ')
             .append(userLink)
             .append((broadcast.hls_url ? ' | <a href="'+broadcast.hls_url+'">M3U Link</a>' : '')
-                + (broadcast.rtmp_url ? '| <a href="'+broadcast.rtmp_url+'">RTMP Link</a>' : ''));
+                + (broadcast.rtmp_url ? ' | <a href="'+broadcast.rtmp_url+'">RTMP Link</a>' : '')
+                + (broadcast.replay_url ? ' | <a href="'+broadcast.replay_url+'">Replay M3U Link</a>' : ''));
         // Load history
         var historyDiv = $('<div/>');
         var historyLoad = function (start) {
@@ -819,10 +806,13 @@ function playBroadcast() {
             }, function (history) {
                 if (history[2] != 0)
                     historyLoad(history[2]);
+                else
+                    $('#spinner').hide();
                 renderMessages(history[0], historyDiv);
             }, 'json');
         };
         chat.append(historyDiv).append($('<center><a>Load history</a></center>').click(function () {
+            $('#spinner').show();
             historyLoad('');
             $(this).remove();
         }));
@@ -913,6 +903,34 @@ function insertUsername() {
 }
 function zeros(number){
     return (100 + number + '').substr(1);
+}
+function refreshList(jcontainer) {  // use it as callback arg
+    return function (response) {
+        jcontainer.empty();
+        var ids =[];
+        for (var i in response) {
+            var stream = $('<div class="card ' + response[i].state + ' '+response[i].id+'"/>').append(getDescription(response[i]));
+            var link = $('<a>Get stream link</a>');
+            link.click(getM3U.bind(null, response[i].id, stream));
+            jcontainer.append(stream.append(link));
+            ids.push(response[i].id);
+        }
+        if (response.length)
+            Api('getBroadcasts', {
+                broadcast_ids: ids
+            }, function(info){
+                for (var i in info)
+                    $('.card.'+info[i].id+' .watching').text(info[i].n_watching);
+            })
+    };
+}
+function sortClick(jcontainer){ // sort cards in given jquery-container
+    var cards = jcontainer.find('.card');
+    var sorted = cards.sort(function (a, b) {
+        return $(b).find('.watching').text() -  $(a).find('.watching').text();
+    });
+    jcontainer.append(sorted);
+    $(window).trigger('scroll');    // for lazy load
 }
 function createBroadcast(){
     var widthInput = $('#width');
