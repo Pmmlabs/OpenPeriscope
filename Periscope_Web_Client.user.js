@@ -391,7 +391,7 @@ function Ready(loginInfo) {
     ];
     for (var i in menu) {
         var link = $('<div class="menu">' + menu[i].text + '</div>');
-        link.click(SwitchSection.bind(null, link, menu[i].id));
+        link.click(switchSection.bind(null, link, menu[i].id));
         left.append(link);
     }
     $('.menu').first().click();
@@ -399,12 +399,12 @@ function Ready(loginInfo) {
     emoji.img_sets[emoji.img_set].path = 'http://unicodey.com/emoji-data/img-apple-64/';
     // Lazy load
     var right = $('#right');
-    $(window).on('scroll',function(){
+    $(window).on('scroll', function () {
         clearTimeout($.data(this, 'scrollTimer'));      // for preventing dozens of firing
-        $.data(this, 'scrollTimer', setTimeout(function() {
+        $.data(this, 'scrollTimer', setTimeout(function () {
             var windowHeight = $(window).height();
             var scrollTop = $(window).scrollTop();
-            right.find('img[lazysrc]:visible').each(function(){
+            right.find('img[lazysrc]:visible').each(function () {
                 var el = $(this);
                 var top = el.offset().top;
                 if (scrollTop < top + el.height() + 100 && scrollTop + windowHeight + 100 > top) {  // 100 is handicap
@@ -413,9 +413,9 @@ function Ready(loginInfo) {
                 }
             })
         }, 100));
-    }); 
+    });
 }
-function SwitchSection(elem, section) {
+function switchSection(elem, section) {
     // Switch menu
     $('.menu.active').removeClass('active');
     $(elem).addClass('active');
@@ -509,7 +509,7 @@ function InitMap() {
         singleMarkerMode: true,
         iconCreateFunction: iconCreate('live')
     }).addTo(map);
-    var refreshMap = function (e) {
+    var refreshMap = function () {
         //if (e && e.hard === false) return;    // zoom change case
         var mapBounds = map.getBounds();
         Api('mapGeoBroadcastFeed', {
@@ -545,7 +545,7 @@ function InitMap() {
                     }, function (info) {
                         $('.leaflet-popup-content .watching').text(info[0].n_watching + info[0].n_web_watching);
                     }));
-                    marker.on('popupopen', function(e){
+                    marker.on('popupopen', function (e) {
                         var img = $(e.popup._content).find('img');
                         img.attr('src', img.attr('lazysrc'));
                         img.removeAttr('lazysrc');
@@ -589,9 +589,9 @@ function InitTop() {
     var featured = $('<div/>');
     var ranked = $('<div/>');
     var langDt = $(languageSelect);
-    langDt.find(":contains("+(navigator.language || navigator.userLanguage).substr(0, 2)+")").attr("selected", "selected");
-    var button = $('<a class="button">Refresh</a>').click(function() {
-        Api('rankedBroadcastFeed', { languages: [langDt.find('.lang').val()] }, refreshList(ranked));
+    langDt.find(":contains(" + (navigator.language || navigator.userLanguage).substr(0, 2) + ")").attr("selected", "selected");
+    var button = $('<a class="button">Refresh</a>').click(function () {
+        Api('rankedBroadcastFeed', {languages: [langDt.find('.lang').val()]}, refreshList(ranked));
         Api('featuredBroadcastFeed', {}, refreshList(featured));
     });
     var sort = $('<a class="watching">Sort by watching</a>').click(sortClick.bind(null, ranked));
@@ -608,7 +608,7 @@ function InitFollowing() {
 function InitNewest() {
     var result = $('<div/>');
     var count = $('<input type="text" placeholder="253" size="3" value="10">');
-    var since = $('<input type="text" placeholder="'+(Date.now() / 1000 | 0)+'" size="12">');
+    var since = $('<input type="text" placeholder="' + (Date.now() / 1000 | 0) + '" size="12">');
     var button = $('<a class="button">Refresh</a>').click(Api.bind(null, 'mapBroadcastFeed', {
         count: +count.val().trim() || 253,
         since: +since.val().trim() || (Date.now() / 1000 | 0 ) - 60
@@ -627,44 +627,44 @@ function InitCreate() {
         '<dt>Server:</dt><select id="server">' +
             '<option>us-west-1</option>' +
             '<option selected>eu-central-1</option>' +
-        '<select><br/>' +
+        '</select><br/>' +
         '<br/></div>');
-    var createButton=$('<a class="button">Create</a>').click(function createBroadcast(){
-            var widthInput = $('#width');
-            var heightInput = $('#height');
-            if (widthInput.val().trim() == '')
-                widthInput.val(320);
-            if (heightInput.val().trim() == '')
-                heightInput.val(568);
-            Api('createBroadcast', {
-                lat: 0,
-                lng: 0,
-                region: $('#server').val(),
-                width: +widthInput.val(),
-                height: +heightInput.val()
-            }, function(createInfo){
-                Api('publishBroadcast', {
-                    broadcast_id: createInfo.broadcast.id,
-                    friend_chat: false,
-                    has_location: false,
-                    //"locale": "ru",
-                    //"lat": 0.0,    // location latitude
-                    //"lng": -20.0,  // location longitude
-                    status: $('#status').val().trim()
-                }, function(){
-                    var code = 'ffmpeg -re -i "'+$('#filename').val()+'" -vcodec libx264 -b:v '+$('#bitrate').val()+'k' +
-                        ' -strict experimental -acodec aac -b:a 128k -ac 1 -f flv -vf scale=' + createInfo.broadcast.width + ':' + createInfo.broadcast.height + ' ' +
-                        ' rtmp://'+createInfo.host+':'+createInfo.port+'/liveorigin?t='+createInfo.credential+'/'+createInfo.stream_name+' & '+
-                        ' while true; do sleep 5s; curl --form "cookie=' + loginTwitter.cookie +'" --form "broadcast_id='+createInfo.broadcast.id+'" https://api.periscope.tv/api/v2/pingBroadcast;'+
-                        ' done;'+
-                        'curl --form "cookie=' + loginTwitter.cookie +'" --form "broadcast_id='+createInfo.broadcast.id+'" https://api.periscope.tv/api/v2/endBroadcast';
-                    $('#Create').append('<pre>' + code + '</pre>',
-                        '<a href="data:text/plain;base64,' + btoa('#!/bin/bash\n'+unescape(encodeURIComponent(code))) + '" download="stream.sh">Download .SH</a>',
-                        $('<div class="card RUNNING"/>').append(getDescription(createInfo.broadcast)));
-                });
-                //var broadcast = response.broadcast;
+    var createButton = $('<a class="button">Create</a>').click(function () {
+        var widthInput = $('#width');
+        var heightInput = $('#height');
+        if (widthInput.val().trim() == '')
+            widthInput.val(320);
+        if (heightInput.val().trim() == '')
+            heightInput.val(568);
+        Api('createBroadcast', {
+            lat: 0,
+            lng: 0,
+            region: $('#server').val(),
+            width: +widthInput.val(),
+            height: +heightInput.val()
+        }, function (createInfo) {
+            Api('publishBroadcast', {
+                broadcast_id: createInfo.broadcast.id,
+                friend_chat: false,
+                has_location: false,
+                //"locale": "ru",
+                //"lat": 0.0,    // location latitude
+                //"lng": -20.0,  // location longitude
+                status: $('#status').val().trim()
+            }, function () {
+                var code = 'ffmpeg -re -i "' + $('#filename').val() + '" -vcodec libx264 -b:v ' + $('#bitrate').val() + 'k' +
+                    ' -strict experimental -acodec aac -b:a 128k -ac 1 -f flv -vf scale=' + createInfo.broadcast.width + ':' + createInfo.broadcast.height + ' ' +
+                    ' rtmp://' + createInfo.host + ':' + createInfo.port + '/liveorigin?t=' + createInfo.credential + '/' + createInfo.stream_name + ' & ' +
+                    ' while true; do sleep 5s; curl --form "cookie=' + loginTwitter.cookie + '" --form "broadcast_id=' + createInfo.broadcast.id + '" https://api.periscope.tv/api/v2/pingBroadcast;' +
+                    ' done;' +
+                    'curl --form "cookie=' + loginTwitter.cookie + '" --form "broadcast_id=' + createInfo.broadcast.id + '" https://api.periscope.tv/api/v2/endBroadcast';
+                $('#Create').append('<pre>' + code + '</pre>',
+                    '<a href="data:text/plain;base64,' + btoa('#!/bin/bash\n' + unescape(encodeURIComponent(code))) + '" download="stream.sh">Download .SH</a>',
+                    $('<div class="card RUNNING"/>').append(getDescription(createInfo.broadcast)));
             });
+            //var broadcast = response.broadcast;
         });
+    });
     $('#Create').append(createButton);
 }
 function InitChat() {
@@ -673,7 +673,8 @@ function InitChat() {
     var userlist = $('<div id="userlist"/>');
     var chat = $('<div id="chat"/>');
     var textBox = $('<input type="text" id="message">');
-    function renderMessages(messages, container){
+
+    function renderMessages(messages, container) {
         for (var i in messages) {
             var event = messages[i];
             switch (event.type) {
@@ -681,7 +682,7 @@ function InitChat() {
                     var date = new Date((parseInt(event.ntpForLiveFrame.toString(16).substr(0, 8), 16) - 2208988800) * 1000);
                     var html = $('<div/>').append('[' + zeros(date.getHours()) + ':' + zeros(date.getMinutes()) + ':' + zeros(date.getSeconds()) + '] ');
                     var username = $('<span class="user">&lt;' + event.username + '&gt;</span>');
-                    username.click(function() { // insert username to text field
+                    username.click(function () { // insert username to text field
                         textBox.val(textBox.val() + '@' + $(this).text().substr(1, $(this).text().length - 2) + ' ');
                         textBox.focus();
                     });
@@ -701,10 +702,10 @@ function InitChat() {
                     container.append('<div class="service">*** ' + event.displayName + ' (@' + event.username + ') ended the broadcast</div>');
                     break;
                 case 6: // invited followers
-                    container.append('<div class="service">*** ' + event.displayName + ' (@' + event.username + '): '+event.body.replace('*%s*', event.invited_count)+'</div>');
+                    container.append('<div class="service">*** ' + event.displayName + ' (@' + event.username + '): ' + event.body.replace('*%s*', event.invited_count) + '</div>');
                     break;
                 case 7:
-                    container.append('<div class="service">7 *** ' + event.displayName + ' (@' + event.username + ') '+event.body+'</div>');
+                    container.append('<div class="service">7 *** ' + event.displayName + ' (@' + event.username + ') ' + event.body + '</div>');
                     console.log(event);
                     break;
                 case 8: // replay available (?)
@@ -715,9 +716,9 @@ function InitChat() {
                     break;
             }
         }
-    };
+    }
 
-    var playButton = $('<a class="button" id="startchat">OK</a>').click(function() {
+    var playButton = $('<a class="button" id="startchat">OK</a>').click(function () {
         clearInterval(chat_interval);
         clearInterval(presence_interval);
         chat.empty();
@@ -728,11 +729,11 @@ function InitChat() {
         }, function (broadcast) {
             var userLink = $('<a class="username">(@' + broadcast.broadcast.username + ')</a>').click(openUser.bind(null, broadcast.broadcast.user_id));
             title.html((broadcast.publisher == "" ? '<b>FORBIDDEN</b> | ' : '')
-                + '<a href="https://www.periscope.tv/w/'+broadcast.broadcast.id+'" target="_blank">'+emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
+                + '<a href="https://www.periscope.tv/w/' + broadcast.broadcast.id + '" target="_blank">' + emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
                 + emoji.replace_unified(broadcast.broadcast.user_display_name) + ' ')
                 .append(userLink)
-                .append((broadcast.hls_url ? ' | <a href="'+broadcast.hls_url+'">M3U Link</a>' : '')
-                + (broadcast.rtmp_url ? ' | <a href="'+broadcast.rtmp_url+'">RTMP Link</a>' : ''));
+                .append((broadcast.hls_url ? ' | <a href="' + broadcast.hls_url + '">M3U Link</a>' : '')
+                + (broadcast.rtmp_url ? ' | <a href="' + broadcast.rtmp_url + '">RTMP Link</a>' : ''));
             // Load history
             var historyDiv = $('<div/>');
             function historyLoad(start) {
@@ -768,6 +769,7 @@ function InitChat() {
                             userlist.append('<div class="user">' + emoji.replace_unified(user.display_name) + ' <div class="username">(' + user.username + ')</div></div>');
                 }, 'json');
             }
+
             presence_interval = setInterval(presenceUpdate, 15000);
             presenceUpdate();
             // Update messages list
@@ -789,12 +791,13 @@ function InitChat() {
                     });
                 }
             }
+
             chat_interval = setInterval(messagesUpdate, 2000);
             messagesUpdate();
             // Sending messages
             function sendMessage() {
                 $('#spinner').show();
-                var ntpstamp = parseInt((Math.floor(prev_time/10000000) + 2208988800).toString(16) + '00000000', 16); // timestamp in NTP format
+                var ntpstamp = parseInt((Math.floor(prev_time / 10000000) + 2208988800).toString(16) + '00000000', 16); // timestamp in NTP format
                 GM_xmlhttpRequest({
                     method: 'POST',
                     url: 'https://signer.periscope.tv/sign',
@@ -808,13 +811,13 @@ function InitChat() {
                     }),
                     onload: function (signed) {
                         signed = JSON.parse(signed.responseText);
-                        $.get(pubnubUrl + '/publish/'+broadcast.publisher+'/'+broadcast.subscriber+'/0/'
-                            +broadcast.channel +'/0/'+encodeURIComponent(JSON.stringify(signed.message)), {
+                        $.get(pubnubUrl + '/publish/' + broadcast.publisher + '/' + broadcast.subscriber + '/0/'
+                            + broadcast.channel + '/0/' + encodeURIComponent(JSON.stringify(signed.message)), {
                             auth: broadcast.auth_token
-                        }, function(pubnub){
+                        }, function (pubnub) {
                             $('#spinner').hide();
                             textBox.val('');
-                            if (pubnub[1]!="Sent")
+                            if (pubnub[1] != "Sent")
                                 console.log('message not sent', pubnub);
                         }, 'json').fail(function (error) {
                             chat.append('<span class="error">*** Error: ' + error.responseJSON.message + '</span>');
@@ -824,13 +827,13 @@ function InitChat() {
                 });
             }
             $('#sendMessage').off().click(sendMessage);
-            textBox.off().keypress(function(e) {
-                if(e.which == 13) {
+            textBox.off().keypress(function (e) {
+                if (e.which == 13) {
                     sendMessage();
                     return false;
                 }
             });
-        }, function (error){
+        }, function (error) {
             title.append('<b>' + error + '</b>');
         });
     });
@@ -845,7 +848,7 @@ function InitChat() {
 }
 function InitUser() {
     var resultUser = $('<div id="resultUser" />');
-    var showButton = $('<a class="button" id="showuser">OK</a>').click(function() {
+    var showButton = $('<a class="button" id="showuser">OK</a>').click(function () {
         resultUser.empty();
         Api('user', {
             user_id: $('#user_id').val().trim()
@@ -855,7 +858,7 @@ function InitUser() {
             Api('userBroadcasts', {
                 user_id: user.id,
                 all: true
-            }, function(streams){
+            }, function (streams) {
                 if (streams.length) {
                     var userBroadcasts = $('<div/>');
                     resultUser.append('<h1>Broadcasts</h1>', userBroadcasts);
@@ -866,10 +869,10 @@ function InitUser() {
                 resultUser.append(followersDiv).append(followingDiv);
                 Api('followers', {
                     user_id: user.id
-                }, function(followers){
+                }, function (followers) {
                     Api('following', {
                         user_id: user.id
-                    }, function(following){
+                    }, function (following) {
                         if (following.length)
                             for (var i in following)
                                 followingDiv.append($('<div class="card"/>').append(getUserDescription(following[i])));
@@ -897,7 +900,7 @@ function InitPeople() {
             for (var i in response.featured)
                 result.append($('<div class="card"/>').append(getUserDescription(response.featured[i])));
             result.append('<h1>Popular</h1>');
-            for (var i in response.popular)
+            for (i in response.popular)
                 result.append($('<div class="card"/>').append(getUserDescription(response.popular[i])));
             Api('suggestedPeople', {}, function (response) {
                 result.append('<h1>Hearted</h1>');
@@ -906,25 +909,22 @@ function InitPeople() {
             });
         });
     });
-    $('#right').append($('<div id="People"/>')
-        .append(languageSelect)
-        .append(refreshButton)
-        .append('<div id="resultPeople" />'));
+    $('#right').append($('<div id="People"/>', languageSelect, refreshButton, '<div id="resultPeople" />'));
     $("#People .lang").find(":contains(" + (navigator.language || navigator.userLanguage).substr(0, 2) + ")").attr("selected", "selected");
     refreshButton.click();
 }
 var chat_interval;
 var presence_interval;
 var pubnubUrl = 'http://pubsub.pubnub.com';
-function zeros(number){
+function zeros(number) {
     return (100 + number + '').substr(1);
 }
 function refreshList(jcontainer) {  // use it as callback arg
     return function (response) {
         jcontainer.empty();
-        var ids =[];
+        var ids = [];
         for (var i in response) {
-            var stream = $('<div class="card ' + response[i].state + ' '+response[i].id+'"/>').append(getDescription(response[i]));
+            var stream = $('<div class="card ' + response[i].state + ' ' + response[i].id + '"/>').append(getDescription(response[i]));
             var link = $('<a>Get stream link</a>');
             link.click(getM3U.bind(null, response[i].id, stream));
             jcontainer.append(stream.append(link));
@@ -933,21 +933,21 @@ function refreshList(jcontainer) {  // use it as callback arg
         if (response.length)
             Api('getBroadcasts', {
                 broadcast_ids: ids
-            }, function(info){
+            }, function (info) {
                 for (var i in info)
-                    $('.card.'+info[i].id+' .watching').text(info[i].n_watching);
+                    $('.card.' + info[i].id + ' .watching').text(info[i].n_watching);
             })
     };
 }
-function sortClick(jcontainer){ // sort cards in given jquery-container
+function sortClick(jcontainer) { // sort cards in given jquery-container
     var cards = jcontainer.find('.card');
     var sorted = cards.sort(function (a, b) {
-        return $(b).find('.watching').text() -  $(a).find('.watching').text();
+        return $(b).find('.watching').text() - $(a).find('.watching').text();
     });
     jcontainer.append(sorted);
     $(window).trigger('scroll');    // for lazy load
 }
-function getM3U (id, jcontainer) {
+function getM3U(id, jcontainer) {
     jcontainer.find('.links').empty();
     Api('getAccessPublic', {
         broadcast_id: id
@@ -980,19 +980,19 @@ function getDescription(stream) {
     var title = emoji.replace_unified(stream.status || 'Untitled');
     var date_created = new Date(stream.created_at);
     var duration = stream.end || stream.timedout ? new Date(new Date(stream.end || stream.timedout) - date_created) : 0;
-    var userLink = $('<a class="username">'+emoji.replace_unified(stream.user_display_name)+' (@' + stream.username + ')</a>');
+    var userLink = $('<a class="username">' + emoji.replace_unified(stream.user_display_name) + ' (@' + stream.username + ')</a>');
     userLink.click(openUser.bind(null, stream.user_id));
     var description = $('<div class="description">\
-                <a href="'+stream.image_url+'" target="_blank"><img lazysrc="' + stream.image_url_small + '"/></a>\
+                <a href="' + stream.image_url + '" target="_blank"><img lazysrc="' + stream.image_url_small + '"/></a>\
                 <div class="watching" title="Watching"/>\
-                <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a><br/>')
+                <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a><br/>\
+            </div>')
         .append(userLink)
-        .append('<br/>Created: ' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth()+1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes()) + '\
-                '+(duration ? '<br/>Duration: '+zeros(duration.getUTCHours())+':'+zeros(duration.getMinutes())+':'+zeros(duration.getSeconds()) : '')+'\
-                '+(stream.country || stream.city ? '<br/>' + stream.country + ', ' + stream.city : '') + '\
-        </div>');
-    var chatLink = $('<a class="chatlink">Chat</a>').click(function (){
-        SwitchSection(null, 'Chat');
+        .append('<br/>Created: ' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth() + 1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes())
+                + (duration ? '<br/>Duration: ' + zeros(duration.getUTCHours()) + ':' + zeros(duration.getMinutes()) + ':' + zeros(duration.getSeconds()) : '')
+                + (stream.country || stream.city ? '<br/>' + stream.country + ', ' + stream.city : ''));
+    var chatLink = $('<a class="chatlink">Chat</a>').click(function () {
+        switchSection(null, 'Chat');
         $('#broadcast_id').val(stream.id);
         $('#startchat').click();
     });
@@ -1024,8 +1024,8 @@ function getUserDescription(user) {
         }))
         .append('<div style="clear:both"/>');
 }
-function openUser(user_id){
-    SwitchSection(null, 'User');
+function openUser(user_id) {
+    switchSection(null, 'User');
     $('#user_id').val(user_id);
     $('#showuser').click();
 }
