@@ -909,7 +909,7 @@ function InitPeople() {
             });
         });
     });
-    $('#right').append($('<div id="People"/>', languageSelect, refreshButton, '<div id="resultPeople" />'));
+    $('#right').append($('<div id="People"/>').append(languageSelect, refreshButton, '<div id="resultPeople" />'));
     $("#People .lang").find(":contains(" + (navigator.language || navigator.userLanguage).substr(0, 2) + ")").attr("selected", "selected");
     refreshButton.click();
 }
