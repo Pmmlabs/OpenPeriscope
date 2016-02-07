@@ -1,0 +1,14 @@
+{
+  "name": "openperiscope",
+  "version": "1.0",
+  "main": "app://openperiscope/index.html",
+  "window": {
+    "toolbar": true,
+    "frame": true,
+    "position": "center",
+    "min_width": 400,
+    "min_height": 200,
+    "max_width": 8000,
+    "max_height": 8000
+  }
+}

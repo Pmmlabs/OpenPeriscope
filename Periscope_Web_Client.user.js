@@ -19,6 +19,35 @@
 // @noframes
 // ==/UserScript==
 
+if (require) {  // for Node.js
+    const https = require('https');
+    const url = require('url');
+    GM_xmlhttpRequest = function (options) {
+        var onload = options.onload;
+        options.onload = null;
+        var u = url.parse(options.url);
+        options.host = u.host;
+        options.hostname = u.hostname;
+        options.path = u.path;
+        options.protocol = u.protocol;
+        var req = https.request(options, function (res) {
+            res.setEncoding('utf8');
+            res.on('data', function (d) {
+                onload({
+                    status: res.statusCode,
+                    responseText: d
+                });
+            });
+        });
+        req.on('error', function (e) {
+            console.error(e);
+        });
+        if (options.data)
+            req.write(options.data);
+        req.end();
+    };
+}
+
 if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     location.href = 'http://example.net/' + location.search;
 } else {
@@ -339,28 +368,30 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     }\
 </style>')
         .append('<link href="https://fonts.googleapis.com/css?family=Roboto&subset=latin,cyrillic" rel="stylesheet" type="text/css">');
-
-    $(document.body).html('<div id="left"/><div id="right"/>');
+    
     document.title = 'Periscope Web Client';
-
     var oauth_token, oauth_verifier, session_key, session_secret, loginTwitter, consumer_secret = localStorage.getItem('consumer_secret');
-    if (loginTwitter = localStorage.getItem('loginTwitter')) {
-        loginTwitter = JSON.parse(loginTwitter);
-        Ready(loginTwitter);
-    } else if ((session_key = localStorage.getItem('session_key')) && (session_secret = localStorage.getItem('session_secret'))) {
-        SignIn3(session_key, session_secret);
-    } else if ((oauth_token = localStorage.getItem('oauth_token')) && (oauth_verifier = localStorage.getItem('oauth_verifier'))) {
-        SignIn2(oauth_token, oauth_verifier);
-    } else if ((oauth_token = getParameterByName('oauth_token')) && (oauth_verifier = getParameterByName('oauth_verifier'))) {
-        localStorage.setItem('oauth_token', oauth_token);
-        localStorage.setItem('oauth_verifier', oauth_verifier);
-        SignIn2(oauth_token, oauth_verifier);
-    } else {
-        var signInButton = $('<a class="button">Sign in with twitter</a>');
-        signInButton.click(SignIn1);
-        $(document.body).html('<input type="text" id="secret" size="60" placeholder="Periscope consumer secret" value="' +
-            (consumer_secret || '') + '"/><br/>').append(signInButton);
-    }
+    
+    $(function() {
+        $(document.body).html('<div id="left"/><div id="right"/>');
+        if (loginTwitter = localStorage.getItem('loginTwitter')) {
+            loginTwitter = JSON.parse(loginTwitter);
+            Ready(loginTwitter);
+        } else if ((session_key = localStorage.getItem('session_key')) && (session_secret = localStorage.getItem('session_secret'))) {
+            SignIn3(session_key, session_secret);
+        } else if ((oauth_token = localStorage.getItem('oauth_token')) && (oauth_verifier = localStorage.getItem('oauth_verifier'))) {
+            SignIn2(oauth_token, oauth_verifier);
+        } else if ((oauth_token = getParameterByName('oauth_token')) && (oauth_verifier = getParameterByName('oauth_verifier'))) {
+            localStorage.setItem('oauth_token', oauth_token);
+            localStorage.setItem('oauth_verifier', oauth_verifier);
+            SignIn2(oauth_token, oauth_verifier);
+        } else {
+            var signInButton = $('<a class="button">Sign in with twitter</a>');
+            signInButton.click(SignIn1);
+            $(document.body).html('<input type="text" id="secret" size="60" placeholder="Periscope consumer secret" value="' +
+                (consumer_secret || '') + '"/><br/>').append(signInButton);
+        }
+    });
 }
 
 function getParameterByName(name) {
@@ -1103,7 +1134,7 @@ function SignIn1() {
         localStorage.setItem('consumer_secret', consumer_secret);
         OAuth('request_token', function (oauth) {
             location.href = 'https://api.twitter.com/oauth/authorize?oauth_token=' + oauth.oauth_token;
-        }, {oauth_callback: '404'});
+        }, {oauth_callback: (require ? 'app://openperiscope/index.html' : '404')});
     }
 }
 function SignOut() {
