@@ -591,8 +591,8 @@ function InitTop() {
     var langDt = $(languageSelect);
     langDt.find(":contains("+(navigator.language || navigator.userLanguage).substr(0, 2)+")").attr("selected", "selected");
     var button = $('<a class="button">Refresh</a>').click(function() {
+        Api('rankedBroadcastFeed', { languages: [langDt.find('.lang').val()] }, refreshList(ranked));
         Api('featuredBroadcastFeed', {}, refreshList(featured));
-        Api('rankedBroadcastFeed',{ languages: [langDt.find('.lang').val()] }, refreshList(ranked));
     });
     var sort = $('<a class="watching">Sort by watching</a>').click(sortClick.bind(null, ranked));
     $('#right').append($('<div id="Top"/>').append(langDt, button, '<h3>Featured</h3>', featured, sort, '<h3>Ranked</h3>', ranked));
@@ -629,120 +629,51 @@ function InitCreate() {
             '<option selected>eu-central-1</option>' +
         '<select><br/>' +
         '<br/></div>');
-    var createButton=$('<a class="button">Create</a>');
-    createButton.click(createBroadcast);
+    var createButton=$('<a class="button">Create</a>').click(function createBroadcast(){
+            var widthInput = $('#width');
+            var heightInput = $('#height');
+            if (widthInput.val().trim() == '')
+                widthInput.val(320);
+            if (heightInput.val().trim() == '')
+                heightInput.val(568);
+            Api('createBroadcast', {
+                lat: 0,
+                lng: 0,
+                region: $('#server').val(),
+                width: +widthInput.val(),
+                height: +heightInput.val()
+            }, function(createInfo){
+                Api('publishBroadcast', {
+                    broadcast_id: createInfo.broadcast.id,
+                    friend_chat: false,
+                    has_location: false,
+                    //"locale": "ru",
+                    //"lat": 0.0,    // location latitude
+                    //"lng": -20.0,  // location longitude
+                    status: $('#status').val().trim()
+                }, function(){
+                    var code = 'ffmpeg -re -i "'+$('#filename').val()+'" -vcodec libx264 -b:v '+$('#bitrate').val()+'k' +
+                        ' -strict experimental -acodec aac -b:a 128k -ac 1 -f flv -vf scale=' + createInfo.broadcast.width + ':' + createInfo.broadcast.height + ' ' +
+                        ' rtmp://'+createInfo.host+':'+createInfo.port+'/liveorigin?t='+createInfo.credential+'/'+createInfo.stream_name+' & '+
+                        ' while true; do sleep 5s; curl --form "cookie=' + loginTwitter.cookie +'" --form "broadcast_id='+createInfo.broadcast.id+'" https://api.periscope.tv/api/v2/pingBroadcast;'+
+                        ' done;'+
+                        'curl --form "cookie=' + loginTwitter.cookie +'" --form "broadcast_id='+createInfo.broadcast.id+'" https://api.periscope.tv/api/v2/endBroadcast';
+                    $('#Create').append('<pre>' + code + '</pre>',
+                        '<a href="data:text/plain;base64,' + btoa('#!/bin/bash\n'+unescape(encodeURIComponent(code))) + '" download="stream.sh">Download .SH</a>',
+                        $('<div class="card RUNNING"/>').append(getDescription(createInfo.broadcast)));
+                });
+                //var broadcast = response.broadcast;
+            });
+        });
     $('#Create').append(createButton);
 }
 function InitChat() {
-    $('#right').append('<div id="Chat">id: <input id="broadcast_id" type="text" size="15"></div>');
-    var playButton = $('<a class="button" id="startchat">OK</a>');
-    playButton.click(playBroadcast);
-    $('#Chat').append(playButton).append('<span id="title"/>\
-        <br/><br/>\
-        <div id="userlist"/>\
-        <div id="chat"/>\
-        <div id="underchat">\
-            <label><input type="checkbox" id="autoscroll" checked/> Autoscroll</label>\
-            <a class="button" id="sendMessage">Send</a>\
-            <div><input type="text" id="message"></div>\
-        </div>');
-}
-function InitUser() {
-    var refreshList = function() {
-        var result = $('#resultUser');
-        result.empty();
-        Api('user', {
-            user_id: $('#user_id').val().trim()
-        }, function (response) {
-            var user = response.user;
-            result.append(getUserDescription(user));
-            Api('userBroadcasts', {
-                user_id: user.id,
-                all: true
-            }, function(streams){
-                if (streams.length) {
-                    result.append('<h1>Broadcasts</h1>');
-                    var ids = [];
-                    for (var i in streams) {
-                        var stream = $('<div class="card ' + streams[i].state + ' ' + streams[i].id + '">').append(getDescription(streams[i]));
-                        var link = $('<a>Get stream link</a>');
-                        link.click(getM3U.bind(null, streams[i].id, stream));
-                        result.append(stream.append(link));
-                        ids.push(streams[i].id);
-                    }
-                    Api('getBroadcasts', {
-                        broadcast_ids: ids
-                    }, function (info) {
-                        for (var i in info)
-                            $('.card.' + info[i].id + ' .watching').text(info[i].n_watching);
-                    });
-                }
-                var followersDiv = $('<div id="followers"><h1>Followers</h1></div>');
-                var followingDiv = $('<div id="following"><h1>Following</h1></div>');
-                result.append(followersDiv).append(followingDiv);
-                Api('followers', {
-                    user_id: user.id
-                }, function(followers){
-                    Api('following', {
-                        user_id: user.id
-                    }, function(following){
-                        if (following.length)
-                            for (var i in following)
-                                followingDiv.append($('<div class="card"/>').append(getUserDescription(following[i])));
-                        else
-                            followingDiv.remove();
-                    });
-                    if (followers.length)
-                        for (var i in followers)
-                            followersDiv.append($('<div class="card"/>').append(getUserDescription(followers[i])));
-                    else
-                        followersDiv.remove();
-                });
-            });
-        });
-    };
-    $('#right').append('<div id="User">id: <input id="user_id" type="text" size="15"></div>');
-    var showButton = $('<a class="button" id="showuser">OK</a>');
-    showButton.click(refreshList);
-    $('#User').append(showButton).append('<br/><br/><div id="resultUser" />');
-}
-function InitPeople() {
-    var refreshButton = $('<a class="button">Refresh</a>').click(function () {
-        Api('suggestedPeople', {
-            languages: [$('#People .lang').val()]
-        }, function (response) {
-            var result = $('#resultPeople');
-            result.html('<h1>Featured</h1>');
-            for (var i in response.featured)
-                result.append($('<div class="card"/>').append(getUserDescription(response.featured[i])));
-            result.append('<h1>Popular</h1>');
-            for (var i in response.popular)
-                result.append($('<div class="card"/>').append(getUserDescription(response.popular[i])));
-            Api('suggestedPeople', {}, function (response) {
-                result.append('<h1>Hearted</h1>');
-                for (var i in response.hearted)
-                    result.append($('<div class="card"/>').append(getUserDescription(response.hearted[i])));
-            });
-        });
-    });
-    $('#right').append($('<div id="People"/>')
-        .append(languageSelect)
-        .append(refreshButton)
-        .append('<div id="resultPeople" />'));
-    $("#People .lang").find(":contains(" + (navigator.language || navigator.userLanguage).substr(0, 2) + ")").attr("selected", "selected");
-    refreshButton.click();
-}
-var chat_interval;
-var presence_interval;
-var pubnubUrl = 'http://pubsub.pubnub.com';
-function playBroadcast() {
-    var chat = $('#chat');
-    clearInterval(chat_interval);
-    clearInterval(presence_interval);
-    chat.empty();
-    $('#userlist').empty();
-    $('#title').empty();
-    var renderMessages = function(messages, container){
+    var broadcast_id = $('<input id="broadcast_id" type="text" size="15" placeholder="broadcast id">');
+    var title = $('<span id="title"/>');
+    var userlist = $('<div id="userlist"/>');
+    var chat = $('<div id="chat"/>');
+    var textBox = $('<input type="text" id="message">');
+    function renderMessages(messages, container){
         for (var i in messages) {
             var event = messages[i];
             switch (event.type) {
@@ -750,7 +681,10 @@ function playBroadcast() {
                     var date = new Date((parseInt(event.ntpForLiveFrame.toString(16).substr(0, 8), 16) - 2208988800) * 1000);
                     var html = $('<div/>').append('[' + zeros(date.getHours()) + ':' + zeros(date.getMinutes()) + ':' + zeros(date.getSeconds()) + '] ');
                     var username = $('<span class="user">&lt;' + event.username + '&gt;</span>');
-                    username.click(insertUsername);
+                    username.click(function() { // insert username to text field
+                        textBox.val(textBox.val() + '@' + $(this).text().substr(1, $(this).text().length - 2) + ' ');
+                        textBox.focus();
+                    });
                     html.append(username).append(' ').append(emoji.replace_unified(event.body).replace(/(@\S+)/g, '<b>$1</b>'));
                     if (!event.body)    // for debug
                         console.log('empty body!', event);
@@ -782,125 +716,206 @@ function playBroadcast() {
             }
         }
     };
-    Api('accessChannel', {
-        broadcast_id: $('#broadcast_id').val().trim()
-    }, function (broadcast) {
-        var userLink = $('<a class="username">(@' + broadcast.broadcast.username + ')</a>');
-        userLink.click(openUser.bind(null, broadcast.broadcast.user_id));
-        $('#title').html((broadcast.publisher == "" ? '<b>FORBIDDEN</b> | ' : '')
-            + '<a href="https://www.periscope.tv/w/'+broadcast.broadcast.id+'" target="_blank">'+emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
-            + emoji.replace_unified(broadcast.broadcast.user_display_name) + ' ')
-            .append(userLink)
-            .append((broadcast.hls_url ? ' | <a href="'+broadcast.hls_url+'">M3U Link</a>' : '')
-                + (broadcast.rtmp_url ? ' | <a href="'+broadcast.rtmp_url+'">RTMP Link</a>' : '')
-                + (broadcast.replay_url ? ' | <a href="'+broadcast.replay_url+'">Replay M3U Link</a>' : ''));
-        // Load history
-        var historyDiv = $('<div/>');
-        var historyLoad = function (start) {
-            $.get(pubnubUrl + '/v2/history/sub-key/' + broadcast.subscriber + '/channel/' + broadcast.channel, {
-                stringtoken: true,
-                count: 100,
-                reverse: true,
-                start: start,
-                auth: broadcast.auth_token
-            }, function (history) {
-                if (history[2] != 0)
-                    historyLoad(history[2]);
-                else
-                    $('#spinner').hide();
-                renderMessages(history[0], historyDiv);
-            }, 'json');
-        };
-        chat.append(historyDiv).append($('<center><a>Load history</a></center>').click(function () {
-            $('#spinner').show();
-            historyLoad('');
-            $(this).remove();
-        }));
-        // Update users list
-        var userlist = $('#userlist');
-        function presenceUpdate() {
-            $.get(pubnubUrl + '/v2/presence/sub_key/' + broadcast.subscriber + '/channel/' + broadcast.channel, {
-                state: 1,
-                auth: broadcast.auth_token
-            }, function (pubnub) {
-                userlist.empty();
-                var user;
-                for (var i in pubnub.uuids)
-                    if ((user = pubnub.uuids[i].state) && user.username)
-                        userlist.append('<div class="user">' + emoji.replace_unified(user.display_name) + ' <div class="username">(' + user.username + ')</div></div>');
-            }, 'json');
-        }
-        presence_interval = setInterval(presenceUpdate, 15000);
-        presenceUpdate();
-        // Update messages list
-        var prev_time = 0;      // time of previous result
-        var xhr_done = true;    // last request finished, can send next request
-        function messagesUpdate() {
-            if (xhr_done) {
-                xhr_done = false;
-                $.get(pubnubUrl + '/subscribe/' + broadcast.subscriber + '/' + broadcast.channel + '-pnpres,' + broadcast.channel + '/0/' + prev_time, {
+
+    var playButton = $('<a class="button" id="startchat">OK</a>').click(function() {
+        clearInterval(chat_interval);
+        clearInterval(presence_interval);
+        chat.empty();
+        userlist.empty();
+        title.empty();
+        Api('accessChannel', {
+            broadcast_id: broadcast_id.val().trim()
+        }, function (broadcast) {
+            var userLink = $('<a class="username">(@' + broadcast.broadcast.username + ')</a>').click(openUser.bind(null, broadcast.broadcast.user_id));
+            title.html((broadcast.publisher == "" ? '<b>FORBIDDEN</b> | ' : '')
+                + '<a href="https://www.periscope.tv/w/'+broadcast.broadcast.id+'" target="_blank">'+emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
+                + emoji.replace_unified(broadcast.broadcast.user_display_name) + ' ')
+                .append(userLink)
+                .append((broadcast.hls_url ? ' | <a href="'+broadcast.hls_url+'">M3U Link</a>' : '')
+                + (broadcast.rtmp_url ? ' | <a href="'+broadcast.rtmp_url+'">RTMP Link</a>' : ''));
+            // Load history
+            var historyDiv = $('<div/>');
+            function historyLoad(start) {
+                $.get(pubnubUrl + '/v2/history/sub-key/' + broadcast.subscriber + '/channel/' + broadcast.channel, {
+                    stringtoken: true,
+                    count: 100,
+                    reverse: true,
+                    start: start,
+                    auth: broadcast.auth_token
+                }, function (history) {
+                    if (history[2] != 0)
+                        historyLoad(history[2]);
+                    else
+                        $('#spinner').hide();
+                    renderMessages(history[0], historyDiv);
+                }, 'json');
+            }
+            chat.append(historyDiv, $('<center><a>Load history</a></center>').click(function () {
+                $('#spinner').show();
+                historyLoad('');
+                $(this).remove();
+            }));
+            // Update users list
+            function presenceUpdate() {
+                $.get(pubnubUrl + '/v2/presence/sub_key/' + broadcast.subscriber + '/channel/' + broadcast.channel, {
+                    state: 1,
                     auth: broadcast.auth_token
                 }, function (pubnub) {
-                    prev_time = pubnub[1];
-                    xhr_done = true;
-                    renderMessages(pubnub[0], chat);
-                    if ($('#autoscroll')[0].checked)
-                        chat[0].scrollTop = chat[0].scrollHeight;
-                }, 'json').fail(function () {
-                    xhr_done = true;
-                });
+                    userlist.empty();
+                    var user;
+                    for (var i in pubnub.uuids)
+                        if ((user = pubnub.uuids[i].state) && user.username)
+                            userlist.append('<div class="user">' + emoji.replace_unified(user.display_name) + ' <div class="username">(' + user.username + ')</div></div>');
+                }, 'json');
             }
-        }
-        chat_interval = setInterval(messagesUpdate, 2000);
-        messagesUpdate();
-        // Sending messages
-        function sendMessage() {
-            $('#spinner').show();
-            var ntpstamp = parseInt((Math.floor(prev_time/10000000) + 2208988800).toString(16) + '00000000', 16); // timestamp in NTP format
-            GM_xmlhttpRequest({
-                method: 'POST',
-                url: 'https://signer.periscope.tv/sign',
-                data: JSON.stringify({
-                    body: $('#message').val(),
-                    signer_token: broadcast.signer_token,
-                    participant_index: broadcast.participant_index,
-                    type: 1,    // "text message"
-                    ntpForBroadcasterFrame: ntpstamp,
-                    ntpForLiveFrame: ntpstamp
-                }),
-                onload: function (signed) {
-                    signed = JSON.parse(signed.responseText);
-                    $.get(pubnubUrl + '/publish/'+broadcast.publisher+'/'+broadcast.subscriber+'/0/'
-                        +broadcast.channel +'/0/'+encodeURIComponent(JSON.stringify(signed.message)), {
+            presence_interval = setInterval(presenceUpdate, 15000);
+            presenceUpdate();
+            // Update messages list
+            var prev_time = 0;      // time of previous result
+            var xhr_done = true;    // last request finished, can send next request
+            function messagesUpdate() {
+                if (xhr_done) {
+                    xhr_done = false;
+                    $.get(pubnubUrl + '/subscribe/' + broadcast.subscriber + '/' + broadcast.channel + '-pnpres,' + broadcast.channel + '/0/' + prev_time, {
                         auth: broadcast.auth_token
-                    }, function(pubnub){
-                        $('#spinner').hide();
-                        $('#message').val('');
-                        if (pubnub[1]!="Sent")
-                            console.log('message not sent', pubnub);
-                    }, 'json').fail(function (error) {
-                        chat.append('<span class="error">*** Error: ' + error.responseJSON.message + '</span>');
-                        $('#spinner').hide();
+                    }, function (pubnub) {
+                        prev_time = pubnub[1];
+                        xhr_done = true;
+                        renderMessages(pubnub[0], chat);
+                        if ($('#autoscroll')[0].checked)
+                            chat[0].scrollTop = chat[0].scrollHeight;
+                    }, 'json').fail(function () {
+                        xhr_done = true;
                     });
                 }
-            });               
-        }
-        $('#sendMessage').off().click(sendMessage);
-        $('#message').off().keypress(function(e) {
-            if(e.which == 13) {
-                sendMessage();
-                return false;
             }
+            chat_interval = setInterval(messagesUpdate, 2000);
+            messagesUpdate();
+            // Sending messages
+            function sendMessage() {
+                $('#spinner').show();
+                var ntpstamp = parseInt((Math.floor(prev_time/10000000) + 2208988800).toString(16) + '00000000', 16); // timestamp in NTP format
+                GM_xmlhttpRequest({
+                    method: 'POST',
+                    url: 'https://signer.periscope.tv/sign',
+                    data: JSON.stringify({
+                        body: textBox.val(),
+                        signer_token: broadcast.signer_token,
+                        participant_index: broadcast.participant_index,
+                        type: 1,    // "text message"
+                        ntpForBroadcasterFrame: ntpstamp,
+                        ntpForLiveFrame: ntpstamp
+                    }),
+                    onload: function (signed) {
+                        signed = JSON.parse(signed.responseText);
+                        $.get(pubnubUrl + '/publish/'+broadcast.publisher+'/'+broadcast.subscriber+'/0/'
+                            +broadcast.channel +'/0/'+encodeURIComponent(JSON.stringify(signed.message)), {
+                            auth: broadcast.auth_token
+                        }, function(pubnub){
+                            $('#spinner').hide();
+                            textBox.val('');
+                            if (pubnub[1]!="Sent")
+                                console.log('message not sent', pubnub);
+                        }, 'json').fail(function (error) {
+                            chat.append('<span class="error">*** Error: ' + error.responseJSON.message + '</span>');
+                            $('#spinner').hide();
+                        });
+                    }
+                });
+            }
+            $('#sendMessage').off().click(sendMessage);
+            textBox.off().keypress(function(e) {
+                if(e.which == 13) {
+                    sendMessage();
+                    return false;
+                }
+            });
+        }, function (error){
+            title.append('<b>' + error + '</b>');
         });
-    }, function (error){
-        $('#title').append('<b>' + error + '</b>');
     });
+    $('#right').append(
+        $('<div id="Chat"/>').append(
+            broadcast_id, playButton, title, '<br/><br/>', userlist, chat, $('<div id="underchat">').append(
+                '<label><input type="checkbox" id="autoscroll" checked/> Autoscroll</label>',
+                '<a class="button" id="sendMessage">Send</a>', $('<div/>').append(textBox)
+            )
+        )
+    );
 }
-function insertUsername() {
-    var message = $('#message');
-    message.val(message.val() + '@' + $(this).text().substr(1, $(this).text().length - 2) + ' ');
-    message.focus();
+function InitUser() {
+    var resultUser = $('<div id="resultUser" />');
+    var showButton = $('<a class="button" id="showuser">OK</a>').click(function() {
+        resultUser.empty();
+        Api('user', {
+            user_id: $('#user_id').val().trim()
+        }, function (response) {
+            var user = response.user;
+            resultUser.append(getUserDescription(user));
+            Api('userBroadcasts', {
+                user_id: user.id,
+                all: true
+            }, function(streams){
+                if (streams.length) {
+                    var userBroadcasts = $('<div/>');
+                    resultUser.append('<h1>Broadcasts</h1>', userBroadcasts);
+                    refreshList(userBroadcasts)(streams);
+                }
+                var followersDiv = $('<div id="followers"><h1>Followers</h1></div>');
+                var followingDiv = $('<div id="following"><h1>Following</h1></div>');
+                resultUser.append(followersDiv).append(followingDiv);
+                Api('followers', {
+                    user_id: user.id
+                }, function(followers){
+                    Api('following', {
+                        user_id: user.id
+                    }, function(following){
+                        if (following.length)
+                            for (var i in following)
+                                followingDiv.append($('<div class="card"/>').append(getUserDescription(following[i])));
+                        else
+                            followingDiv.remove();
+                    });
+                    if (followers.length)
+                        for (var i in followers)
+                            followersDiv.append($('<div class="card"/>').append(getUserDescription(followers[i])));
+                    else
+                        followersDiv.remove();
+                });
+            });
+        });
+    });
+    $('#right').append($('<div id="User">id: <input id="user_id" type="text" size="15"></div>').append(showButton, '<br/><br/>', resultUser));
 }
+function InitPeople() {
+    var refreshButton = $('<a class="button">Refresh</a>').click(function () {
+        Api('suggestedPeople', {
+            languages: [$('#People .lang').val()]
+        }, function (response) {
+            var result = $('#resultPeople');
+            result.html('<h1>Featured</h1>');
+            for (var i in response.featured)
+                result.append($('<div class="card"/>').append(getUserDescription(response.featured[i])));
+            result.append('<h1>Popular</h1>');
+            for (var i in response.popular)
+                result.append($('<div class="card"/>').append(getUserDescription(response.popular[i])));
+            Api('suggestedPeople', {}, function (response) {
+                result.append('<h1>Hearted</h1>');
+                for (var i in response.hearted)
+                    result.append($('<div class="card"/>').append(getUserDescription(response.hearted[i])));
+            });
+        });
+    });
+    $('#right').append($('<div id="People"/>')
+        .append(languageSelect)
+        .append(refreshButton)
+        .append('<div id="resultPeople" />'));
+    $("#People .lang").find(":contains(" + (navigator.language || navigator.userLanguage).substr(0, 2) + ")").attr("selected", "selected");
+    refreshButton.click();
+}
+var chat_interval;
+var presence_interval;
+var pubnubUrl = 'http://pubsub.pubnub.com';
 function zeros(number){
     return (100 + number + '').substr(1);
 }
@@ -931,42 +946,6 @@ function sortClick(jcontainer){ // sort cards in given jquery-container
     });
     jcontainer.append(sorted);
     $(window).trigger('scroll');    // for lazy load
-}
-function createBroadcast(){
-    var widthInput = $('#width');
-    var heightInput = $('#height');
-    if (widthInput.val().trim() == '')
-        widthInput.val(320);
-    if (heightInput.val().trim() == '')
-        heightInput.val(568);
-    Api('createBroadcast', {
-        lat: 0,
-        lng: 0,
-        region: $('#server').val(),
-        width: +widthInput.val(),
-        height: +heightInput.val()
-    }, function(createInfo){
-        Api('publishBroadcast', {
-            broadcast_id: createInfo.broadcast.id,
-            friend_chat: false,
-            has_location: false,
-            //"locale": "ru",
-            //"lat": 0.0,    // location latitude
-            //"lng": -20.0,  // location longitude
-            status: $('#status').val().trim()
-        }, function(){
-            var code = 'ffmpeg -re -i "'+$('#filename').val()+'" -vcodec libx264 -b:v '+$('#bitrate').val()+'k' +
-                ' -strict experimental -acodec aac -b:a 128k -ac 1 -f flv -vf scale=' + createInfo.broadcast.width + ':' + createInfo.broadcast.height + ' ' +
-                ' rtmp://'+createInfo.host+':'+createInfo.port+'/liveorigin?t='+createInfo.credential+'/'+createInfo.stream_name+' & '+
-                ' while true; do sleep 5s; curl --form "cookie=' + loginTwitter.cookie +'" --form "broadcast_id='+createInfo.broadcast.id+'" https://api.periscope.tv/api/v2/pingBroadcast;'+
-                ' done;'+
-                'curl --form "cookie=' + loginTwitter.cookie +'" --form "broadcast_id='+createInfo.broadcast.id+'" https://api.periscope.tv/api/v2/endBroadcast';
-            $('#Create').append('<pre>' + code + '</pre><a target="_blank" href="https://www.periscope.tv/w/'+createInfo.broadcast.id+'">Watch your stream</a> | ')
-                .append($('<a>Chat</a>').click(openChat.bind(null, createInfo.broadcast.id)))
-                .append(' | <a href="data:text/plain;base64,' + btoa('#!/bin/bash\n'+unescape(encodeURIComponent(code))) + '" download="stream.sh">Download .SH</a>');
-        });
-        //var broadcast = response.broadcast;
-    });
 }
 function getM3U (id, jcontainer) {
     jcontainer.find('.links').empty();
@@ -1012,9 +991,12 @@ function getDescription(stream) {
                 '+(duration ? '<br/>Duration: '+zeros(duration.getUTCHours())+':'+zeros(duration.getMinutes())+':'+zeros(duration.getSeconds()) : '')+'\
                 '+(stream.country || stream.city ? '<br/>' + stream.country + ', ' + stream.city : '') + '\
         </div>');
-    var chatLink = $('<a class="chatlink">Chat</a>');
-    chatLink.click(openChat.bind(null, stream.id));
-    description.append(chatLink).append('<div class="links" />');
+    var chatLink = $('<a class="chatlink">Chat</a>').click(function (){
+        SwitchSection(null, 'Chat');
+        $('#broadcast_id').val(stream.id);
+        $('#startchat').click();
+    });
+    description.append(chatLink, '<div class="links" />');
     return description[0];
 }
 function getUserDescription(user) {
@@ -1041,11 +1023,6 @@ function getUserDescription(user) {
             })
         }))
         .append('<div style="clear:both"/>');
-}
-function openChat(broadcast_id){
-    SwitchSection(null, 'Chat');
-    $('#broadcast_id').val(broadcast_id);
-    $('#startchat').click();
 }
 function openUser(user_id){
     SwitchSection(null, 'User');
