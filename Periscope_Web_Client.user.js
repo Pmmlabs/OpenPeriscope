@@ -154,10 +154,15 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     #left > a, #left > img {\
         margin-bottom: 5px;\
     }\
+    #left > label {\
+        display: block;\
+        margin-bottom: 20px;\
+    }\
     #left {\
         position: fixed;\
         box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);\
         overflow: auto;\
+        width: 200px\
     }\
     #right {\
         width: auto;\
