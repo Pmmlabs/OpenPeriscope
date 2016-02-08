@@ -11,6 +11,10 @@ Unofficial in-browser web client for Periscope (userscript)
 1. Login to the Twitter (if not yet) and click "Authorize"
 1. Here you go!
 
+### Using as standalone application
+
+If you have [NW.js](http://nwjs.io) installed, you can run ` nw . ` in repo directory
+
 ### API Documentation
 
 Docs by @cjhbtn, actualized by me: http://static.pmmlabs.ru/OpenPeriscope

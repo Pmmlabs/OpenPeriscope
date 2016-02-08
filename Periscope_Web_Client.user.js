@@ -19,7 +19,9 @@
 // @noframes
 // ==/UserScript==
 
-if (require) {  // for Node.js
+if (typeof GM_xmlhttpRequest == 'undefined') {  // for Node.js
+    var gui = require('nw.gui');
+    gui.App.addOriginAccessWhitelistEntry('https://api.twitter.com/', 'app', 'openperiscope', true);    // allow redirect to app://
     const https = require('https');
     const url = require('url');
     GM_xmlhttpRequest = function (options) {
@@ -30,12 +32,16 @@ if (require) {  // for Node.js
         options.hostname = u.hostname;
         options.path = u.path;
         options.protocol = u.protocol;
+        var chunks = '';
         var req = https.request(options, function (res) {
             res.setEncoding('utf8');
-            res.on('data', function (d) {
+            res.on('data', function (chunk) {
+                chunks += chunk;
+            });
+            res.on('end', function() {
                 onload({
                     status: res.statusCode,
-                    responseText: d
+                    responseText: chunks
                 });
             });
         });
@@ -53,6 +59,9 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
 } else {
     $('style').remove();
     $(document.head).append('<style>\
+    html, body, #left, #Map, #Chat {\
+        height: 100%;\
+    }\
     body {\
         margin: 0;\
         font-family: "Roboto", sans-serif;\
@@ -148,12 +157,11 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     #left {\
         position: fixed;\
         box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);\
-        height: 100%;\
         overflow: auto;\
     }\
     #right {\
         width: auto;\
-        height: 600px;\
+        height: 95%;\
         margin-left: 220px;\
     }\
     #display_name {\
@@ -164,7 +172,6 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     }\
     #Map, #Chat {\
         width:100%;\
-        height:100%;\
     }\
     .live-cluster-small div{\
         background-color: rgba(222, 0, 0, 0.6);\
@@ -221,13 +228,13 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         background-position: 20px center;\
     }\
     .chatlink {\
-        background-image: url("//raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/comment-black.png");\
+        background-image: url("https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/comment-black.png");\
     }\
     .watching {\
-        background-image: url("//raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/user-black.png");\
+        background-image: url("https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/user-black.png");\
     }\
     .hearts {\
-        background-image: url("//raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/heart-black.png");\
+        background-image: url("https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/heart-black.png");\
     }\
     dt {\
         width: 150px;\
@@ -344,7 +351,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     /* USER */\
     img.avatar {\
         border: none;\
-        background: url("//abs.twimg.com/sticky/default_profile_images/default_profile_4_reasonably_small.png");\
+        background: url("https://abs.twimg.com/sticky/default_profile_images/default_profile_4_reasonably_small.png");\
     }\
     #People .username {\
         font-size: 17px;\
@@ -409,7 +416,7 @@ function Ready(loginInfo) {
         <a class="username">@' + (loginInfo.user.username || loginInfo.user.twitter_screen_name) + '</a>');
     userLink.click(openUser.bind(null, loginInfo.user.id));
     var left = $('#left').append(signOutButton)
-        .append('<img src="//raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/spinner.gif" id="spinner" />\
+        .append('<img src="https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/spinner.gif" id="spinner" />\
         <br/><img src="' + loginInfo.user.profile_image_urls[1].url + '"/>')
         .append(userLink);
     var menu = [

@@ -2,13 +2,17 @@
   "name": "openperiscope",
   "version": "1.0",
   "main": "app://openperiscope/index.html",
+  "webkit": {
+    "plugin": true
+  },
+  "chromium-args": "--ppapi-flash-path=/opt/google/chrome/PepperFlash/libpepflashplayer.so",
   "window": {
     "toolbar": true,
     "frame": true,
     "position": "center",
-    "min_width": 400,
-    "min_height": 200,
-    "max_width": 8000,
-    "max_height": 8000
+    "width": 800,
+    "height": 500,
+    "min_width": 550,
+    "min_height": 200
   }
 }
