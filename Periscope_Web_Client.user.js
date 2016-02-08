@@ -83,7 +83,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         border-radius: 0;\
         outline: none;\
         height: 2rem;\
-        margin: 0 10px 10px 0;\
+        margin: 0 10px 9px 0;\
         transition: box-shadow .3s;\
         background: transparent;\
     }\
@@ -946,16 +946,20 @@ function InitPeople() {
             languages: [$('#People .lang').val()]
         }, function (response) {
             var result = $('#resultPeople');
-            result.html('<h1>Featured</h1>');
-            for (var i in response.featured)
-                result.append($('<div class="card"/>').append(getUserDescription(response.featured[i])));
+            if (response.featured && response.featured.length) {
+                result.html('<h1>Featured</h1>');
+                for (var i in response.featured)
+                    result.append($('<div class="card"/>').append(getUserDescription(response.featured[i])));
+            }
             result.append('<h1>Popular</h1>');
             for (i in response.popular)
                 result.append($('<div class="card"/>').append(getUserDescription(response.popular[i])));
             Api('suggestedPeople', {}, function (response) {
-                result.append('<h1>Hearted</h1>');
-                for (var i in response.hearted)
-                    result.append($('<div class="card"/>').append(getUserDescription(response.hearted[i])));
+                if (response.hearted && response.hearted.length) {
+                    result.append('<h1>Hearted</h1>');
+                    for (var i in response.hearted)
+                        result.append($('<div class="card"/>').append(getUserDescription(response.hearted[i])));
+                }
             });
         });
     });
