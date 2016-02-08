@@ -1150,7 +1150,7 @@ function SignIn1() {
         localStorage.setItem('consumer_secret', consumer_secret);
         OAuth('request_token', function (oauth) {
             location.href = 'https://api.twitter.com/oauth/authorize?oauth_token=' + oauth.oauth_token;
-        }, {oauth_callback: (require ? 'app://openperiscope/index.html' : '404')});
+        }, {oauth_callback: (typeof GM_xmlhttpRequest == 'undefined' ? 'app://openperiscope/index.html' : '404')});
     }
 }
 function SignOut() {
