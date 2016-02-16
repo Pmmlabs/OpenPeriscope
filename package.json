@@ -5,7 +5,6 @@
   "webkit": {
     "plugin": true
   },
-  "chromium-args": "--ppapi-flash-path=/opt/google/chrome/PepperFlash/libpepflashplayer.so",
   "window": {
     "toolbar": true,
     "frame": true,

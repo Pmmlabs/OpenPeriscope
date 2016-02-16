@@ -704,7 +704,7 @@ function InitCreate() {
             }, function () {
                 var code = 'ffmpeg -re -i "' + $('#filename').val() + '" -vcodec libx264 -b:v ' + $('#bitrate').val() + 'k' +
                     ' -strict experimental -acodec aac -b:a 128k -ac 1 -f flv -vf scale=' + createInfo.broadcast.width + ':' + createInfo.broadcast.height + ' ' +
-                    ' rtmp://' + createInfo.host + ':' + createInfo.port + '/liveorigin?t=' + createInfo.credential + '/' + createInfo.stream_name + ' & ' +
+                    ' rtmp://' + createInfo.host + ':' + createInfo.port + '/'+createInfo.application+'?t=' + createInfo.credential + '/' + createInfo.stream_name + ' & ' +
                     ' while true; do sleep 5s; curl --form "cookie=' + loginTwitter.cookie + '" --form "broadcast_id=' + createInfo.broadcast.id + '" https://api.periscope.tv/api/v2/pingBroadcast;' +
                     ' done;' +
                     'curl --form "cookie=' + loginTwitter.cookie + '" --form "broadcast_id=' + createInfo.broadcast.id + '" https://api.periscope.tv/api/v2/endBroadcast';
