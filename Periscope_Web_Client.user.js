@@ -704,10 +704,10 @@ function InitCreate() {
             }, function () {
                 var code = 'ffmpeg -re -i "' + $('#filename').val() + '" -vcodec libx264 -b:v ' + $('#bitrate').val() + 'k' +
                     ' -strict experimental -acodec aac -b:a 128k -ac 1 -f flv -vf scale=' + createInfo.broadcast.width + ':' + createInfo.broadcast.height + ' ' +
-                    ' rtmp://' + createInfo.host + ':' + createInfo.port + '/'+createInfo.application+'?t=' + createInfo.credential + '/' + createInfo.stream_name + ' & ' +
-                    ' while true; do sleep 5s; curl --form "cookie=' + loginTwitter.cookie + '" --form "broadcast_id=' + createInfo.broadcast.id + '" https://api.periscope.tv/api/v2/pingBroadcast;' +
+                    ' rtmp://' + createInfo.host + ':' + createInfo.port + '/'+createInfo.application+'?t=' + createInfo.credential + '/' + createInfo.stream_name + ' < /dev/null &' +
+                    ' while true; do sleep 5s; echo -e "\\033[0;32m`curl -s --form "cookie=' + loginTwitter.cookie + '" --form "broadcast_id=' + createInfo.broadcast.id + '" https://api.periscope.tv/api/v2/pingBroadcast`\\033[0m";' +
                     ' done;' +
-                    'curl --form "cookie=' + loginTwitter.cookie + '" --form "broadcast_id=' + createInfo.broadcast.id + '" https://api.periscope.tv/api/v2/endBroadcast';
+                    ' curl --form "cookie=' + loginTwitter.cookie + '" --form "broadcast_id=' + createInfo.broadcast.id + '" https://api.periscope.tv/api/v2/endBroadcast';
                 $('#Create').append('<pre>' + code + '</pre>',
                     '<a href="data:text/plain;base64,' + btoa('#!/bin/bash\n' + unescape(encodeURIComponent(code))) + '" download="stream.sh">Download .SH</a>',
                     $('<div class="card RUNNING"/>').append(getDescription(createInfo.broadcast)));
