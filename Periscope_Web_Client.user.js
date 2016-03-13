@@ -703,7 +703,7 @@ function InitCreate() {
                 status: $('#status').val().trim()
             }, function () {
                 var code = 'ffmpeg -re -i "' + $('#filename').val() + '" -vcodec libx264 -b:v ' + $('#bitrate').val() + 'k -profile:v main -level 2.1 -s ' + createInfo.broadcast.width + 'x' + createInfo.broadcast.height +
-                    ' -strict experimental -acodec aac -b:a 128k -ac 1 -f flv' +
+                    ' -strict experimental -acodec aac -b:a 128k -ar 44100 -ac 1 -f flv' +
                     ' rtmp://' + createInfo.host + ':' + createInfo.port + '/'+createInfo.application+'?t=' + createInfo.credential + '/' + createInfo.stream_name + ' < /dev/null &' +
                     ' while true; do echo -e "\\033[0;32m[OpenPeriscope] `curl -s --form "cookie=' + loginTwitter.cookie + '" --form "broadcast_id=' + createInfo.broadcast.id + '" https://api.periscope.tv/api/v2/pingBroadcast`\\033[0m"; sleep 20s;' +
                     ' done;' +
