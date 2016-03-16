@@ -1040,8 +1040,11 @@ function getM3U(id, jcontainer) {
 }
 function getDescription(stream) {
     var title = emoji.replace_unified(stream.status || 'Untitled');
-    if (stream.featured)
+    var featured_reason = '';
+    if (stream.featured) {
         title += '<span class="featured" style="background: #' + (stream.featured_category_color || 'FFBD00') + '">' + (stream.featured_category || 'POPULAR') + '</span>';
+        featured_reason = ' <i>'+stream.featured_reason+'</i>';
+    }
     var date_created = new Date(stream.created_at);
     var duration = stream.end || stream.timedout ? new Date(new Date(stream.end || stream.timedout) - date_created) : 0;
     var userLink = $('<a class="username">' + emoji.replace_unified(stream.user_display_name) + ' (@' + stream.username + ')</a>');
@@ -1049,7 +1052,7 @@ function getDescription(stream) {
     var description = $('<div class="description">\
                 <a href="' + stream.image_url + '" target="_blank"><img lazysrc="' + stream.image_url_small + '"/></a>\
                 <div class="watching righticon" title="Watching"/>\
-                <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a><br/>\
+                <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>'+featured_reason+'<br/>\
             </div>')
         .append(userLink)
         .append('<br/>Created: ' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth() + 1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes())
