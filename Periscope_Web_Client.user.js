@@ -702,18 +702,22 @@ function InitCreate() {
                 //"lng": -20.0,  // location longitude
                 status: $('#status').val().trim()
             }, function () {
+                var filename = $('#filename').val();
                 var code =
-                    'ffmpeg -i "' + $('#filename').val() + '" -r 1 -s 320x568 -vframes 1 -y -f image2 orig.jpg;' +
-                    ' curl -s -T orig.jpg "' + createInfo.thumbnail_upload_url + '";' +
-                    ' rm -f orig.jpg;' +
-                    ' ffmpeg -re -i "' + $('#filename').val() + '" -vcodec libx264 -b:v ' + $('#bitrate').val() + 'k -profile:v baseline -level 3.0 -s ' + createInfo.broadcast.width + 'x' + createInfo.broadcast.height +
+                    'ffmpeg -i "' + filename + '" -r 1 -s 320x568 -vframes 1 -y -f image2 orig.jpg\n' +
+                    'curl -s -T orig.jpg "' + createInfo.thumbnail_upload_url + '"\n' +
+                    'rm -f orig.jpg\n' +
+                    'ffmpeg -re -i "' + filename + '" -vcodec libx264 -b:v ' + $('#bitrate').val() + 'k -profile:v main -level 2.1 -s ' + createInfo.broadcast.width + 'x' + createInfo.broadcast.height +
                     ' -strict experimental -acodec aac -b:a 128k -ar 44100 -ac 1 -f flv' +
-                    ' rtmp://' + createInfo.host + ':' + createInfo.port + '/'+createInfo.application+'?t=' + createInfo.credential + '/' + createInfo.stream_name + ' < /dev/null &' +
-                    ' while true; do echo -e "\\033[0;32m[OpenPeriscope] `curl -s --form "cookie=' + loginTwitter.cookie + '" --form "broadcast_id=' + createInfo.broadcast.id + '" https://api.periscope.tv/api/v2/pingBroadcast`\\033[0m"; sleep 20s;' +
-                    ' done;' +
-                    ' curl --form "cookie=' + loginTwitter.cookie + '" --form "broadcast_id=' + createInfo.broadcast.id + '" https://api.periscope.tv/api/v2/endBroadcast';
+                    ' rtmp://' + createInfo.host + ':' + createInfo.port + '/'+createInfo.application+'?t=' + createInfo.credential + '/' + createInfo.stream_name + ' < /dev/null &\n' +
+                    'while true\n' +
+                    ' do\n' +
+                    '  echo -e "\\033[0;32m[OpenPeriscope] `curl -s --form "cookie=' + loginTwitter.cookie + '" --form "broadcast_id=' + createInfo.broadcast.id + '" https://api.periscope.tv/api/v2/pingBroadcast`\\033[0m"\n' +
+                    '  sleep 20s\n' +
+                    ' done\n' +
+                    'curl --form "cookie=' + loginTwitter.cookie + '" --form "broadcast_id=' + createInfo.broadcast.id + '" https://api.periscope.tv/api/v2/endBroadcast';
                 $('#Create').append('<pre>' + code + '</pre>',
-                    '<a href="data:text/plain;base64,' + btoa('#!/bin/bash\n' + unescape(encodeURIComponent(code))) + '" download="stream.sh">Download .SH</a>',
+                    '<a href="data:text/plain;base64,' + btoa('#!/bin/bash\n' + unescape(encodeURIComponent(code))) + '" download="stream_' + filename + '.sh">Download .SH</a>',
                     $('<div class="card RUNNING"/>').append(getDescription(createInfo.broadcast)));
             });
             //var broadcast = response.broadcast;
