@@ -469,7 +469,7 @@ function switchSection(elem, section) {
     $('#right > div:visible').hide();
     var sectionContainer = $('#' + section);
     if (!sectionContainer.length)
-        this['Init' + section]();
+        Inits[section]();
     else
         sectionContainer.show();
 }
@@ -494,7 +494,8 @@ var languageSelect = '<dt>Language: <select class="lang">\
             <option>uk</option>\
             <option>zh</option>\
         </select></dt>';
-function InitMap() {
+var Inits= {
+Map: function () {
     $(document.head).append('<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />')
         .append('<link rel="stylesheet" href="http://leaflet.github.io/Leaflet.markercluster/dist/MarkerCluster.css" />');
     $('#right').append('<div id="Map"/>');
@@ -607,8 +608,8 @@ function InitMap() {
     };
     map.on('moveend', refreshMap);
     refreshMap();
-}
-function InitApiTest() {
+},
+ApiTest: function () {
     var submitButton = $('<a class="button">Submit</div>');
     submitButton.click(function () {
         try {
@@ -634,8 +635,8 @@ function InitApiTest() {
         '<br/><dt>Method</dt><input id="method" type="text" placeholder="mapGeoBroadcastFeed"/><br/>' +
         '<dt>Parameters</dt><textarea id="params" placeholder=\'{"include_replay": true, "p1_lat": 1, "p1_lng": 2, "p2_lat": 3, "p2_lng": 4}\'/><br/><br/>');
     $('#ApiTest').append(submitButton).append('<br/><br/><pre id="response"/>Response is also displayed in the browser console, if [Debug mode] is checked</pre>');
-}
-function InitTop() {
+},
+Top: function () {
     var featured = $('<div/>');
     var ranked = $('<div/>');
     var langDt = $(languageSelect);
@@ -647,15 +648,15 @@ function InitTop() {
     var sort = $('<a class="watching righticon">Sort by watching</a>').click(sortClick.bind(null, ranked));
     $('#right').append($('<div id="Top"/>').append(langDt, button, '<h3>Featured</h3>', featured, sort, '<h3>Ranked</h3>', ranked));
     button.click();
-}
-function InitFollowing() {
+},
+Following: function () {
     var result = $('<div/>');
     var button = $('<a class="button">Refresh</a>').click(Api.bind(null, 'followingBroadcastFeed', {}, refreshList(result)));
     var sort = $('<a class="watching righticon">Sort by watching</a>').click(sortClick.bind(null, result));
     $('#right').append($('<div id="Following"/>').append(button, sort, result));
     button.click();
-}
-function InitNewest() {
+},
+Newest: function () {
     var result = $('<div/>');
     var count = $('<input type="text" placeholder="253" size="3" value="10">');
     var since = $('<input type="text" placeholder="' + (Date.now() / 1000 | 0) + '" size="12">');
@@ -666,8 +667,8 @@ function InitNewest() {
     var sort = $('<a class="watching righticon">Sort by watching</a>').click(sortClick.bind(null, result));
     $('#right').append($('<div id="Newest"/>').append('Count: ', count, 'Since: ', since, button, sort, result));
     button.click();
-}
-function InitCreate() {
+},
+Create: function () {
     $('#right').append('<div id="Create">' +
         '<dt>Title:</dt><input id="status" type="text" autocomplete="on"><br/>' +
         '<dt>Width:</dt><input id="width" type="text" autocomplete="on" placeholder="320"><br/>' +
@@ -728,8 +729,8 @@ function InitCreate() {
         });
     });
     $('#Create').append(createButton);
-}
-function InitChat() {
+},
+Chat: function () {
     var broadcast_id = $('<input id="broadcast_id" type="text" size="15" placeholder="broadcast id">');
     var title = $('<span id="title"/>');
     var userlist = $('<div id="userlist"/>');
@@ -907,8 +908,8 @@ function InitChat() {
             )
         )
     );
-}
-function InitUser() {
+},
+User: function () {
     var resultUser = $('<div id="resultUser" />');
     var showButton = $('<a class="button" id="showuser">OK</a>').click(function () {
         resultUser.empty();
@@ -951,8 +952,8 @@ function InitUser() {
         });
     });
     $('#right').append($('<div id="User">id: <input id="user_id" type="text" size="15"></div>').append(showButton, '<br/><br/>', resultUser));
-}
-function InitPeople() {
+},
+People: function () {
     var refreshButton = $('<a class="button">Refresh</a>').click(function () {
         Api('suggestedPeople', {
             languages: [$('#People .lang').val()]
@@ -979,6 +980,7 @@ function InitPeople() {
     $("#People .lang").find(":contains(" + (navigator.language || navigator.userLanguage).substr(0, 2) + ")").attr("selected", "selected");
     refreshButton.click();
 }
+};
 var chat_interval;
 var presence_interval;
 var pubnubUrl = 'http://pubsub.pubnub.com';
