@@ -644,7 +644,7 @@ Top: function () {
     var featured = $('<div/>');
     var ranked = $('<div/>');
     var langDt = $(languageSelect);
-    langDt.find(":contains(" + (navigator.language || navigator.userLanguage).substr(0, 2) + ")").attr("selected", "selected");
+    langDt.find(":contains(" + (navigator.language || navigator.userLanguage || "en").substr(0, 2) + ")").attr("selected", "selected");
     var button = $('<a class="button">Refresh</a>').click(function () {
         Api('rankedBroadcastFeed', {languages: [langDt.find('.lang').val()]}, refreshList(ranked));
         Api('featuredBroadcastFeed', {}, refreshList(featured));
@@ -985,7 +985,7 @@ People: function () {
         });
     });
     $('#right').append($('<div id="People"/>').append(languageSelect, refreshButton, '<div id="resultPeople" />'));
-    $("#People .lang").find(":contains(" + (navigator.language || navigator.userLanguage).substr(0, 2) + ")").attr("selected", "selected");
+    $("#People .lang").find(":contains(" + (navigator.language || navigator.userLanguage || "en").substr(0, 2) + ")").attr("selected", "selected");
     refreshButton.click();
 }
 };
