@@ -673,13 +673,16 @@ Create: function () {
         '<dt>Title:</dt><input id="status" type="text" autocomplete="on"><br/>' +
         '<dt>Width:</dt><input id="width" type="text" autocomplete="on" placeholder="320"><br/>' +
         '<dt>Height:</dt><input id="height" type="text" autocomplete="on" placeholder="568"><br/>' +
-        '<dt>Filename:</dt><input id="filename" type="text" autocomplete="on"><br/>' +
+        '<dt>Filename:</dt><input id="filename" type="text" autocomplete="on"><label><input id="camera" type="checkbox"> From camera</label><br/>' +
         '<dt>Streaming bitrate:</dt><input id="bitrate" type="text" value="200">kBps<br/>' +
         '<dt>Server:</dt><select id="server">' +
             '<option>us-west-1</option>' +
             '<option selected>eu-central-1</option>' +
         '</select><br/>' +
         '<br/></div>');
+    $('#camera').click(function(){
+        $('#filename').val(this.checked ? '/dev/video0' : '');
+    });
     var createButton = $('<a class="button">Create</a>').click(function () {
         var widthInput = $('#width');
         var heightInput = $('#height');
@@ -704,15 +707,16 @@ Create: function () {
                 status: $('#status').val().trim()
             }, function () {
                 var filename = $('#filename').val();
+                var input_options = ($('#camera')[0].checked ? '-f v4l2 -framerate 25 -video_size 640x480' : '') + ' -i "' + filename + '"';
                 var code =
                     'FFOPTS="-vcodec libx264 -b:v ' + $('#bitrate').val() + 'k -profile:v main -level 2.1 -s ' + createInfo.broadcast.width + 'x' + createInfo.broadcast.height + ' -aspect ' + createInfo.broadcast.width + ':' + createInfo.broadcast.height + '"\n' +
-                    'ffmpeg -loglevel quiet -i "' + filename + '" $FFOPTS -vbsf h264_mp4toannexb -t 1 -an out.h264\n' + // converting to Annex B mode for getting right NALs
+                    'ffmpeg -loglevel quiet ' + input_options + ' $FFOPTS -vbsf h264_mp4toannexb -t 1 -an out.h264\n' + // converting to Annex B mode for getting right NALs
                     'SPROP=$(h264_analyze out.h264 2>&1 | grep -B 6 SPS | head -n1 | cut -c 4- | xxd -r -p | base64)","$(h264_analyze out.h264 2>&1 | grep -B 5 PPS | head -n1 | cut -c 4- | xxd -r -p | base64)\n' + // generating "sprop..."
                     'rm -f out.h264\n' +    // delete temp file
-                    'ffmpeg -i "' + filename + '" -r 1 -s 320x568 -vframes 1 -y -f image2 orig.jpg\n' +
+                    'ffmpeg ' + input_options + ' -r 1 -s ' + createInfo.broadcast.width + 'x' + createInfo.broadcast.height + ' -vframes 1 -y -f image2 orig.jpg\n' +
                     'curl -s -T orig.jpg "' + createInfo.thumbnail_upload_url + '"\n' +
                     'rm -f orig.jpg\n' +
-                    'ffmpeg -re -i "' + filename + '" $FFOPTS -metadata sprop-parameter-sets="$SPROP"' +
+                    'ffmpeg -re ' + input_options + ' $FFOPTS -metadata sprop-parameter-sets="$SPROP"' +
                     ' -strict experimental -acodec aac -b:a 128k -ar 44100 -ac 1 -f flv' +
                     ' rtmp://' + createInfo.host + ':' + createInfo.port + '/'+createInfo.application+'?t=' + createInfo.credential + '/' + createInfo.stream_name + ' < /dev/null &\n' +
                     'while true\n' +
