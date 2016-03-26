@@ -967,8 +967,9 @@ People: function () {
             languages: [$('#People .lang').val()]
         }, function (response) {
             var result = $('#resultPeople');
+            result.empty();
             if (response.featured && response.featured.length) {
-                result.html('<h1>Featured</h1>');
+                result.append('<h1>Featured</h1>');
                 for (var i in response.featured)
                     result.append($('<div class="card"/>').append(getUserDescription(response.featured[i])));
             }
@@ -984,7 +985,17 @@ People: function () {
             });
         });
     });
-    $('#right').append($('<div id="People"/>').append(languageSelect, refreshButton, '<div id="resultPeople" />'));
+    var searchButton = $('<a class="button">Search</a>').click(function () {
+        Api('userSearch', {
+            search: $('#search').val()
+        }, function (response) {
+            var result = $('#resultPeople');
+            result.html('<h1>Search results</h1>');
+            for (var i in response)
+                result.append($('<div class="card"/>').append(getUserDescription(response[i])));
+        });
+    });
+    $('#right').append($('<div id="People"/>').append(languageSelect, refreshButton, '<input id="search" type="text">', searchButton, '<div id="resultPeople" />'));
     $("#People .lang").find(":contains(" + (navigator.language || navigator.userLanguage || "en").substr(0, 2) + ")").attr("selected", "selected");
     refreshButton.click();
 }
