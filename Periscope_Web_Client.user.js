@@ -19,7 +19,9 @@
 // @noframes
 // ==/UserScript==
 
+NODEJS = false;
 if (typeof GM_xmlhttpRequest == 'undefined') {  // for Node.js
+    NODEJS = true;
     var gui = require('nw.gui');
     gui.App.addOriginAccessWhitelistEntry('https://api.twitter.com/', 'app', 'openperiscope', true);    // allow redirect to app://
     const https = require('https');
@@ -1193,7 +1195,7 @@ function SignIn1() {
         localStorage.setItem('consumer_secret', consumer_secret);
         OAuth('request_token', function (oauth) {
             location.href = 'https://api.twitter.com/oauth/authorize?oauth_token=' + oauth.oauth_token;
-        }, {oauth_callback: (typeof GM_xmlhttpRequest == 'undefined' ? 'app://openperiscope/index.html' : '404')});
+        }, {oauth_callback: (NODEJS ? 'app://openperiscope/index.html' : '404')});
     }
 }
 function SignOut() {
