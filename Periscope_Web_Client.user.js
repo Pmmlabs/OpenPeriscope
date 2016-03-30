@@ -524,7 +524,7 @@ Map: function () {
         },
         {
             text: "Mapbox",
-            layer: L.tileLayer('http://{s}.tiles.mapbox.com/v4/mapbox.streets/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpamVuY3cxbzAwMG12ZGx4cGljbGtqMGUifQ.vpDqms08MBqoRgp667Yz5Q', {
+            layer: L.tileLayer('http://{s}.tiles.mapbox.com/v4/mapbox.streets/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpamV0Zms2ZzAwMGh0Zm01MDR3YmV2cHgifQ.m9a-_eKcMy9A6glxEtuj3Q', {
                 attribution: 'Map data &copy; OpenStreetMap'
             })
         },
