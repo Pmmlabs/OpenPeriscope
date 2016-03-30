@@ -251,6 +251,10 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         background-image: url("https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/delete-black.png");\
         height: 14px;\
     }\
+    .screenlist {\
+        background-image: url("https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/camera-black.png");\
+        height: 14px;\
+    }\
     dt {\
         width: 150px;\
         float: left;\
@@ -1098,12 +1102,24 @@ function getDescription(stream) {
                     description.parent().remove();
             });
         });
+    var screenlistLink = $('<a class="screenlist righticon">Screenlist</a>').click(function () {
+        Api('replayThumbnailPlaylist', {
+            broadcast_id: stream.id
+        }, function (thumbs) {
+            var html = '<html><head><title>'+(stream.status || 'Untitled')+'</title></head><body>';
+            for (var i in thumbs.chunks) {
+                html+='<img src="' + thumbs.chunks[i].tn + '"/>';
+            }
+            html+='</body></html>';
+            (NODEJS ? window : unsafeWindow).open('data:text/html;charset=utf-8,'+encodeURIComponent(html));
+        });
+    });
     var description = $('<div class="description">\
                 <a href="' + stream.image_url + '" target="_blank"><img lazysrc="' + stream.image_url_small + '"/></a>\
                 <div class="watching righticon" title="Watching"/>\
                 <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>'+featured_reason+'\
             </div>')
-        .append(deleteLink, '<br/>', userLink)
+        .append(deleteLink, '<br/>', userLink, screenlistLink)
         .append('<br/>Created: ' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth() + 1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes())
                 + (duration ? '<br/>Duration: ' + zeros(duration.getUTCHours()) + ':' + zeros(duration.getMinutes()) + ':' + zeros(duration.getSeconds()) : '')
                 + (stream.country || stream.city ? '<br/>' + stream.country + ', ' + stream.city : ''));
