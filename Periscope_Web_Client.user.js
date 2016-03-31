@@ -1029,7 +1029,7 @@ People: function () {
             });
         });
     });
-    var searchButton = $('<a class="button">Search</a>').click(function () {
+    var searchPeople = function () {
         Api('userSearch', {
             search: $('#search').val()
         }, function (response) {
@@ -1038,8 +1038,9 @@ People: function () {
             for (var i in response)
                 result.append($('<div class="card"/>').append(getUserDescription(response[i])));
         });
-    });
-    $('#right').append($('<div id="People"/>').append(languageSelect, refreshButton, '<input id="search" type="text">', searchButton, '<div id="resultPeople" />'));
+    };
+    var searchButton = $('<a class="button">Search</a>').click(searchPeople);
+    $('#right').append($('<div id="People"/>').append(languageSelect, refreshButton, $('<input id="search" type="text">').click(searchPeople), searchButton, '<div id="resultPeople" />'));
     $("#People .lang").find(":contains(" + (navigator.language || navigator.userLanguage || "en").substr(0, 2) + ")").attr("selected", "selected");
     refreshButton.click();
 }
