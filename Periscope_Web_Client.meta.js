@@ -15,5 +15,6 @@
 // @require     http://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js
 // @downloadURL https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/Periscope_Web_Client.user.js
 // @updateURL   https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/Periscope_Web_Client.meta.js
+// @icon        https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/openperiscope.png
 // @noframes
 // ==/UserScript==

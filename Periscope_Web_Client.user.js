@@ -16,12 +16,12 @@
 // @require     https://github.com/iamcal/js-emoji/raw/master/lib/emoji.js
 // @downloadURL https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/Periscope_Web_Client.user.js
 // @updateURL   https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/Periscope_Web_Client.meta.js
+// @icon        https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/openperiscope.png
 // @noframes
 // ==/UserScript==
 
-NODEJS = false;
-if (typeof GM_xmlhttpRequest == 'undefined') {  // for Node.js
-    NODEJS = true;
+NODEJS = typeof GM_xmlhttpRequest == 'undefined';
+if (NODEJS) {  // for NW.js
     var gui = require('nw.gui');
     gui.App.addOriginAccessWhitelistEntry('https://api.twitter.com/', 'app', 'openperiscope', true);    // allow redirect to app://
     const https = require('https');
@@ -271,7 +271,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     }\
     .card {\
         font: 14px/1.3 "Helvetica Neue",Arial,Helvetica,sans-serif;\
-        height: 128px;\
+        min-height: 128px;\
         margin: 0.5rem 0 1rem 0;\
         background-color: #fff;\
         transition: box-shadow .25s;\
