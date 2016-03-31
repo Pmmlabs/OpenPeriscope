@@ -176,6 +176,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     }\
     .username, .leaflet-container a.username {\
         color: grey;\
+        font-weight: bold;\
         max-height: 1.5em;\
         overflow: hidden;\
         text-overflow: ellipsis;\
@@ -441,7 +442,7 @@ function Ready(loginInfo) {
 
     var userLink = $('<div id="display_name">' + emoji.replace_unified(loginInfo.user.display_name) + '</div>\
         <a class="username">@' + (loginInfo.user.username || loginInfo.user.twitter_screen_name) + '</a>');
-    userLink.click(openUser.bind(null, loginInfo.user.id));
+    userLink.click(switchSection.bind(null, 'User', loginInfo.user.id));
     var left = $('#left').append(signOutButton)
         .append('<img src="https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/spinner.gif" id="spinner" />\
         <br/><img src="' + loginInfo.user.profile_image_urls[1].url + '" width="140"/>')
@@ -458,8 +459,8 @@ function Ready(loginInfo) {
         {text: 'User', id: 'User'}
     ];
     for (var i in menu) {
-        var link = $('<div class="menu">' + menu[i].text + '</div>');
-        link.click(switchSection.bind(null, link, menu[i].id));
+        var link = $('<div class="menu" id="menu'+menu[i].id+'">' + menu[i].text + '</div>');
+        link.click(switchSection.bind(null, menu[i].id));
         left.append(link);
     }
     $('.menu').first().click();
@@ -483,10 +484,10 @@ function Ready(loginInfo) {
         }, 100));
     });
 }
-function switchSection(elem, section) {
+function switchSection(section, param, popstate) {
     // Switch menu
     $('.menu.active').removeClass('active');
-    $(elem).addClass('active');
+    $('#menu'+section).addClass('active');
     // Switch content
     $('#right > div:visible').hide();
     var sectionContainer = $('#' + section);
@@ -494,7 +495,30 @@ function switchSection(elem, section) {
         Inits[section]();
     else
         sectionContainer.show();
+    if (param && param.target)  // jQuery event
+        param = null;
+    if (param)
+        switch (section) {
+            case 'User':
+                if ($('#user_id').val() != param) {
+                    $('#user_id').val(param);
+                    $('#showuser').click();
+                }
+                break;
+            case 'Chat':
+                if ($('#broadcast_id').val() != param) {
+                    $('#broadcast_id').val(param);
+                    $('#startchat').click();
+                }
+                break;
+        }
+    if (popstate != true)
+        history.pushState({section: section, param: param}, section, '/' + section + (param ? '/' + param : ''));
 }
+window.onpopstate = function(event) {
+    if (event.state.section)
+        switchSection(event.state.section, event.state.param, true);
+};
 var languageSelect = '<dt>Language: <select class="lang">\
             <option>ar</option>\
             <option>de</option>\
@@ -816,7 +840,7 @@ Chat: function () {
         Api('accessChannel', {
             broadcast_id: broadcast_id.val().trim()
         }, function (broadcast) {
-            var userLink = $('<a class="username">(@' + broadcast.broadcast.username + ')</a>').click(openUser.bind(null, broadcast.broadcast.user_id));
+            var userLink = $('<a class="username">(@' + broadcast.broadcast.username + ')</a>').click(switchSection.bind(null, 'User', broadcast.broadcast.user_id));
             title.html((broadcast.publisher == "" ? '<b>FORBIDDEN</b> | ' : '')
                 + '<a href="https://www.periscope.tv/w/' + broadcast.broadcast.id + '" target="_blank">' + emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
                 + emoji.replace_unified(broadcast.broadcast.user_display_name) + ' ')
@@ -857,7 +881,7 @@ Chat: function () {
                         if ((user = pubnub.uuids[i].state) && user.username)
                             userlist.append($('<div class="user">' + emoji.replace_unified(user.display_name) + ' </div>')
                                             .append($('<div class="username">(' + user.username + ')</div>')
-                                                    .click(openUser.bind(null, user.id))));
+                                                    .click(switchSection.bind(null, 'User', user.id))));
                 }, 'json');
             }
 
@@ -1094,7 +1118,7 @@ function getDescription(stream) {
     var date_created = new Date(stream.created_at);
     var duration = stream.end || stream.timedout ? new Date(new Date(stream.end || stream.timedout) - date_created) : 0;
     var userLink = $('<a class="username">' + emoji.replace_unified(stream.user_display_name) + ' (@' + stream.username + ')</a>');
-    userLink.click(openUser.bind(null, stream.user_id));
+    userLink.click(switchSection.bind(null, 'User', stream.user_id));
     if (stream.user_id == loginTwitter.user.id)
         var deleteLink = $('<a class="delete righticon" title="Delete"/>').click(function () {
             Api('deleteBroadcast', {broadcast_id: stream.id}, function (resp) {
@@ -1114,11 +1138,7 @@ function getDescription(stream) {
             (NODEJS ? window : unsafeWindow).open('data:text/html;charset=utf-8,'+encodeURIComponent(html));
         });
     });
-    var chatLink = $('<a class="chatlink righticon">Chat</a>').click(function () {
-        switchSection(null, 'Chat');
-        $('#broadcast_id').val(stream.id);
-        $('#startchat').click();
-    });
+    var chatLink = $('<a class="chatlink righticon">Chat</a>').click(switchSection.bind(null, 'Chat', stream.id));
     var description = $('<div class="description">\
                 <a href="' + stream.image_url + '" target="_blank"><img lazysrc="' + stream.image_url_small + '"/></a>\
                 <div class="watching righticon" title="Watching"/>\
@@ -1141,7 +1161,7 @@ function getUserDescription(user) {
         + (user.n_hearts ? '<div class="hearts righticon" title="hearts">' + user.n_hearts + '</div>' : '')
         + '<a class="twitterlink righticon" title="Profile on Twitter" target="_blank" href="https://twitter.com/' + user.username + '"><svg viewBox="0 0 16 14" height="1em" version="1.2"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g transform="translate(-187.000000, -349.000000)" fill="#A4B8BE"><g transform="translate(187.000000, 349.000000)"><path d="M16,2.19685162 C15.4113025,2.4579292 14.7786532,2.63438042 14.1146348,2.71373958 C14.7924065,2.30746283 15.3128644,1.66416205 15.5579648,0.897667303 C14.9237353,1.27380396 14.2212078,1.5469961 13.4734994,1.69424362 C12.8746772,1.05626857 12.0215663,0.6576 11.0774498,0.6576 C9.26453784,0.6576 7.79475475,2.12732457 7.79475475,3.94011948 C7.79475475,4.19739297 7.8238414,4.44793615 7.87979078,4.68817903 C5.15161491,4.55129033 2.73285782,3.24443931 1.11383738,1.25847055 C0.83128132,1.74328711 0.669402685,2.30717021 0.669402685,2.90874306 C0.669402685,4.04757037 1.24897034,5.05231817 2.12976334,5.64095711 C1.591631,5.62392649 1.08551154,5.4762693 0.642891108,5.23040808 C0.64265701,5.2441028 0.64265701,5.25785604 0.64265701,5.27166782 C0.64265701,6.86212833 1.77416877,8.18887766 3.27584769,8.49039564 C3.00037309,8.56542399 2.71038443,8.60551324 2.41097333,8.60551324 C2.19946596,8.60551324 1.99381104,8.58497115 1.79342331,8.54663764 C2.21111233,9.85079653 3.42338783,10.7998291 4.85981199,10.8263406 C3.7363766,11.706724 2.32096273,12.2315127 0.783057171,12.2315127 C0.518116976,12.2315127 0.256805296,12.2160037 0,12.1856881 C1.45269395,13.1170462 3.17817038,13.6604458 5.0319324,13.6604458 C11.0697831,13.6604458 14.3714986,8.65853639 14.3714986,4.32076252 C14.3714986,4.17843105 14.3683383,4.0368604 14.3620176,3.89610909 C15.0033286,3.43329772 15.5598961,2.85513466 16,2.19685162" id="Fill-1" sketch:type="MSShapeGroup"></path></g></g></g></svg></a>'
         + '<a class="periscopelink righticon" title="Profile on Periscope" target="_blank" href="https://periscope.tv/' + user.username + '"><svg version="1.1" height="1em" viewBox="0 0 113.583 145.426"><g><path fill="#A4B8BE" class="tofill" d="M113.583,56.791c0,42.229-45.414,88.635-56.791,88.635C45.416,145.426,0,99.02,0,56.791	C0,25.426,25.426,0,56.792,0C88.159,0,113.583,25.426,113.583,56.791z"/><path fill="#FFFFFF" d="M56.792,22.521c-2.731,0-5.384,0.327-7.931,0.928c4.619,2.265,7.807,6.998,7.807,12.489	c0,7.686-6.231,13.917-13.917,13.917c-7.399,0-13.433-5.779-13.874-13.067c-4.112,5.675-6.543,12.647-6.543,20.191	c0,19.031,15.427,34.458,34.458,34.458S91.25,76.01,91.25,56.979S75.823,22.521,56.792,22.521z"/></g></svg></a>')
-        .append($('<div class="username">' + verified_icon + emoji.replace_unified(user.display_name) + ' (@' + user.username + ')</div>').click(openUser.bind(null, user.id)))
+        .append($('<div class="username">' + verified_icon + emoji.replace_unified(user.display_name) + ' (@' + user.username + ')</div>').click(switchSection.bind(null, 'User', user.id)))
         .append('Created: ' + (new Date(user.created_at)).toLocaleString()
         + (user.description ? '<div class="userdescription">' + emoji.replace_unified(user.description) +'</div>': '<br/>'))
         .append($('<a class="button">' + (user.is_following ? 'unfollow' : 'follow') + '</a>').click(function () {
@@ -1154,11 +1174,6 @@ function getUserDescription(user) {
             })
         }))
         .append('<div style="clear:both"/>');
-}
-function openUser(user_id) {
-    switchSection(null, 'User');
-    $('#user_id').val(user_id);
-    $('#showuser').click();
 }
 /* LEVEL 0 */
 function Api(method, params, callback, callback_fail) {

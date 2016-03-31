@@ -6,6 +6,7 @@
     "plugin": true
   },
   "window": {
+    "icon": "images/openperiscope.png",
     "toolbar": true,
     "frame": true,
     "position": "center",
