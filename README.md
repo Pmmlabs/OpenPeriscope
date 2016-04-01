@@ -15,6 +15,22 @@ Unofficial in-browser web client for Periscope (userscript)
 
 If you have [NW.js](http://nwjs.io) installed, you can run ` nw . ` in repo directory
 
+### Broadcasts downloading
+
+With OpenPeriscope and FFmpeg, you can download live broadcasts and replays.
+
+For live broadcasts:
+
+1. Click to "Get stream link"
+1. Right-click to "Live M3U link", then "Copy link"
+1. `ffmpeg -i "your_link_here" -c copy -bsf:a aac_adtstoasc result.mp4` (or open your favourite media player, and paste link to it)
+
+For replays:
+
+1. Click to "Get stream link" 
+1. Click to "Download replay M3U"
+1. Navigate to your downloads directory, and there `ffmpeg -protocol_whitelist file,https,tls,hls,tcp -i playlist.m3u8 -c copy -bsf:a aac_adtstoasc -c copy result.mp4`
+
 ### API Documentation
 
 Docs by @cjhbtn, actualized by me: http://static.pmmlabs.ru/OpenPeriscope
