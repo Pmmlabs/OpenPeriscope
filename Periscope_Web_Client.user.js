@@ -5,7 +5,7 @@
 // @description Periscope client based on API requests. Visit example.net for launch.
 // @include     https://api.twitter.com/oauth/404*
 // @include     http://example.net/*
-// @version     1.0
+// @version     1.1
 // @author      Pmmlabs@github
 // @grant       GM_xmlhttpRequest
 // @require     https://code.jquery.com/jquery-1.11.3.js
@@ -421,8 +421,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
             localStorage.setItem('oauth_verifier', oauth_verifier);
             SignIn2(oauth_token, oauth_verifier);
         } else {
-            var signInButton = $('<a class="button">Sign in with twitter</a>');
-            signInButton.click(SignIn1);
+            var signInButton = $('<a class="button">Sign in with twitter</a>').click(SignIn1);
             $(document.body).html('<input type="text" id="secret" size="60" placeholder="Periscope consumer secret" value="' +
                 (consumer_secret || '') + '"/><br/>').append(signInButton);
         }
@@ -755,6 +754,7 @@ Create: function () {
                 var filename = $('#filename').val();
                 var input_options = ($('#camera')[0].checked ? '-f v4l2 -framerate 25 -video_size 640x480' : '') + ' -i "' + filename + '"';
                 var code =
+                    '#!/bin/bash\n' +
                     'FFOPTS="-vcodec libx264 -b:v ' + $('#bitrate').val() + 'k -profile:v main -level 2.1 -s ' + createInfo.broadcast.width + 'x' + createInfo.broadcast.height + ' -aspect ' + createInfo.broadcast.width + ':' + createInfo.broadcast.height + '"\n' +
                     'ffmpeg -loglevel quiet ' + input_options + ' $FFOPTS -vbsf h264_mp4toannexb -t 1 -an out.h264\n' + // converting to Annex B mode for getting right NALs
                     'SPROP=$(h264_analyze out.h264 2>&1 | grep -B 6 SPS | head -n1 | cut -c 4- | xxd -r -p | base64)","$(h264_analyze out.h264 2>&1 | grep -B 5 PPS | head -n1 | cut -c 4- | xxd -r -p | base64)\n' + // generating "sprop..."
@@ -771,8 +771,9 @@ Create: function () {
                     '  sleep 20s\n' +
                     ' done\n' +
                     'curl --form "cookie=' + loginTwitter.cookie + '" --form "broadcast_id=' + createInfo.broadcast.id + '" https://api.periscope.tv/api/v2/endBroadcast';
+                var sh = 'stream_' + filename + '.sh';
                 $('#Create').append('<pre>' + code + '</pre>',
-                    '<a href="data:text/plain;base64,' + btoa('#!/bin/bash\n' + unescape(encodeURIComponent(code))) + '" download="stream_' + filename + '.sh">Download .SH</a>',
+                    $('<a href="data:text/plain;charset=utf-8,' + encodeURIComponent(code) + '" download="' + sh + '">Download .SH</a>').click(saveAs.bind(null, code, sh)),
                     $('<div class="card RUNNING"/>').append(getDescription(createInfo.broadcast)));
             });
             //var broadcast = response.broadcast;
@@ -1102,11 +1103,22 @@ function getM3U(id, jcontainer) {
                 method: 'GET',
                 url: replay_url,
                 onload: function (m3u_text) {
-                    jcontainer.find('.links').append('<a href="data:text/plain;base64,' + btoa(m3u_text.responseText.replace(/(chunk_\d+\.ts)/g, replay_base_url + '$1' + params)) + '" download="playlist.m3u8">Download replay M3U</a>');
+                    m3u_text = m3u_text.responseText.replace(/(chunk_\d+\.ts)/g, replay_base_url + '$1' + params);
+                    var filename = 'playlist.m3u8';
+                    var link = $('<a href="data:text/plain;charset=utf-8,' + encodeURIComponent(m3u_text) + '" download="' + filename + '">Download replay M3U</a>').click(saveAs.bind(null, m3u_text, filename));
+                        jcontainer.find('.links').append(link);                    
                 }
             });
         }
     });
+}
+function saveAs(data, filename) {
+    if (NODEJS) {
+        $('<input type="file" nwsaveas="' + filename + '" />').change(function () {
+            const fs = require('fs');
+            fs.writeFile($(this).val(), data);
+        }).click();
+    }
 }
 function getDescription(stream) {
     var title = emoji.replace_unified(stream.status || 'Untitled');
@@ -1192,7 +1204,7 @@ function Api(method, params, callback, callback_fail) {
             if (r.status == 200) {
                 var response = JSON.parse(r.responseText);
                 callback(response);
-                if ($('#debug')[0].checked)
+                if ($('#debug').length && $('#debug')[0].checked)
                     console.log('Method:', method, 'params:', params, 'response:', response);
                 $(window).trigger('scroll');    // for lazy load
             } else {
@@ -1238,6 +1250,7 @@ function SignIn1() {
     consumer_secret = $('#secret').val();
     if (consumer_secret) {
         localStorage.setItem('consumer_secret', consumer_secret);
+        $(this).text('Loading...');
         OAuth('request_token', function (oauth) {
             location.href = 'https://api.twitter.com/oauth/authorize?oauth_token=' + oauth.oauth_token;
         }, {oauth_callback: (NODEJS ? 'app://openperiscope/index.html' : '404')});
@@ -1246,7 +1259,7 @@ function SignIn1() {
 function SignOut() {
     localStorage.clear();
     localStorage.setItem('consumer_secret', consumer_secret);
-    location.search = '';
+    location.pathname = 'index.html';
 }
 function OAuth(endpoint, callback, extra) {
     var method = 'POST';
