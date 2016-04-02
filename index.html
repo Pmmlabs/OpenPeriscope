@@ -980,8 +980,8 @@ Connection: close
                             </div>
                             <div class="panel-body">
                                 <p>
-                                    This endpoint is only used by iOS devices only, and appears to register the current
-                                    device token with the Periscope API, most likely for notification purposes.<br/>
+                                    This endpoint is only used by mobile devices only, and appears to register the current
+                                    device token with the Periscope API, for notification purposes.<br/>
                                     <br/>
                                     When a user logs out (see the <a href="#/logout">/logout</a> endpoint), the device
                                     token is sent too, indicating that notifications should no longer be sent to this
@@ -1026,8 +1026,8 @@ Connection: close
                                                 <td>
                                                     string
                                                 </td>
-                                                <td>No</td>
-                                                <td>The iOS Device Token ID</td>
+                                                <td>Yes</td>
+                                                <td>The Device Token ID</td>
                                                 <td></td>
                                             </tr>
                                             <tr>
@@ -1035,7 +1035,7 @@ Connection: close
                                                 <td>
                                                     string
                                                 </td>
-                                                <td>No</td>
+                                                <td>Yes</td>
                                                 <td>The type of device being used (e.g. iPhone, iPad)</td>
                                                 <td></td>
                                             </tr>
@@ -1044,7 +1044,7 @@ Connection: close
                                                 <td>
                                                     string
                                                 </td>
-                                                <td>No</td>
+                                                <td>Yes</td>
                                                 <td>The Apple Device Type (e.g &quot;iPhone3,2&quot;, &quot;iPad3,1&quot;)</td>
                                                 <td></td>
                                             </tr>
@@ -1053,7 +1053,7 @@ Connection: close
                                                 <td>
                                                     string
                                                 </td>
-                                                <td>No</td>
+                                                <td>Yes</td>
                                                 <td>The iOS version number being used (e.g. &quot;7.1.1&quot;, &quot;8.1.3&quot;)</td>
                                                 <td></td>
                                             </tr>
@@ -1062,7 +1062,7 @@ Connection: close
                                                 <td>
                                                     string
                                                 </td>
-                                                <td>No</td>
+                                                <td>Yes</td>
                                                 <td>The language locale currently in use (e.g. &quot;en&quot;)</td>
                                                 <td></td>
                                             </tr>
@@ -1071,7 +1071,7 @@ Connection: close
                                                 <td>
                                                     string
                                                 </td>
-                                                <td>No</td>
+                                                <td>Yes</td>
                                                 <td>The full version string of the Periscope application</td>
                                                 <td>v1.1</td>
                                             </tr>
@@ -1091,6 +1091,15 @@ Connection: close
                                                 </td>
                                                 <td>No</td>
                                                 <td>Vendor ID</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>install_id</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td>Install ID</td>
                                                 <td></td>
                                             </tr>
                                             </tbody>
