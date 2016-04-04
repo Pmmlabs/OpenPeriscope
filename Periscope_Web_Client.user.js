@@ -724,7 +724,7 @@ Create: function () {
             '<option>us-west-1</option>' +
             '<option selected>eu-central-1</option>' +
         '</select><br/>' +
-        '<div><label><input id="friend_chat" type="checkbox"> Limit the chat to friends only</label></div><br/>' +
+        '<br/><div style="clear: left;"><label><input id="friend_chat" type="checkbox"> Limit the chat to friends only</label></div><br/>' +
         '<br/></div>');
     $('#camera').click(function(){
         $('#filename').val(this.checked ? '/dev/video0' : '');
