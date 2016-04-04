@@ -724,6 +724,7 @@ Create: function () {
             '<option>us-west-1</option>' +
             '<option selected>eu-central-1</option>' +
         '</select><br/>' +
+        '<div><label><input id="friend_chat" type="checkbox"> Limit the chat to friends only</label></div><br/>' +
         '<br/></div>');
     $('#camera').click(function(){
         $('#filename').val(this.checked ? '/dev/video0' : '');
@@ -744,7 +745,7 @@ Create: function () {
         }, function (createInfo) {
             Api('publishBroadcast', {
                 broadcast_id: createInfo.broadcast.id,
-                friend_chat: false,
+                friend_chat: $('#friend_chat')[0].checked,
                 has_location: false,
                 //"locale": "ru",
                 //"lat": 0.0,    // location latitude
