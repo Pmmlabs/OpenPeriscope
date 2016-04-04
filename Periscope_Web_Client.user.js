@@ -823,9 +823,9 @@ Chat: function () {
                     container.append('<div class="service">7 *** ' + event.displayName + ' (@' + event.username + ') ' + event.body + '</div>');
                     console.log(event);
                     break;
-                case 8: // replay available (?)
+                case 8: // replay available
                     break;
-                case 9: // don't know. Some action by the broadcaster. timestampPlaybackOffset
+                case 9: // Broadcaster starts streaming. uuid=SE-0. timestampPlaybackOffset
                     break;
                 default: // service messages (event.action = join, leave, timeout, state_changed)
                     break;
