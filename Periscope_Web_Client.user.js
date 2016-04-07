@@ -788,10 +788,28 @@ Chat: function () {
     var userlist = $('<div id="userlist"/>');
     var chat = $('<div id="chat"/>');
     var textBox = $('<input type="text" id="message">');
+    if (NODEJS) {
+        const WebSocket = require('ws');
+        $(window).unload(function(){
+            if (ws)
+                ws.close();
+        });
+    }
 
     function renderMessages(messages, container) {
         for (var i in messages) {
             var event = messages[i];
+            if (event.occupants) {  // "presense" for websockets
+                userlist.empty();
+                var user;
+                for (var j in event.occupants)
+                    if ((user = event.occupants[j]) && user.display_name) {
+                        userlist.append($('<div class="user">' + emoji.replace_unified(user.display_name) + ' </div>')
+                            .append($('<div class="username">(' + user.username + ')</div>')
+                                .click(switchSection.bind(null, 'User', user.user_id))));
+                    }
+            }
+            else
             switch (event.type) {
                 case 1:  // text message
                     var date = new Date((parseInt(event.ntpForLiveFrame.toString(16).substr(0, 8), 16) - 2208988800) * 1000);
@@ -807,6 +825,8 @@ Chat: function () {
                     container.append(html);
                     break;
                 case 2: // heart
+                    /*moderationReportType: 0
+                    moderationType: 0*/
                     break;
                 case 3: // status messages, see event.body (mostly "joined")
                     break;
@@ -828,6 +848,7 @@ Chat: function () {
                 case 9: // Broadcaster starts streaming. uuid=SE-0. timestampPlaybackOffset
                     break;
                 default: // service messages (event.action = join, leave, timeout, state_changed)
+                    /*event.occupancy && event.total_participants*/
                     break;
             }
         }
@@ -849,99 +870,193 @@ Chat: function () {
                 .append(userLink)
                 .append((broadcast.hls_url ? ' | <a href="' + broadcast.hls_url + '">M3U Link</a>' : '')
                 + (broadcast.rtmp_url ? ' | <a href="' + broadcast.rtmp_url + '">RTMP Link</a>' : ''));
-            // Load history
-            var historyDiv = $('<div/>');
-            function historyLoad(start) {
-                $.get(pubnubUrl + '/v2/history/sub-key/' + broadcast.subscriber + '/channel/' + broadcast.channel, {
-                    stringtoken: true,
-                    count: 100,
-                    reverse: true,
-                    start: start,
-                    auth: broadcast.auth_token
-                }, function (history) {
-                    if (history[2] != 0)
-                        historyLoad(history[2]);
-                    else
-                        $('#spinner').hide();
-                    renderMessages(history[0], historyDiv);
-                }, 'json');
-            }
-            chat.append(historyDiv, $('<center><a>Load history</a></center>').click(function () {
-                $('#spinner').show();
-                historyLoad('');
-                $(this).remove();
-            }));
-            // Update users list
-            function presenceUpdate() {
-                $.get(pubnubUrl + '/v2/presence/sub_key/' + broadcast.subscriber + '/channel/' + broadcast.channel, {
-                    state: 1,
-                    auth: broadcast.auth_token
-                }, function (pubnub) {
-                    userlist.empty();
-                    var user;
-                    for (var i in pubnub.uuids)
-                        if ((user = pubnub.uuids[i].state) && user.username)
-                            userlist.append($('<div class="user">' + emoji.replace_unified(user.display_name) + ' </div>')
-                                            .append($('<div class="username">(' + user.username + ')</div>')
-                                                    .click(switchSection.bind(null, 'User', user.id))));
-                }, 'json');
-            }
+            if (NODEJS) {
+                var MESSAGE_KIND = {
+                    CHAT: 1,
+                    CONTROL: 2,
+                    AUTH: 3
+                };
+                if (ws)
+                    ws.close();
+                var openSocket = function (failures) {
+                    ws = new WebSocket(broadcast.endpoint.replace('https:', 'wss:').replace('http:', 'ws:') + '/chatapi/v1/chatnow');
 
-            presence_interval = setInterval(presenceUpdate, 15000);
-            presenceUpdate();
-            // Update messages list
-            var prev_time = 0;      // time of previous result
-            var xhr_done = true;    // last request finished, can send next request
-            function messagesUpdate() {
-                if (xhr_done) {
-                    xhr_done = false;
-                    $.get(pubnubUrl + '/subscribe/' + broadcast.subscriber + '/' + broadcast.channel + '-pnpres,' + broadcast.channel + '/0/' + prev_time, {
-                        auth: broadcast.auth_token
-                    }, function (pubnub) {
-                        prev_time = pubnub[1];
-                        xhr_done = true;
-                        renderMessages(pubnub[0], chat);
+                    ws.on('open', function open() {
+                        // AUTH
+                        ws.send(JSON.stringify({
+                            payload: JSON.stringify({access_token: broadcast.access_token}),
+                            kind: MESSAGE_KIND.AUTH
+                        }));
+                        // JOIN
+                        ws.send(JSON.stringify({
+                            payload: JSON.stringify({
+                                body: JSON.stringify({
+                                    room: broadcast.room_id
+                                }),
+                                kind: MESSAGE_KIND.CHAT
+                            }),
+                            kind: MESSAGE_KIND.CONTROL
+                        }));
+                    });
+
+                    ws.on('ping', function (data) {
+                        ws.pong(data, {masked: false, binary: true});
+                    });
+
+                    ws.on('message', function (data, flags) {
+                        var message = JSON.parse(data);
+                        message.payload = JSON.parse(message.payload);
+                        message.body = JSON.parse(message.payload.body);
+                        renderMessages([message.body], chat);
                         if ($('#autoscroll')[0].checked)
                             chat[0].scrollTop = chat[0].scrollHeight;
-                    }, 'json').fail(function () {
-                        xhr_done = true;
+                        if (message.kind > 4)
+                            console.log('default!', message);
                     });
-                }
-            }
 
-            chat_interval = setInterval(messagesUpdate, 2000);
-            messagesUpdate();
-            // Sending messages
-            function sendMessage() {
-                $('#spinner').show();
-                var ntpstamp = parseInt((Math.floor(prev_time / 10000000) + 2208988800).toString(16) + '00000000', 16); // timestamp in NTP format
-                GM_xmlhttpRequest({
-                    method: 'POST',
-                    url: 'https://signer.periscope.tv/sign',
-                    data: JSON.stringify({
+                    ws.on('close', function () {
+                        ws.close();
+                        if (failures < 10) {
+                            setTimeout(openSocket.bind(null, failures + 1), 100);
+                        } else
+                            console.log('cant connect');
+                    });
+                };
+
+                var sendMessage = function () {
+                    var timestamp = Math.floor(Date.now() / 1000);
+                    var ntpstamp = parseInt((timestamp + 2208988800).toString(16) + '00000000', 16); // timestamp in NTP format
+                    var message = {
                         body: textBox.val(),
+                        //display_name: 'OpenPeriscope',
+                        //initials: '',
+                        //"moderationReportType": 0,
+                        //"moderationType": 0,
+                        //v: 2
+                        profileImageURL: loginTwitter.user.profile_image_urls[0].url,
+                        timestamp: timestamp,
+                        remoteID: loginTwitter.user.id,
+                        username: loginTwitter.user.username,
+                        uuid: "OpenPeriscope" + Math.random(),
                         signer_token: broadcast.signer_token,
                         participant_index: broadcast.participant_index,
                         type: 1,    // "text message"
                         ntpForBroadcasterFrame: ntpstamp,
                         ntpForLiveFrame: ntpstamp
-                    }),
-                    onload: function (signed) {
-                        signed = JSON.parse(signed.responseText);
-                        $.get(pubnubUrl + '/publish/' + broadcast.publisher + '/' + broadcast.subscriber + '/0/'
-                            + broadcast.channel + '/0/' + encodeURIComponent(JSON.stringify(signed.message)), {
+                    };
+                    ws.send(JSON.stringify({
+                        payload: JSON.stringify({
+                            body: JSON.stringify(message),
+                            room: broadcast.room_id,
+                            timestamp: timestamp
+                            //sender
+                        }),
+                        kind: MESSAGE_KIND.CHAT
+                    }), function (error) {
+                        textBox.val('');
+                        if (error)
+                            console.log('message not sent', error);
+                        else
+                            renderMessages([message], chat);
+                    });
+                };
+
+                openSocket(0);
+            } else {
+                // Load history
+                var historyDiv = $('<div/>');
+                function historyLoad(start) {
+                    $.get(pubnubUrl + '/v2/history/sub-key/' + broadcast.subscriber + '/channel/' + broadcast.channel, {
+                        stringtoken: true,
+                        count: 100,
+                        reverse: true,
+                        start: start,
+                        auth: broadcast.auth_token
+                    }, function (history) {
+                        if (history[2] != 0)
+                            historyLoad(history[2]);
+                        else
+                            $('#spinner').hide();
+                        renderMessages(history[0], historyDiv);
+                    }, 'json');
+                }
+                chat.append(historyDiv, $('<center><a>Load history</a></center>').click(function () {
+                    $('#spinner').show();
+                    historyLoad('');
+                    $(this).remove();
+                }));
+                // Update users list
+                function presenceUpdate() {
+                    $.get(pubnubUrl + '/v2/presence/sub_key/' + broadcast.subscriber + '/channel/' + broadcast.channel, {
+                        state: 1,
+                        auth: broadcast.auth_token
+                    }, function (pubnub) {
+                        userlist.empty();
+                        var user;
+                        for (var i in pubnub.uuids)
+                            if ((user = pubnub.uuids[i].state) && user.username)
+                                userlist.append($('<div class="user">' + emoji.replace_unified(user.display_name) + ' </div>')
+                                                .append($('<div class="username">(' + user.username + ')</div>')
+                                                        .click(switchSection.bind(null, 'User', user.id))));
+                    }, 'json');
+                }
+    
+                presence_interval = setInterval(presenceUpdate, 15000);
+                presenceUpdate();
+                // Update messages list
+                var prev_time = 0;      // time of previous result
+                var xhr_done = true;    // last request finished, can send next request
+                function messagesUpdate() {
+                    if (xhr_done) {
+                        xhr_done = false;
+                        $.get(pubnubUrl + '/subscribe/' + broadcast.subscriber + '/' + broadcast.channel + '-pnpres,' + broadcast.channel + '/0/' + prev_time, {
                             auth: broadcast.auth_token
                         }, function (pubnub) {
-                            $('#spinner').hide();
-                            textBox.val('');
-                            if (pubnub[1] != "Sent")
-                                console.log('message not sent', pubnub);
-                        }, 'json').fail(function (error) {
-                            chat.append('<span class="error">*** Error: ' + error.responseJSON.message + '</span>');
-                            $('#spinner').hide();
+                            prev_time = pubnub[1];
+                            xhr_done = true;
+                            renderMessages(pubnub[0], chat);
+                            if ($('#autoscroll')[0].checked)
+                                chat[0].scrollTop = chat[0].scrollHeight;
+                        }, 'json').fail(function () {
+                            xhr_done = true;
                         });
                     }
-                });
+                }
+    
+                chat_interval = setInterval(messagesUpdate, 2000);
+                messagesUpdate();
+                // Sending messages
+                var sendMessage = function  () {
+                    $('#spinner').show();
+                    var ntpstamp = parseInt((Math.floor(prev_time / 10000000) + 2208988800).toString(16) + '00000000', 16); // timestamp in NTP format
+                    GM_xmlhttpRequest({
+                        method: 'POST',
+                        url: 'https://signer.periscope.tv/sign',
+                        data: JSON.stringify({
+                            body: textBox.val(),
+                            signer_token: broadcast.signer_token,
+                            participant_index: broadcast.participant_index,
+                            type: 1,    // "text message"
+                            ntpForBroadcasterFrame: ntpstamp,
+                            ntpForLiveFrame: ntpstamp
+                        }),
+                        onload: function (signed) {
+                            signed = JSON.parse(signed.responseText);
+                            $.get(pubnubUrl + '/publish/' + broadcast.publisher + '/' + broadcast.subscriber + '/0/'
+                                + broadcast.channel + '/0/' + encodeURIComponent(JSON.stringify(signed.message)), {
+                                auth: broadcast.auth_token
+                            }, function (pubnub) {
+                                $('#spinner').hide();
+                                textBox.val('');
+                                if (pubnub[1] != "Sent")
+                                    console.log('message not sent', pubnub);
+                            }, 'json').fail(function (error) {
+                                chat.append('<span class="error">*** Error: ' + error.responseJSON.message + '</span>');
+                                $('#spinner').hide();
+                            });
+                        }
+                    });
+                }
             }
             $('#sendMessage').off().click(sendMessage);
             textBox.off().keypress(function (e) {
@@ -1050,6 +1165,7 @@ People: function () {
 var chat_interval;
 var presence_interval;
 var pubnubUrl = 'http://pubsub.pubnub.com';
+var ws; // websocket
 function zeros(number) {
     return (100 + number + '').substr(1);
 }

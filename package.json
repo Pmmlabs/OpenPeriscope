@@ -1,10 +1,17 @@
 {
   "name": "openperiscope",
-  "version": "1.0",
+  "version": "1.1.0",
+  "description": "Unofficial Periscope client",
+  "license": "GPL-2.0",
+  "repository": "Pmmlabs/OpenPeriscope",
+  "dependencies": {
+    "ws": "*"
+  },
   "main": "app://openperiscope/index.html",
   "webkit": {
     "plugin": true
   },
+  //"chromium-args": "--ppapi-flash-path=plugins/libpepflashplayer.so",
   "window": {
     "icon": "images/openperiscope.png",
     "toolbar": true,
