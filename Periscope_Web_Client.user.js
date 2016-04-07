@@ -829,6 +829,10 @@ Chat: function () {
                     moderationType: 0*/
                     break;
                 case 3: // status messages, see event.body (mostly "joined")
+                    if (event.displayName)
+                        userlist.append($('<div class="user">' + emoji.replace_unified(event.displayName) + ' </div>')
+                            .append($('<div class="username">(' + event.username + ')</div>')
+                                .click(switchSection.bind(null, 'User', user.remoteID))));
                     break;
                 case 4: // broadcaster moved to new place
                     console.log('new location: ' + event.lat + ', ' + event.lng + ', ' + event.heading);
@@ -847,6 +851,9 @@ Chat: function () {
                     break;
                 case 9: // Broadcaster starts streaming. uuid=SE-0. timestampPlaybackOffset
                     break;
+                case 12: // Ban
+                    container.append('<div class="service">*** @' + event.broadcasterBlockedUsername + ' has been blocked for message: "' + event.broadcasterBlockedMessageBody + '"</div>');
+                    break;
                 default: // service messages (event.action = join, leave, timeout, state_changed)
                     /*event.occupancy && event.total_participants*/
                     break;
@@ -860,6 +867,19 @@ Chat: function () {
         chat.empty();
         userlist.empty();
         title.empty();
+         //Load user list
+        Api('getBroadcastViewers', {
+            broadcast_id: broadcast_id.val().trim()
+        }, function(viewers){
+            userlist.empty();
+            var user;
+            for (var j in viewers.live)
+                if ((user = viewers.live[j]) && user.display_name) {
+                    userlist.append($('<div class="user">' + emoji.replace_unified(user.display_name) + ' </div>')
+                        .append($('<div class="username">(' + user.username + ')</div>')
+                            .click(switchSection.bind(null, 'User', user.id))));
+                }
+        });
         Api('accessChannel', {
             broadcast_id: broadcast_id.val().trim()
         }, function (broadcast) {
@@ -910,7 +930,7 @@ Chat: function () {
                         renderMessages([message.body], chat);
                         if ($('#autoscroll')[0].checked)
                             chat[0].scrollTop = chat[0].scrollHeight;
-                        if (message.kind > 4)
+                        if (message.kind > 3)
                             console.log('default!', message);
                     });
 
@@ -985,24 +1005,7 @@ Chat: function () {
                     historyLoad('');
                     $(this).remove();
                 }));
-                // Update users list
-                function presenceUpdate() {
-                    $.get(pubnubUrl + '/v2/presence/sub_key/' + broadcast.subscriber + '/channel/' + broadcast.channel, {
-                        state: 1,
-                        auth: broadcast.auth_token
-                    }, function (pubnub) {
-                        userlist.empty();
-                        var user;
-                        for (var i in pubnub.uuids)
-                            if ((user = pubnub.uuids[i].state) && user.username)
-                                userlist.append($('<div class="user">' + emoji.replace_unified(user.display_name) + ' </div>')
-                                                .append($('<div class="username">(' + user.username + ')</div>')
-                                                        .click(switchSection.bind(null, 'User', user.id))));
-                    }, 'json');
-                }
-    
-                presence_interval = setInterval(presenceUpdate, 15000);
-                presenceUpdate();
+
                 // Update messages list
                 var prev_time = 0;      // time of previous result
                 var xhr_done = true;    // last request finished, can send next request
