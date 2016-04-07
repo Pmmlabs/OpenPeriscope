@@ -482,6 +482,10 @@ function Ready(loginInfo) {
             })
         }, 100));
     });
+    window.onpopstate = function(event) {
+        if (event.state.section)
+            switchSection(event.state.section, event.state.param, true);
+    };
 }
 function switchSection(section, param, popstate) {
     // Switch menu
@@ -514,10 +518,6 @@ function switchSection(section, param, popstate) {
     if (popstate != true)
         history.pushState({section: section, param: param}, section, '/' + section + (param ? '/' + param : ''));
 }
-window.onpopstate = function(event) {
-    if (event.state.section)
-        switchSection(event.state.section, event.state.param, true);
-};
 var languageSelect = '<dt>Language: <select class="lang">\
             <option>ar</option>\
             <option>de</option>\
