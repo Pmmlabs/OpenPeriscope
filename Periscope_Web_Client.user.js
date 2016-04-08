@@ -54,7 +54,8 @@ if (NODEJS) {  // for NW.js
             req.write(options.data);
         req.end();
     };
-}
+} else
+    var window = unsafeWindow || window;
 
 if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     location.href = 'http://example.net/' + location.search;
@@ -1268,7 +1269,7 @@ function getDescription(stream) {
                 html+='<img src="' + thumbs.chunks[i].tn + '"/>';
             }
             html+='</body></html>';
-            (NODEJS ? window : unsafeWindow).open('data:text/html;charset=utf-8,'+encodeURIComponent(html));
+            window.open('data:text/html;charset=utf-8,'+encodeURIComponent(html));
         });
     });
     var chatLink = $('<a class="chatlink righticon">Chat</a>').click(switchSection.bind(null, 'Chat', stream.id));
