@@ -54,10 +54,7 @@ if (NODEJS) {  // for NW.js
             req.write(options.data);
         req.end();
     };
-} else
-    if (~navigator.userAgent.indexOf("OPR"))    // fix for ViolentMonkey
-        var window = unsafeWindow;
-
+}
 if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     location.href = 'http://example.net/' + location.search;
 } else {
@@ -487,10 +484,11 @@ function Ready(loginInfo) {
             })
         }, 100));
     });
-    window.onpopstate = function(event) {
+    $(window).on('popstate', function(event) {
+        event = event.originalEvent;
         if (event.state.section)
             switchSection(event.state.section, event.state.param, true);
-    };
+    });
 }
 function switchSection(section, param, popstate) {
     // Switch menu
