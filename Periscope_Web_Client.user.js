@@ -55,7 +55,8 @@ if (NODEJS) {  // for NW.js
         req.end();
     };
 } else
-    var window = unsafeWindow || window;
+    if (~navigator.userAgent.indexOf("OPR"))    // fix for ViolentMonkey
+        var window = unsafeWindow;
 
 if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     location.href = 'http://example.net/' + location.search;
@@ -322,6 +323,9 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     }\
     #title {\
         font-size: 16px;\
+    }\
+    #presence {\
+        text-align: right;\
     }\
     #sendMessage, #underchat label {\
         float: right;\
@@ -833,7 +837,7 @@ Chat: function () {
                     if (event.displayName)
                         userlist.append($('<div class="user">' + emoji.replace_unified(event.displayName) + ' </div>')
                             .append($('<div class="username">(' + event.username + ')</div>')
-                                .click(switchSection.bind(null, 'User', user.remoteID))));
+                                .click(switchSection.bind(null, 'User', event.remoteID))));
                     break;
                 case 4: // broadcaster moved to new place
                     console.log('new location: ' + event.lat + ', ' + event.lng + ', ' + event.heading);
@@ -842,11 +846,11 @@ Chat: function () {
                     container.append('<div class="service">*** ' + event.displayName + ' (@' + event.username + ') ended the broadcast</div>');
                     break;
                 case 6: // invited followers
-                    container.append('<div class="service">*** ' + event.displayName + ' (@' + event.username + '): ' + event.body.replace('*%s*', event.invited_count) + '</div>');
+                    container.append('<div class="service">*** ' + (event.displayName || '') + ' (@' + event.username + '): ' + event.body.replace('*%s*', event.invited_count) + '</div>');
                     break;
                 case 7:
                     container.append('<div class="service">7 *** ' + event.displayName + ' (@' + event.username + ') ' + event.body + '</div>');
-                    console.log(event);
+                    console.log('SE7EN', event);
                     break;
                 case 8: // replay available
                     break;
@@ -895,10 +899,11 @@ Chat: function () {
                 var MESSAGE_KIND = {
                     CHAT: 1,
                     CONTROL: 2,
-                    AUTH: 3
+                    AUTH: 3,
+                    PRESENCE: 4
                 };
-                if (ws)
-                    ws.close();
+                if (ws && ws.readyState == ws.OPEN)
+                    ws.pause(); // close() doesn't close :-/
                 var openSocket = function (failures) {
                     ws = new WebSocket(broadcast.endpoint.replace('https:', 'wss:').replace('http:', 'ws:') + '/chatapi/v1/chatnow');
 
@@ -928,11 +933,21 @@ Chat: function () {
                         var message = JSON.parse(data);
                         message.payload = JSON.parse(message.payload);
                         message.body = JSON.parse(message.payload.body);
-                        renderMessages([message.body], chat);
                         if ($('#autoscroll')[0].checked)
                             chat[0].scrollTop = chat[0].scrollHeight;
-                        if (message.kind > 3)
-                            console.log('default!', message);
+                        switch (message.kind) {
+                            case MESSAGE_KIND.CHAT:
+                                renderMessages([message.body], chat);
+                                break;
+                            case MESSAGE_KIND.CONTROL:
+                                if (message.payload.kind == MESSAGE_KIND.PRESENCE)
+                                    $('#presence').text(message.body.occupancy + '/' + message.body.total_participants);
+                                else
+                                    console.log(message);
+                                break;
+                            default:
+                                console.log('default!', message);
+                        }
                     });
 
                     ws.on('close', function () {
@@ -1075,7 +1090,7 @@ Chat: function () {
     });
     $('#right').append(
         $('<div id="Chat"/>').append(
-            broadcast_id, playButton, title, '<br/><br/>', userlist, chat, $('<div id="underchat">').append(
+            broadcast_id, playButton, title, '<br/><div id="presence" title="watching/maximum"/>', userlist, chat, $('<div id="underchat">').append(
                 '<label><input type="checkbox" id="autoscroll" checked/> Autoscroll</label>',
                 '<a class="button" id="sendMessage">Send</a>', $('<div/>').append(textBox)
             )
