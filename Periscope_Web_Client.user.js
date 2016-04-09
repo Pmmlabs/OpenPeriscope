@@ -678,11 +678,13 @@ ApiTest: function () {
             $('#response').text(e.toString());
         }
     });
-    $('#right').append('<div id="ApiTest">Some documentation can be found in ' +
-        '<a href="http://static.pmmlabs.ru/OpenPeriscope" target="_blank">docs by @cjhbtn</a>' +
-        '<br/><dt>Method</dt><input id="method" type="text" placeholder="mapGeoBroadcastFeed"/><br/>' +
-        '<dt>Parameters</dt><textarea id="params" placeholder=\'{"include_replay": true, "p1_lat": 1, "p1_lng": 2, "p2_lat": 3, "p2_lng": 4}\'/><br/><br/>');
-    $('#ApiTest').append(submitButton).append('<br/><br/><pre id="response"/>Response is also displayed in the browser console, if [Debug mode] is checked</pre>');
+    $('#right').append(
+        $('<div id="ApiTest"/>').append(
+            'Some documentation can be found in <a href="http://static.pmmlabs.ru/OpenPeriscope" target="_blank">docs by @cjhbtn</a>' +
+            '<br/><dt>Method</dt><form onsubmit="return false"><input id="method" type="text" placeholder="mapGeoBroadcastFeed" autocomplete="on"/></form><br/>' +
+            '<dt>Parameters</dt><textarea id="params" placeholder=\'{"include_replay": true, "p1_lat": 1, "p1_lng": 2, "p2_lat": 3, "p2_lng": 4}\'/><br/><br/>'
+            , submitButton, '<br/><br/><pre id="response"/>Response is also displayed in the browser console, if [Debug mode] is checked</pre>')
+    );
 },
 Top: function () {
     var featured = $('<div/>');
@@ -838,7 +840,8 @@ Chat: function () {
                                 .click(switchSection.bind(null, 'User', event.remoteID))));
                     break;
                 case 4: // broadcaster moved to new place
-                    console.log('new location: ' + event.lat + ', ' + event.lng + ', ' + event.heading);
+                    if ($('#debug')[0].checked)
+                        console.log('new location: ' + event.lat + ', ' + event.lng + ', ' + event.heading);
                     break;
                 case 5: // broadcast ended
                     container.append('<div class="service">*** ' + event.displayName + ' (@' + event.username + ') ended the broadcast</div>');
@@ -902,6 +905,53 @@ Chat: function () {
                 };
                 if (ws && ws.readyState == ws.OPEN)
                     ws.pause(); // close() doesn't close :-/
+                var processWSmessage = function (message, div) {
+                    message.payload = JSON.parse(message.payload);
+                    message.body = JSON.parse(message.payload.body);
+                    if ($('#autoscroll')[0].checked)
+                        chat[0].scrollTop = chat[0].scrollHeight;
+                    switch (message.kind) {
+                        case MESSAGE_KIND.CHAT:
+                            renderMessages([message.body], div);
+                            break;
+                        case MESSAGE_KIND.CONTROL:
+                            if (message.payload.kind == MESSAGE_KIND.PRESENCE)
+                                $('#presence').text(message.body.occupancy + '/' + message.body.total_participants);
+                            else
+                                console.log(message);
+                            break;
+                        default:
+                            console.log('default!', message);
+                    }
+                };
+                // Load history
+                var historyDiv = $('<div/>');
+                var historyLoad = function (start) {
+                    GM_xmlhttpRequest({
+                        method: 'POST',
+                        url: broadcast.endpoint + '/chatapi/v1/history',
+                        data: JSON.stringify({
+                            access_token: broadcast.access_token,
+                            cursor: start,
+                            duration: 100 // actually 40 is maximum
+                        }),
+                        onload: function (history) {
+                            history = JSON.parse(history.responseText);
+                            for (var i in history.messages)
+                                processWSmessage(history.messages[i], historyDiv);
+                            if (history.cursor != '')
+                                historyLoad(history.cursor);
+                            else
+                                $('#spinner').hide();
+                        }
+                    });
+                };
+                chat.append(historyDiv, $('<center><a>Load history</a></center>').click(function () {
+                    $('#spinner').show();
+                    historyLoad('');
+                    $(this).remove();
+                }));
+
                 var openSocket = function (failures) {
                     ws = new WebSocket(broadcast.endpoint.replace('https:', 'wss:').replace('http:', 'ws:') + '/chatapi/v1/chatnow');
 
@@ -927,33 +977,17 @@ Chat: function () {
                         ws.pong(data, {masked: false, binary: true});
                     });
 
-                    ws.on('message', function (data, flags) {
-                        var message = JSON.parse(data);
-                        message.payload = JSON.parse(message.payload);
-                        message.body = JSON.parse(message.payload.body);
-                        if ($('#autoscroll')[0].checked)
-                            chat[0].scrollTop = chat[0].scrollHeight;
-                        switch (message.kind) {
-                            case MESSAGE_KIND.CHAT:
-                                renderMessages([message.body], chat);
-                                break;
-                            case MESSAGE_KIND.CONTROL:
-                                if (message.payload.kind == MESSAGE_KIND.PRESENCE)
-                                    $('#presence').text(message.body.occupancy + '/' + message.body.total_participants);
-                                else
-                                    console.log(message);
-                                break;
-                            default:
-                                console.log('default!', message);
-                        }
+                    ws.on('message', function (data) {
+                        processWSmessage(JSON.parse(data), chat);
                     });
 
-                    ws.on('close', function () {
+                    ws.on('close', function (code) {
                         ws.close();
-                        if (failures < 10) {
+                        if (code == 1006) { // 1006=timeout
                             setTimeout(openSocket.bind(null, failures + 1), 100);
-                        } else
-                            console.log('cant connect');
+                            console.log('reconnect');
+                        } else if (code != 1000) // 1000=broadcast ended
+                            console.log('websocket closed, code: ', code);
                     });
                 };
 
@@ -999,7 +1033,7 @@ Chat: function () {
             } else {
                 // Load history
                 var historyDiv = $('<div/>');
-                function historyLoad(start) {
+                var historyLoad = function(start) {
                     $.get(pubnubUrl + '/v2/history/sub-key/' + broadcast.subscriber + '/channel/' + broadcast.channel, {
                         stringtoken: true,
                         count: 100,
@@ -1013,7 +1047,7 @@ Chat: function () {
                             $('#spinner').hide();
                         renderMessages(history[0], historyDiv);
                     }, 'json');
-                }
+                };
                 chat.append(historyDiv, $('<center><a>Load history</a></center>').click(function () {
                     $('#spinner').show();
                     historyLoad('');
