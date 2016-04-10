@@ -5,7 +5,7 @@
 // @description Periscope client based on API requests. Visit example.net for launch.
 // @include     https://api.twitter.com/oauth/404*
 // @include     http://example.net/*
-// @version     1.1
+// @version     1.2
 // @author      Pmmlabs@github
 // @grant       GM_xmlhttpRequest
 // @require     https://code.jquery.com/jquery-1.11.3.js
@@ -844,7 +844,7 @@ Chat: function () {
                         console.log('new location: ' + event.lat + ', ' + event.lng + ', ' + event.heading);
                     break;
                 case 5: // broadcast ended
-                    container.append('<div class="service">*** ' + event.displayName + ' (@' + event.username + ') ended the broadcast</div>');
+                    container.append('<div class="service">*** ' + event.displayName + (event.username ? ' (@' + event.username + ')' : '') + ' ended the broadcast</div>');
                     break;
                 case 6: // invited followers
                     container.append('<div class="service">*** ' + (event.displayName || '') + ' (@' + event.username + '): ' + event.body.replace('*%s*', event.invited_count) + '</div>');
@@ -936,13 +936,16 @@ Chat: function () {
                             duration: 100 // actually 40 is maximum
                         }),
                         onload: function (history) {
-                            history = JSON.parse(history.responseText);
-                            for (var i in history.messages)
-                                processWSmessage(history.messages[i], historyDiv);
-                            if (history.cursor != '')
-                                historyLoad(history.cursor);
-                            else
-                                $('#spinner').hide();
+                            if (history.status == 200) {
+                                history = JSON.parse(history.responseText);
+                                for (var i in history.messages)
+                                    processWSmessage(history.messages[i], historyDiv);
+                                if (history.cursor != '')
+                                    historyLoad(history.cursor);
+                                else
+                                    $('#spinner').hide();
+                            } else
+                                 $('#spinner').hide();
                         }
                     });
                 };
