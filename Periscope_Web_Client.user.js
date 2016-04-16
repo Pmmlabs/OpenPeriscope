@@ -793,6 +793,7 @@ Chat: function () {
     var userlist = $('<div id="userlist"/>');
     var chat = $('<div id="chat"/>');
     var textBox = $('<input type="text" id="message">');
+    var historyDiv = $('<div/>');
     if (NODEJS) {
         const WebSocket = require('ws');
         $(window).unload(function(){
@@ -801,72 +802,87 @@ Chat: function () {
         });
     }
 
-    function renderMessages(messages, container) {
-        for (var i in messages) {
-            var event = messages[i];
-            if (event.occupants) {  // "presense" for websockets
-                userlist.empty();
-                var user;
-                for (var j in event.occupants)
-                    if ((user = event.occupants[j]) && user.display_name) {
-                        userlist.append($('<div class="user">' + emoji.replace_unified(user.display_name) + ' </div>')
-                            .append($('<div class="username">(' + user.username + ')</div>')
-                                .click(switchSection.bind(null, 'User', user.user_id))));
-                    }
-            }
-            else
-            switch (event.type) {
-                case 1:  // text message
-                    var date = new Date((parseInt(event.ntpForLiveFrame.toString(16).substr(0, 8), 16) - 2208988800) * 1000);
-                    var html = $('<div/>').append('[' + zeros(date.getHours()) + ':' + zeros(date.getMinutes()) + ':' + zeros(date.getSeconds()) + '] ');
-                    var username = $('<span class="user">&lt;' + event.username + '&gt;</span>');
-                    username.click(function () { // insert username to text field
-                        textBox.val(textBox.val() + '@' + $(this).text().substr(1, $(this).text().length - 2) + ' ');
-                        textBox.focus();
-                    });
-                    html.append(username).append(' ').append(emoji.replace_unified(event.body).replace(/(@\S+)/g, '<b>$1</b>'));
-                    if (!event.body)    // for debug
-                        console.log('empty body!', event);
-                    container.append(html);
-                    break;
-                case 2: // heart
-                    /*moderationReportType: 0
-                    moderationType: 0*/
-                    break;
-                case 3: // status messages, see event.body (mostly "joined")
-                    if (event.displayName)
-                        userlist.append($('<div class="user">' + emoji.replace_unified(event.displayName) + ' </div>')
-                            .append($('<div class="username">(' + event.username + ')</div>')
-                                .click(switchSection.bind(null, 'User', event.remoteID))));
-                    break;
-                case 4: // broadcaster moved to new place
-                    if ($('#debug')[0].checked)
-                        console.log('new location: ' + event.lat + ', ' + event.lng + ', ' + event.heading);
-                    break;
-                case 5: // broadcast ended
-                    container.append('<div class="service">*** ' + event.displayName + (event.username ? ' (@' + event.username + ')' : '') + ' ended the broadcast</div>');
-                    break;
-                case 6: // invited followers
-                    container.append('<div class="service">*** ' + (event.displayName || '') + ' (@' + event.username + '): ' + event.body.replace('*%s*', event.invited_count) + '</div>');
-                    break;
-                case 7:
-                    container.append('<div class="service">7 *** ' + event.displayName + ' (@' + event.username + ') ' + event.body + '</div>');
-                    console.log('SE7EN', event);
-                    break;
-                case 8: // replay available
-                    break;
-                case 9: // Broadcaster starts streaming. uuid=SE-0. timestampPlaybackOffset
-                    break;
-                case 12: // Ban
-                    container.append('<div class="service">*** @' + event.broadcasterBlockedUsername + ' has been blocked for message: "' + event.broadcasterBlockedMessageBody + '"</div>');
-                    break;
-                default: // service messages (event.action = join, leave, timeout, state_changed)
-                    /*event.occupancy && event.total_participants*/
-                    break;
-            }
+    function renderMessages(event, container) {
+        if (event.occupants) {  // "presense" for websockets
+            userlist.empty();
+            var user;
+            for (var j in event.occupants)
+                if ((user = event.occupants[j]) && user.display_name) {
+                    userlist.append($('<div class="user">' + emoji.replace_unified(user.display_name) + ' </div>')
+                        .append($('<div class="username">(' + user.username + ')</div>')
+                            .click(switchSection.bind(null, 'User', user.user_id))));
+                }
+        }
+        else
+        switch (event.type) {
+            case 1:  // text message
+                var date = new Date((parseInt(event.ntpForLiveFrame.toString(16).substr(0, 8), 16) - 2208988800) * 1000);
+                var html = $('<div/>').append('[' + zeros(date.getHours()) + ':' + zeros(date.getMinutes()) + ':' + zeros(date.getSeconds()) + '] ');
+                var username = $('<span class="user">&lt;' + event.username + '&gt;</span>');
+                username.click(function () { // insert username to text field
+                    textBox.val(textBox.val() + '@' + $(this).text().substr(1, $(this).text().length - 2) + ' ');
+                    textBox.focus();
+                });
+                html.append(username).append(' ').append(emoji.replace_unified(event.body).replace(/(@\S+)/g, '<b>$1</b>'));
+                if (!event.body)    // for debug
+                    console.log('empty body!', event);
+                container.append(html);
+                break;
+            case 2: // heart
+                /*moderationReportType: 0
+                moderationType: 0*/
+                break;
+            case 3: // status messages, see event.body (mostly "joined")
+                if (event.displayName)
+                    userlist.append($('<div class="user">' + emoji.replace_unified(event.displayName) + ' </div>')
+                        .append($('<div class="username">(' + event.username + ')</div>')
+                            .click(switchSection.bind(null, 'User', event.remoteID))));
+                break;
+            case 4: // broadcaster moved to new place
+                if ($('#debug')[0].checked)
+                    console.log('new location: ' + event.lat + ', ' + event.lng + ', ' + event.heading);
+                break;
+            case 5: // broadcast ended
+                container.append('<div class="service">*** ' + event.displayName + (event.username ? ' (@' + event.username + ')' : '') + ' ended the broadcast</div>');
+                break;
+            case 6: // invited followers
+                container.append('<div class="service">*** ' + (event.displayName || '') + ' (@' + event.username + '): ' + event.body.replace('*%s*', event.invited_count) + '</div>');
+                break;
+            case 7:
+                container.append('<div class="service">7 *** ' + event.displayName + ' (@' + event.username + ') ' + event.body + '</div>');
+                console.log('SE7EN', event);
+                break;
+            case 8: // replay available
+                break;
+            case 9: // Broadcaster starts streaming. uuid=SE-0. timestampPlaybackOffset
+                break;
+            case 12: // Ban
+                container.append('<div class="service">*** @' + event.broadcasterBlockedUsername + ' has been blocked for message: "' + event.broadcasterBlockedMessageBody + '"</div>');
+                break;
+            default: // service messages (event.action = join, leave, timeout, state_changed)
+                /*event.occupancy && event.total_participants*/
+                break;
         }
     }
-
+    function processWSmessage (message, div) {
+        message.payload = JSON.parse(message.payload);
+        message.body = JSON.parse(message.payload.body);
+        if ($('#autoscroll')[0].checked)
+            chat[0].scrollTop = chat[0].scrollHeight;
+        switch (message.kind) {
+            case MESSAGE_KIND.CHAT:
+                renderMessages(message.body, div);
+                break;
+            case MESSAGE_KIND.CONTROL:
+                if (message.payload.kind == MESSAGE_KIND.PRESENCE)
+                    $('#presence').text(message.body.occupancy + '/' + message.body.total_participants);
+                else
+                    console.log(message);
+                break;
+            default:
+                console.log('default!', message);
+        }
+    }
     var playButton = $('<a class="button" id="startchat">OK</a>').click(function () {
         clearInterval(chat_interval);
         clearInterval(presence_interval);
@@ -893,68 +909,43 @@ Chat: function () {
             title.html((broadcast.publisher == "" ? '<b>FORBIDDEN</b> | ' : '')
                 + '<a href="https://www.periscope.tv/w/' + broadcast.broadcast.id + '" target="_blank">' + emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
                 + emoji.replace_unified(broadcast.broadcast.user_display_name) + ' ')
-                .append(userLink)
-                .append((broadcast.hls_url ? ' | <a href="' + broadcast.hls_url + '">M3U Link</a>' : '')
-                + (broadcast.rtmp_url ? ' | <a href="' + broadcast.rtmp_url + '">RTMP Link</a>' : ''));
+                .append(userLink,
+                    broadcast.hls_url ? ' | <a href="' + broadcast.hls_url + '">M3U Link</a>' : '',
+                    broadcast.rtmp_url ? ' | <a href="' + broadcast.rtmp_url + '">RTMP Link</a>' : ''
+                );
+            // Load history
+            function historyLoad (start) {
+                GM_xmlhttpRequest({
+                    method: 'POST',
+                    url: broadcast.endpoint + '/chatapi/v1/history',
+                    data: JSON.stringify({
+                        access_token: broadcast.access_token,
+                        cursor: start,
+                        duration: 100 // actually 40 is maximum
+                    }),
+                    onload: function (history) {
+                        if (history.status == 200) {
+                            history = JSON.parse(history.responseText);
+                            for (var i in history.messages)
+                                processWSmessage(history.messages[i], historyDiv);
+                            if (history.cursor != '')
+                                historyLoad(history.cursor);
+                            else
+                                $('#spinner').hide();
+                        } else
+                            $('#spinner').hide();
+                    }
+                });
+            }
+            chat.append(historyDiv, $('<center><a>Load history</a></center>').click(function () {
+                $('#spinner').show();
+                historyLoad('');
+                $(this).remove();
+            }));
+            // Chat reading & posting
             if (NODEJS) {
-                var MESSAGE_KIND = {
-                    CHAT: 1,
-                    CONTROL: 2,
-                    AUTH: 3,
-                    PRESENCE: 4
-                };
                 if (ws && ws.readyState == ws.OPEN)
                     ws.pause(); // close() doesn't close :-/
-                var processWSmessage = function (message, div) {
-                    message.payload = JSON.parse(message.payload);
-                    message.body = JSON.parse(message.payload.body);
-                    if ($('#autoscroll')[0].checked)
-                        chat[0].scrollTop = chat[0].scrollHeight;
-                    switch (message.kind) {
-                        case MESSAGE_KIND.CHAT:
-                            renderMessages([message.body], div);
-                            break;
-                        case MESSAGE_KIND.CONTROL:
-                            if (message.payload.kind == MESSAGE_KIND.PRESENCE)
-                                $('#presence').text(message.body.occupancy + '/' + message.body.total_participants);
-                            else
-                                console.log(message);
-                            break;
-                        default:
-                            console.log('default!', message);
-                    }
-                };
-                // Load history
-                var historyDiv = $('<div/>');
-                var historyLoad = function (start) {
-                    GM_xmlhttpRequest({
-                        method: 'POST',
-                        url: broadcast.endpoint + '/chatapi/v1/history',
-                        data: JSON.stringify({
-                            access_token: broadcast.access_token,
-                            cursor: start,
-                            duration: 100 // actually 40 is maximum
-                        }),
-                        onload: function (history) {
-                            if (history.status == 200) {
-                                history = JSON.parse(history.responseText);
-                                for (var i in history.messages)
-                                    processWSmessage(history.messages[i], historyDiv);
-                                if (history.cursor != '')
-                                    historyLoad(history.cursor);
-                                else
-                                    $('#spinner').hide();
-                            } else
-                                 $('#spinner').hide();
-                        }
-                    });
-                };
-                chat.append(historyDiv, $('<center><a>Load history</a></center>').click(function () {
-                    $('#spinner').show();
-                    historyLoad('');
-                    $(this).remove();
-                }));
-
                 var openSocket = function (failures) {
                     ws = new WebSocket(broadcast.endpoint.replace('https:', 'wss:').replace('http:', 'ws:') + '/chatapi/v1/chatnow');
 
@@ -1028,89 +1019,13 @@ Chat: function () {
                         if (error)
                             console.log('message not sent', error);
                         else
-                            renderMessages([message], chat);
+                            renderMessages(message, chat);
                     });
                 };
 
                 openSocket(0);
             } else {
-                // Load history
-                var historyDiv = $('<div/>');
-                var historyLoad = function(start) {
-                    $.get(pubnubUrl + '/v2/history/sub-key/' + broadcast.subscriber + '/channel/' + broadcast.channel, {
-                        stringtoken: true,
-                        count: 100,
-                        reverse: true,
-                        start: start,
-                        auth: broadcast.auth_token
-                    }, function (history) {
-                        if (history[2] != 0)
-                            historyLoad(history[2]);
-                        else
-                            $('#spinner').hide();
-                        renderMessages(history[0], historyDiv);
-                    }, 'json');
-                };
-                chat.append(historyDiv, $('<center><a>Load history</a></center>').click(function () {
-                    $('#spinner').show();
-                    historyLoad('');
-                    $(this).remove();
-                }));
-
-                // Update messages list
-                var prev_time = 0;      // time of previous result
-                var xhr_done = true;    // last request finished, can send next request
-                function messagesUpdate() {
-                    if (xhr_done) {
-                        xhr_done = false;
-                        $.get(pubnubUrl + '/subscribe/' + broadcast.subscriber + '/' + broadcast.channel + '-pnpres,' + broadcast.channel + '/0/' + prev_time, {
-                            auth: broadcast.auth_token
-                        }, function (pubnub) {
-                            prev_time = pubnub[1];
-                            xhr_done = true;
-                            renderMessages(pubnub[0], chat);
-                            if ($('#autoscroll')[0].checked)
-                                chat[0].scrollTop = chat[0].scrollHeight;
-                        }, 'json').fail(function () {
-                            xhr_done = true;
-                        });
-                    }
-                }
-    
-                chat_interval = setInterval(messagesUpdate, 2000);
-                messagesUpdate();
-                // Sending messages
-                var sendMessage = function  () {
-                    $('#spinner').show();
-                    var ntpstamp = parseInt((Math.floor(prev_time / 10000000) + 2208988800).toString(16) + '00000000', 16); // timestamp in NTP format
-                    GM_xmlhttpRequest({
-                        method: 'POST',
-                        url: 'https://signer.periscope.tv/sign',
-                        data: JSON.stringify({
-                            body: textBox.val(),
-                            signer_token: broadcast.signer_token,
-                            participant_index: broadcast.participant_index,
-                            type: 1,    // "text message"
-                            ntpForBroadcasterFrame: ntpstamp,
-                            ntpForLiveFrame: ntpstamp
-                        }),
-                        onload: function (signed) {
-                            signed = JSON.parse(signed.responseText);
-                            $.get(pubnubUrl + '/publish/' + broadcast.publisher + '/' + broadcast.subscriber + '/0/'
-                                + broadcast.channel + '/0/' + encodeURIComponent(JSON.stringify(signed.message)), {
-                                auth: broadcast.auth_token
-                            }, function (pubnub) {
-                                $('#spinner').hide();
-                                textBox.val('');
-                                if (pubnub[1] != "Sent")
-                                    console.log('message not sent', pubnub);
-                            }, 'json').fail(function (error) {
-                                chat.append('<span class="error">*** Error: ' + error.responseJSON.message + '</span>');
-                                $('#spinner').hide();
-                            });
-                        }
-                    });
-                }
+                // :(
             }
             $('#sendMessage').off().click(sendMessage);
             textBox.off().keypress(function (e) {
@@ -1220,6 +1135,12 @@ var chat_interval;
 var presence_interval;
 var pubnubUrl = 'http://pubsub.pubnub.com';
 var ws; // websocket
+var MESSAGE_KIND = {
+    CHAT: 1,
+    CONTROL: 2,
+    AUTH: 3,
+    PRESENCE: 4
+};
 function zeros(number) {
     return (100 + number + '').substr(1);
 }
