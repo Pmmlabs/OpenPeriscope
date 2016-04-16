@@ -817,39 +817,50 @@ Chat: function () {
         switch (event.type) {
             case 1:  // text message
                 var date = new Date((parseInt(event.ntpForLiveFrame.toString(16).substr(0, 8), 16) - 2208988800) * 1000);
-                var html = $('<div/>').append('[' + zeros(date.getHours()) + ':' + zeros(date.getMinutes()) + ':' + zeros(date.getSeconds()) + '] ');
-                var username = $('<span class="user">&lt;' + event.username + '&gt;</span>');
-                username.click(function () { // insert username to text field
-                    textBox.val(textBox.val() + '@' + $(this).text().substr(1, $(this).text().length - 2) + ' ');
-                    textBox.focus();
-                });
-                html.append(username).append(' ').append(emoji.replace_unified(event.body).replace(/(@\S+)/g, '<b>$1</b>'));
-                if (!event.body)    // for debug
-                    console.log('empty body!', event);
-                container.append(html);
+                if ($.isArray(container))   // for subtitles
+                    container.push({
+                        date: date,
+                        user: event.username,
+                        text: event.body
+                    });
+                else {
+                    var html = $('<div/>').append('[' + zeros(date.getHours()) + ':' + zeros(date.getMinutes()) + ':' + zeros(date.getSeconds()) + '] ');
+                    var username = $('<span class="user">&lt;' + event.username + '&gt;</span>');
+                    username.click(function () { // insert username to text field
+                        textBox.val(textBox.val() + '@' + $(this).text().substr(1, $(this).text().length - 2) + ' ');
+                        textBox.focus();
+                    });
+                    html.append(username).append(' ').append(emoji.replace_unified(event.body).replace(/(@\S+)/g, '<b>$1</b>'));
+                    if (!event.body)    // for debug
+                        console.log('empty body!', event);
+                    container.append(html);
+                }
                 break;
             case 2: // heart
                 /*moderationReportType: 0
                 moderationType: 0*/
                 break;
             case 3: // status messages, see event.body (mostly "joined")
-                if (event.displayName)
+                if (event.displayName && !$.isArray(container))
                     userlist.append($('<div class="user">' + emoji.replace_unified(event.displayName) + ' </div>')
                         .append($('<div class="username">(' + event.username + ')</div>')
                             .click(switchSection.bind(null, 'User', event.remoteID))));
                 break;
             case 4: // broadcaster moved to new place
-                if ($('#debug')[0].checked)
+                if ($('#debug')[0].checked && !$.isArray(container))
                     console.log('new location: ' + event.lat + ', ' + event.lng + ', ' + event.heading);
                 break;
             case 5: // broadcast ended
-                container.append('<div class="service">*** ' + event.displayName + (event.username ? ' (@' + event.username + ')' : '') + ' ended the broadcast</div>');
+                if (!$.isArray(container))
+                    container.append('<div class="service">*** ' + event.displayName + (event.username ? ' (@' + event.username + ')' : '') + ' ended the broadcast</div>');
                 break;
             case 6: // invited followers
-                container.append('<div class="service">*** ' + (event.displayName || '') + ' (@' + event.username + '): ' + event.body.replace('*%s*', event.invited_count) + '</div>');
+                if (!$.isArray(container))
+                    container.append('<div class="service">*** ' + (event.displayName || '') + ' (@' + event.username + '): ' + event.body.replace('*%s*', event.invited_count) + '</div>');
                 break;
             case 7:
-                container.append('<div class="service">7 *** ' + event.displayName + ' (@' + event.username + ') ' + event.body + '</div>');
+                if (!$.isArray(container))
+                    container.append('<div class="service">7 *** ' + event.displayName + ' (@' + event.username + ') ' + event.body + '</div>');
                 console.log('SE7EN', event);
                 break;
             case 8: // replay available
@@ -857,7 +868,14 @@ Chat: function () {
             case 9: // Broadcaster starts streaming. uuid=SE-0. timestampPlaybackOffset
                 break;
             case 12: // Ban
-                container.append('<div class="service">*** @' + event.broadcasterBlockedUsername + ' has been blocked for message: "' + event.broadcasterBlockedMessageBody + '"</div>');
+                if ($.isArray(container))
+                    container.push({
+                        date: date,
+                        user: '',
+                        text: '@' + event.broadcasterBlockedUsername + ' has been blocked for message: "' + event.broadcasterBlockedMessageBody +'"'
+                    });
+                else
+                    container.append('<div class="service">*** @' + event.broadcasterBlockedUsername + ' has been blocked for message: "' + event.broadcasterBlockedMessageBody + '"</div>');
                 break;
             default: // service messages (event.action = join, leave, timeout, state_changed)
                 /*event.occupancy && event.total_participants*/
@@ -906,15 +924,43 @@ Chat: function () {
             broadcast_id: broadcast_id.val().trim()
         }, function (broadcast) {
             var userLink = $('<a class="username">(@' + broadcast.broadcast.username + ')</a>').click(switchSection.bind(null, 'User', broadcast.broadcast.user_id));
-            title.html((broadcast.publisher == "" ? '<b>FORBIDDEN</b> | ' : '')
-                + '<a href="https://www.periscope.tv/w/' + broadcast.broadcast.id + '" target="_blank">' + emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
+            var srtLink = $('<a>SRT</a>').click(function () {
+                $('#spinner').show();
+                var data = [];
+                historyLoad('', data, function(){
+                    $('#spinner').hide();
+                    data.sort(function (a, b) { return a.date - b.date; });
+                    var start = new Date(broadcast.broadcast.start);
+                    var srt = '';
+                    for (var i = 0; i < data.length; i++) {
+                        var date0 = new Date(data[i].date - start); // date of the current message
+                        var date1 = new Date((i < data.length - 1 ? data[i + 1].date : new Date(broadcast.broadcast.end)) - start); // date of the next message
+                        srt += (i + 1) + '\n' +
+                            zeros(date0.getUTCHours()) + ':' + zeros(date0.getMinutes()) + ':' + zeros(date0.getSeconds()) + ','+date0.getMilliseconds()+' --> ' +
+                            zeros(date1.getUTCHours()) + ':' + zeros(date1.getMinutes()) + ':' + zeros(date1.getSeconds()) + ','+date1.getMilliseconds()+'\n' +
+                            (i > 3 ? '<b>' + data[i - 4].user + '</b>: ' + data[i - 4].text + '\n' : '') +
+                            (i > 2 ? '<b>' + data[i - 3].user + '</b>: ' + data[i - 3].text + '\n' : '') +
+                            (i > 1 ? '<b>' + data[i - 2].user + '</b>: ' + data[i - 2].text + '\n' : '') +
+                            (i > 0 ? '<b>' + data[i - 1].user + '</b>: ' + data[i - 1].text + '\n' : '') +
+                            '<b>' + data[i].user + '</b>: ' + data[i].text + '\n\n';
+                    }
+                    var filename = (broadcast.broadcast.status || 'Untitled') + '.srt';
+                    srtLink.unbind('click')
+                        .click(saveAs.bind(null, srt, filename))
+                        .attr('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(srt))
+                        .attr('download', filename)
+                        .get(0).click();
+                });
+            });
+            title.html('<a href="https://www.periscope.tv/w/' + broadcast.broadcast.id + '" target="_blank">' + emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
                 + emoji.replace_unified(broadcast.broadcast.user_display_name) + ' ')
                 .append(userLink,
                     broadcast.hls_url ? ' | <a href="' + broadcast.hls_url + '">M3U Link</a>' : '',
-                    broadcast.rtmp_url ? ' | <a href="' + broadcast.rtmp_url + '">RTMP Link</a>' : ''
+                    broadcast.rtmp_url ? ' | <a href="' + broadcast.rtmp_url + '">RTMP Link</a>' : '',
+                    ' | ', srtLink
                 );
             // Load history
-            function historyLoad (start) {
+            function historyLoad(start, container, callback) {
                 GM_xmlhttpRequest({
                     method: 'POST',
                     url: broadcast.endpoint + '/chatapi/v1/history',
@@ -927,13 +973,19 @@ Chat: function () {
                         if (history.status == 200) {
                             history = JSON.parse(history.responseText);
                             for (var i in history.messages)
-                                processWSmessage(history.messages[i], historyDiv);
+                                processWSmessage(history.messages[i], container || historyDiv);
                             if (history.cursor != '')
-                                historyLoad(history.cursor);
-                            else
+                                historyLoad(history.cursor, container, callback);
+                            else {
                                 $('#spinner').hide();
-                        } else
+                                if (Object.prototype.toString.call(callback) === '[object Function]')
+                                    callback();
+                            }
+                        } else {
                             $('#spinner').hide();
+                            if (Object.prototype.toString.call(callback) === '[object Function]')
+                                callback();
+                        }
                     }
                 });
             }
