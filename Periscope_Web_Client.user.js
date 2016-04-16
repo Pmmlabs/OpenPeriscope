@@ -766,7 +766,7 @@ Create: function () {
                     'SPROP=$(h264_analyze out.h264 2>&1 | grep -B 6 SPS | head -n1 | cut -c 4- | xxd -r -p | base64)","$(h264_analyze out.h264 2>&1 | grep -B 5 PPS | head -n1 | cut -c 4- | xxd -r -p | base64)\n' + // generating "sprop..."
                     'rm -f out.h264\n' +    // delete temp file
                     'ffmpeg ' + input_options + ' -r 1 -s ' + createInfo.broadcast.width + 'x' + createInfo.broadcast.height + ' -vframes 1 -y -f image2 orig.jpg\n' +
-                    'curl -s -T orig.jpg "' + createInfo.thumbnail_upload_url + '"\n' +
+                    'curl -s -T orig.jpg -H "content-type:image/jpeg" "' + createInfo.thumbnail_upload_url + '"\n' +
                     'rm -f orig.jpg\n' +
                     'ffmpeg -re ' + input_options + ' $FFOPTS -metadata sprop-parameter-sets="$SPROP"' +
                     ' -strict experimental -acodec aac -b:a 128k -ar 44100 -ac 1 -f flv' +
