@@ -903,10 +903,10 @@ Chat: function () {
     }
     var playButton = $('<a class="button" id="startchat">OK</a>').click(function () {
         clearInterval(chat_interval);
-        clearInterval(presence_interval);
         chat.empty();
         userlist.empty();
         title.empty();
+        historyDiv.empty();
          //Load user list
         Api('getBroadcastViewers', {
             broadcast_id: broadcast_id.val().trim()
@@ -1184,8 +1184,6 @@ People: function () {
 }
 };
 var chat_interval;
-var presence_interval;
-var pubnubUrl = 'http://pubsub.pubnub.com';
 var ws; // websocket
 var MESSAGE_KIND = {
     CHAT: 1,
