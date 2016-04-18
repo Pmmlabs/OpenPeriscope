@@ -37,7 +37,7 @@ For replays:
 
 1. Click to "Get stream link" 
 1. Click to "Download replay M3U"
-1. Navigate to your downloads directory, and there `ffmpeg -protocol_whitelist file,https,tls,hls,tcp -i playlist.m3u8 -c copy -bsf:a aac_adtstoasc -c copy result.mp4`
+1. Navigate to your downloads directory, and there `ffmpeg -protocol_whitelist file,https,tls,hls,tcp -i playlist.m3u8 -c copy -bsf:a aac_adtstoasc result.mp4`
 
 ### API Documentation
 
