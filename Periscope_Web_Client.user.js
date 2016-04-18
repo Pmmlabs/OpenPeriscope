@@ -406,7 +406,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
 </style>')
         .append('<link href="https://fonts.googleapis.com/css?family=Roboto&subset=latin,cyrillic" rel="stylesheet" type="text/css">');
     
-    document.title = 'Periscope Web Client';
+    document.title = 'OpenPeriscope';
     var oauth_token, oauth_verifier, session_key, session_secret, loginTwitter, consumer_secret = localStorage.getItem('consumer_secret');
     
     $(function() {
@@ -680,6 +680,7 @@ ApiTest: function () {
     });
     $('#right').append(
         $('<div id="ApiTest"/>').append(
+            '<a href="https://github.com/Pmmlabs/OpenPeriscope"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/forkme.png" alt="Fork me on GitHub"></a>' +
             'Some documentation can be found in <a href="http://static.pmmlabs.ru/OpenPeriscope" target="_blank">docs by @cjhbtn</a>' +
             '<br/><dt>Method</dt><form onsubmit="return false"><input id="method" type="text" placeholder="mapGeoBroadcastFeed" autocomplete="on"/></form><br/>' +
             '<dt>Parameters</dt><textarea id="params" placeholder=\'{"include_replay": true, "p1_lat": 1, "p1_lng": 2, "p2_lat": 3, "p2_lng": 4}\'/><br/><br/>'
