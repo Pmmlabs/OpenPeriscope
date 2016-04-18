@@ -21,6 +21,7 @@
 // ==/UserScript==
 
 NODEJS = typeof GM_xmlhttpRequest == 'undefined';
+var IMG_PATH = 'https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master';
 if (NODEJS) {  // for NW.js
     var gui = require('nw.gui');
     gui.App.addOriginAccessWhitelistEntry('https://api.twitter.com/', 'app', 'openperiscope', true);    // allow redirect to app://
@@ -54,6 +55,7 @@ if (NODEJS) {  // for NW.js
             req.write(options.data);
         req.end();
     };
+    IMG_PATH = '';
 }
 if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     location.href = 'http://example.net/' + location.search;
@@ -239,20 +241,20 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         background-position: 5px center;\
     }\
     .chatlink {\
-        background-image: url("https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/comment-black.png");\
+        background-image: url("' + IMG_PATH + '/images/comment-black.png");\
     }\
     .watching {\
-        background-image: url("https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/user-black.png");\
+        background-image: url("' + IMG_PATH + '/images/user-black.png");\
     }\
     .hearts {\
-        background-image: url("https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/heart-black.png");\
+        background-image: url("' + IMG_PATH + '/images/heart-black.png");\
     }\
     .delete {\
-        background-image: url("https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/delete-black.png");\
+        background-image: url("' + IMG_PATH + '/images/delete-black.png");\
         height: 14px;\
     }\
     .screenlist {\
-        background-image: url("https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/camera-black.png");\
+        background-image: url("' + IMG_PATH + '/images/camera-black.png");\
         height: 14px;\
     }\
     dt {\
@@ -445,7 +447,7 @@ function Ready(loginInfo) {
         <a class="username">@' + (loginInfo.user.username || loginInfo.user.twitter_screen_name) + '</a>');
     userLink.click(switchSection.bind(null, 'User', loginInfo.user.id));
     var left = $('#left').append(signOutButton)
-        .append('<img src="https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/spinner.gif" id="spinner" />\
+        .append('<img src="' + IMG_PATH + '/images/spinner.gif" id="spinner" />\
         <br/><img src="' + loginInfo.user.profile_image_urls[1].url + '" width="140"/>')
         .append(userLink);
     var menu = [
@@ -680,7 +682,7 @@ ApiTest: function () {
     });
     $('#right').append(
         $('<div id="ApiTest"/>').append(
-            '<a href="https://github.com/Pmmlabs/OpenPeriscope"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/forkme.png" alt="Fork me on GitHub"></a>' +
+            '<a href="https://github.com/Pmmlabs/OpenPeriscope"><img style="position: absolute; top: 0; right: 0; border: 0;" src="' + IMG_PATH + '/images/forkme.png" alt="Fork me on GitHub"></a>' +
             'Some documentation can be found in <a href="http://static.pmmlabs.ru/OpenPeriscope" target="_blank">docs by @cjhbtn</a>' +
             '<br/><dt>Method</dt><form onsubmit="return false"><input id="method" type="text" placeholder="mapGeoBroadcastFeed" autocomplete="on"/></form><br/>' +
             '<dt>Parameters</dt><textarea id="params" placeholder=\'{"include_replay": true, "p1_lat": 1, "p1_lng": 2, "p2_lat": 3, "p2_lng": 4}\'/><br/><br/>'
