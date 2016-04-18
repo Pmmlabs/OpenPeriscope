@@ -62,6 +62,20 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
 } else {
     $('style').remove();
     $(document.head).append('<style>\
+    @media (max-width: 640px) {\
+        div#left {\
+            width: 0;\
+        }\
+        div#right {\
+            margin-left: 20px;\
+        }\
+        div#left:hover {\
+            width: 200px;\
+        }\
+        div#left:hover + div {\
+            margin-left: 220px;\
+        }\
+    }\
     html, body, #left, #Map, #Chat {\
         height: 100%;\
     }\
@@ -127,6 +141,8 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         will-change: opacity, transform;\
         transition: all 0.3s ease-out 0s;\
         margin-right: 10px;\
+        height: 36px;\
+        overflow: hidden;\
     }\
     .button, .card {\
         box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);\
@@ -139,6 +155,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         transition: all 0.25s ease 0s;\
         color: #26A69A;\
         line-height: 1.5rem;\
+        height: 1.5rem;\
         padding: 10px 20px;\
         margin: 0px;\
         border-bottom: 1px solid #E0E0E0;\
@@ -165,12 +182,14 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
         position: fixed;\
         box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);\
         overflow: auto;\
-        width: 200px\
+        width: 200px;\
+        transition: width 0.2s ease-out;\
     }\
     #right {\
         width: auto;\
         height: 95%;\
         margin-left: 220px;\
+        transition: margin-left 0.2s ease-out;\
     }\
     #display_name {\
         font-size: 16px;\
