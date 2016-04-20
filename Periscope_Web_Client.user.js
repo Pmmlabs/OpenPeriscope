@@ -974,7 +974,7 @@ Chat: function () {
                         .get(0).click();
                 });
             });
-            title.html('<a href="https://www.periscope.tv/w/' + broadcast.broadcast.id + '" target="_blank">' + emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
+            title.html((!broadcast.signer_token?'Read-only | ':'') + '<a href="https://www.periscope.tv/w/' + broadcast.broadcast.id + '" target="_blank">' + emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
                 + emoji.replace_unified(broadcast.broadcast.user_display_name) + ' ')
                 .append(userLink,
                     broadcast.hls_url ? ' | <a href="' + broadcast.hls_url + '">M3U Link</a>' : '',
@@ -1097,7 +1097,8 @@ Chat: function () {
                     });
                 };
 
-                openSocket(0);
+                if (broadcast.endpoint)
+                    openSocket(0);
             } else {
                 // :(
             }
@@ -1110,6 +1111,8 @@ Chat: function () {
             });
         }, function (error) {
             title.append('<b>' + error + '</b>');
+            if (NODEJS && ws && ws.readyState == ws.OPEN)
+                ws.pause(); // close() doesn't close :-/
         });
     });
     $('#right').append(
