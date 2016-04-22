@@ -57,11 +57,7 @@ if (NODEJS) {  // for NW.js
     };
     IMG_PATH = '';
 }
-if (location.href.indexOf('twitter.com/oauth/404') > 0) {
-    location.href = 'http://example.net/' + location.search;
-} else {
-    $('style').remove();
-    $(document.head).append('<style>\
+const CSS = '<style>\
     @media (max-width: 640px) {\
         div#left {\
             width: 0;\
@@ -424,8 +420,13 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     .verifiedicon {\
         float: right;\
     }\
-</style>')
-        .append('<link href="https://fonts.googleapis.com/css?family=Roboto&subset=latin,cyrillic" rel="stylesheet" type="text/css">');
+</style>';
+
+if (location.href.indexOf('twitter.com/oauth/404') > 0) {
+    location.href = 'http://example.net/' + location.search;
+} else {
+    $('style').remove();
+    $(document.head).append(CSS, '<link href="https://fonts.googleapis.com/css?family=Roboto&subset=latin,cyrillic" rel="stylesheet" type="text/css">');
     
     document.title = 'OpenPeriscope';
     var oauth_token, oauth_verifier, session_key, session_secret, loginTwitter, consumer_secret = localStorage.getItem('consumer_secret');
