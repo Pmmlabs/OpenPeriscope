@@ -163,9 +163,18 @@ const css = '<style>\
     .menu:hover:not(.active) {\
         background-color: #f0f0f0;\
     }\
-    #spinner {\
-        display: none;\
-        float:right;\
+    #progress {\
+        position: fixed;\
+        top: 0;\
+        left: 0;\
+        width: 0;\
+        z-index: 1;\
+        padding: 0;\
+        height: 2px;\
+        background: #77b7ff;\
+        box-shadow: 0 0 10px rgba(119,183,255,0.7);\
+        -webkit-transition: width 10s ease;\
+        transition: width 10s ease;\
     }\
     #left > a, #left > img {\
         margin-bottom: 5px;\
@@ -440,7 +449,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     var oauth_token, oauth_verifier, session_key, session_secret, loginTwitter, consumer_secret = localStorage.getItem('consumer_secret');
     
     $(function() {
-        $(document.body).html('<div id="left"/><div id="right"/>');
+        $(document.body).html('<div id="left"/><div id="right"/>').append(Progress.elem);
         if (loginTwitter = localStorage.getItem('loginTwitter')) {
             loginTwitter = JSON.parse(loginTwitter);
             Ready(loginTwitter);
@@ -475,8 +484,7 @@ function Ready(loginInfo) {
         <a class="username">@' + (loginInfo.user.username || loginInfo.user.twitter_screen_name) + '</a>');
     userLink.click(switchSection.bind(null, 'User', loginInfo.user.id));
     var left = $('#left').append(signOutButton)
-        .append('<img src="' + IMG_PATH + '/images/spinner.gif" id="spinner" />\
-        <br/><img src="' + loginInfo.user.profile_image_urls[1].url + '" width="140"/>')
+        .append('<img src="' + loginInfo.user.profile_image_urls[1].url + '" width="140"/>')
         .append(userLink);
     var menu = [
         {text: 'API test', id: 'ApiTest'},
@@ -516,7 +524,7 @@ function Ready(loginInfo) {
     });
     $(window).on('popstate', function(event) {
         event = event.originalEvent;
-        if (event.state.section)
+        if (event.state && event.state.section)
             switchSection(event.state.section, event.state.param, true);
     });
 }
@@ -550,6 +558,22 @@ function switchSection(section, param, popstate) {
         }
     if (popstate != true)
         history.pushState({section: section, param: param}, section, '/' + section + (param ? '/' + param : ''));
+}
+var Progress = {
+    elem: $('<div id="progress"/>'),
+    count: 0,
+    start: function(){
+        this.count++;
+        this.elem.css('visibility', 'visible');
+        this.elem.css('width','100%');
+    },
+    stop: function(){
+        this.count--;
+        if (!this.count) {  // if there is unfinished requests
+            this.elem.css('width', '0');
+            this.elem.css('visibility', 'hidden');
+        }
+    }
 }
 var languageSelect = '<dt>Language: <select class="lang">\
             <option>ar</option>\
@@ -982,10 +1006,10 @@ Chat: function () {
         }, function (broadcast) {
             var userLink = $('<a class="username">(@' + broadcast.broadcast.username + ')</a>').click(switchSection.bind(null, 'User', broadcast.broadcast.user_id));
             var srtLink = $('<a>SRT</a>').click(function () {
-                $('#spinner').show();
+                Progress.start();
                 var data = [];
                 historyLoad('', data, function(){
-                    $('#spinner').hide();
+                    Progress.stop();
                     data.sort(function (a, b) { return a.date - b.date; });
                     var start = new Date(broadcast.broadcast.start);
                     var srt = '';
@@ -1034,12 +1058,12 @@ Chat: function () {
                             if (history.cursor != '')
                                 historyLoad(history.cursor, container, callback);
                             else {
-                                $('#spinner').hide();
+                                Progress.stop();
                                 if (Object.prototype.toString.call(callback) === '[object Function]')
                                     callback();
                             }
                         } else {
-                            $('#spinner').hide();
+                            Progress.stop();
                             if (Object.prototype.toString.call(callback) === '[object Function]')
                                 callback();
                         }
@@ -1047,7 +1071,7 @@ Chat: function () {
                 });
             }
             chat.append(historyDiv, $('<center><a>Load history</a></center>').click(function () {
-                $('#spinner').show();
+                Progress.start();
                 historyLoad('');
                 $(this).remove();
             }));
@@ -1398,13 +1422,13 @@ function Api(method, params, callback, callback_fail) {
         params = {};
     if (loginTwitter && loginTwitter.cookie)
         params.cookie = loginTwitter.cookie;
-    $('#spinner').show();
+    Progress.start();
     GM_xmlhttpRequest({
         method: 'POST',
         url: 'https://api.periscope.tv/api/v2/' + method,
         data: JSON.stringify(params),
         onload: function (r) {
-            $('#spinner').hide();
+            Progress.stop();
             if (r.status == 200) {
                 var response = JSON.parse(r.responseText);
                 callback(response);
