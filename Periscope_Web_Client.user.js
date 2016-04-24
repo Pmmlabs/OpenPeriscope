@@ -57,7 +57,7 @@ if (NODEJS) {  // for NW.js
     };
     IMG_PATH = '';
 }
-const CSS = '<style>\
+const css = '<style>\
     @media (max-width: 640px) {\
         div#left {\
             width: 0;\
@@ -341,8 +341,16 @@ const CSS = '<style>\
     #presence {\
         text-align: right;\
     }\
-    #sendMessage, #underchat label {\
+    #sendMessage, #sendLike, #underchat label {\
         float: right;\
+    }\
+    #sendLike {\
+        -webkit-touch-callout: none;\
+        -webkit-user-select: none;\
+        -khtml-user-select: none;\
+        -moz-user-select: none;\
+        -ms-user-select: none;\
+        user-select: none;\
     }\
     #underchat {\
         padding-top: 5px;\
@@ -351,7 +359,7 @@ const CSS = '<style>\
         margin-top: 0.5em;\
     }\
     #underchat div {\
-        margin-right: 230px;\
+        margin-right: 310px;\
     }\
     #message {\
         width: 100%;\
@@ -426,7 +434,7 @@ if (location.href.indexOf('twitter.com/oauth/404') > 0) {
     location.href = 'http://example.net/' + location.search;
 } else {
     $('style').remove();
-    $(document.head).append(CSS, '<link href="https://fonts.googleapis.com/css?family=Roboto&subset=latin,cyrillic" rel="stylesheet" type="text/css">');
+    $(document.head).append(css, '<link href="https://fonts.googleapis.com/css?family=Roboto&subset=latin,cyrillic" rel="stylesheet" type="text/css">');
     
     document.title = 'OpenPeriscope';
     var oauth_token, oauth_verifier, session_key, session_secret, loginTwitter, consumer_secret = localStorage.getItem('consumer_secret');
@@ -875,7 +883,7 @@ Chat: function () {
                 break;
             case 5: // broadcast ended
                 if (!$.isArray(container))
-                    container.append('<div class="service">*** ' + event.displayName + (event.username ? ' (@' + event.username + ')' : '') + ' ended the broadcast</div>');
+                    container.append('<div class="service">*** ' + (event.displayName || 'Broadcaster') + (event.username ? ' (@' + event.username + ')' : '') + ' ended the broadcast</div>');
                 break;
             case 6: // invited followers
                 if (!$.isArray(container))
@@ -1060,7 +1068,7 @@ Chat: function () {
                     });
                 };
 
-                var sendMessage = function () {
+                var sendMessage = function (customtype) {
                     var timestamp = Math.floor(Date.now() / 1000);
                     var ntpstamp = parseInt((timestamp + 2208988800).toString(16) + '00000000', 16); // timestamp in NTP format
                     var message = {
@@ -1077,7 +1085,7 @@ Chat: function () {
                         uuid: "OpenPeriscope" + Math.random(),
                         signer_token: broadcast.signer_token,
                         participant_index: broadcast.participant_index,
-                        type: 1,    // "text message"
+                        type: customtype || 1,    // "text message"
                         ntpForBroadcasterFrame: ntpstamp,
                         ntpForLiveFrame: ntpstamp
                     };
@@ -1097,13 +1105,15 @@ Chat: function () {
                             renderMessages(message, chat);
                     });
                 };
-
                 if (broadcast.endpoint)
                     openSocket(0);
             } else {
-                // :(
+                var sendMessage = function () {
+                    console.log('Sending messages available only in NW.js version');
+                };
             }
             $('#sendMessage').off().click(sendMessage);
+            $('#sendLike').off().click(sendMessage.bind(null, 2));
             textBox.off().keypress(function (e) {
                 if (e.which == 13) {
                     sendMessage();
@@ -1120,7 +1130,7 @@ Chat: function () {
         $('<div id="Chat"/>').append(
             broadcast_id, playButton, title, '<br/><div id="presence" title="watching/maximum"/>', userlist, chat, $('<div id="underchat">').append(
                 '<label><input type="checkbox" id="autoscroll" checked/> Autoscroll</label>',
-                '<a class="button" id="sendMessage">Send</a>', $('<div/>').append(textBox)
+                '<a class="button" id="sendLike">\u2665</a><a class="button" id="sendMessage">Send</a>', $('<div/>').append(textBox)
             )
         )
     );
