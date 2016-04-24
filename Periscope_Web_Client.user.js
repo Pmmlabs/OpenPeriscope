@@ -871,7 +871,7 @@ Chat: function () {
                 /*moderationReportType: 0
                 moderationType: 0*/
                 break;
-            case 3: // status messages, see event.body (mostly "joined")
+            case 3: // "joined"
                 if (event.displayName && !$.isArray(container))
                     userlist.append($('<div class="user">' + emoji.replace_unified(event.displayName) + ' </div>')
                         .append($('<div class="username">(' + event.username + ')</div>')
@@ -885,20 +885,34 @@ Chat: function () {
                 if (!$.isArray(container))
                     container.append('<div class="service">*** ' + (event.displayName || 'Broadcaster') + (event.username ? ' (@' + event.username + ')' : '') + ' ended the broadcast</div>');
                 break;
-            case 6: // invited followers
+            case 6: // followers invited 
                 if (!$.isArray(container))
                     container.append('<div class="service">*** ' + (event.displayName || '') + ' (@' + event.username + '): ' + event.body.replace('*%s*', event.invited_count) + '</div>');
                 break;
-            case 7:
-                if (!$.isArray(container))
-                    container.append('<div class="service">7 *** ' + event.displayName + ' (@' + event.username + ') ' + event.body + '</div>');
-                console.log('SE7EN', event);
+            case 7: // BROADCAST_STARTED_LOCALLY (?)
+                if (!$.isArray(container)) {
+                    container.append('<div class="service">*** Broadcast started locally</div>');
+                    console.log('BROADCAST_STARTED_LOCALLY', event);
+                }
                 break;
             case 8: // replay available
                 break;
             case 9: // Broadcaster starts streaming. uuid=SE-0. timestampPlaybackOffset
                 break;
+            case 10: //LOCAL_PROMPT_TO_FOLLOW_BROADCASTER (?)
+                if (!$.isArray(container)) {
+                    container.append('<div class="service">*** LOCAL_PROMPT_TO_FOLLOW_BROADCASTER</div>');
+                    console.log('LOCAL_PROMPT_TO_FOLLOW_BROADCASTER', event);
+                }
+                break;
+            case 11: //LOCAL_PROMPT_TO_SHARE_BROADCAST (?)
+                if (!$.isArray(container)) {
+                    container.append('<div class="service">*** LOCAL_PROMPT_TO_SHARE_BROADCAST</div>');
+                    console.log('LOCAL_PROMPT_TO_SHARE_BROADCAST', event);
+                }
+                break;
             case 12: // Ban
+            case 14: //SUBSCRIBER_BLOCKED_VIEWER
                 if ($.isArray(container))
                     container.push({
                         date: date,
@@ -907,6 +921,18 @@ Chat: function () {
                     });
                 else
                     container.append('<div class="service">*** @' + event.broadcasterBlockedUsername + ' has been blocked for message: "' + event.broadcasterBlockedMessageBody + '"</div>');
+                break;
+            case 13: //SUBSCRIBER_SHARED_ON_TWITTER
+                if (!$.isArray(container))
+                    container.append('<div class="service">*** ' + (event.displayName || '') + ' (@' + event.username + ') shared on twitter</div>');
+                break;
+            case 15: //SUBSCRIBER_SHARED_ON_FACEBOOK
+                if (!$.isArray(container))
+                    container.append('<div class="service">*** ' + (event.displayName || '') + ' (@' + event.username + ') shared on facebook</div>');
+                break;      
+            case 16: //SCREENSHOT
+                if (!$.isArray(container))
+                    container.append('<div class="service">*** ' + (event.displayName || '') + ' (@' + event.username + ') has made the screenshot</div>');
                 break;
             default: // service messages (event.action = join, leave, timeout, state_changed)
                 /*event.occupancy && event.total_participants*/
