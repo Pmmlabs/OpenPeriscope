@@ -8,6 +8,8 @@
 // @version     1.2
 // @author      Pmmlabs@github
 // @grant       GM_xmlhttpRequest
+// @connect     periscope.tv
+// @connect     twitter.com
 // @require     https://code.jquery.com/jquery-1.11.3.js
 // @require     http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/hmac-sha1.js
 // @require     http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js
@@ -20,6 +22,7 @@
 // @noframes
 // ==/UserScript==
 
+var emoji = emoji || new EmojiConvertor();  // js-emoji 3.0 upgrade
 NODEJS = typeof GM_xmlhttpRequest == 'undefined';
 var IMG_PATH = 'https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master';
 if (NODEJS) {  // for NW.js
