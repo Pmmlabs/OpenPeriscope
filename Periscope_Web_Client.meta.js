@@ -5,16 +5,19 @@
 // @description Periscope client based on API requests. Visit example.net for launch.
 // @include     https://api.twitter.com/oauth/404*
 // @include     http://example.net/*
-// @version     1.1
+// @version     1.2
 // @author      Pmmlabs@github
 // @grant       GM_xmlhttpRequest
+// @connect     periscope.tv
+// @connect     twitter.com
 // @require     https://code.jquery.com/jquery-1.11.3.js
 // @require     http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/hmac-sha1.js
 // @require     http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js
 // @require     http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js
 // @require     http://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js
-// @downloadURL https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/Periscope_Web_Client.user.js
-// @updateURL   https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/Periscope_Web_Client.meta.js
-// @icon        https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/openperiscope.png
+// @require     https://github.com/iamcal/js-emoji/raw/master/lib/emoji.js
+// @downloadURL https://github.com/Pmmlabs/OpenPeriscope/raw/master/Periscope_Web_Client.user.js
+// @updateURL   https://github.com/Pmmlabs/OpenPeriscope/raw/master/Periscope_Web_Client.meta.js
+// @icon        https://github.com/Pmmlabs/OpenPeriscope/raw/master/images/openperiscope.png
 // @noframes
 // ==/UserScript==

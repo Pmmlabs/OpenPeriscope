@@ -16,9 +16,9 @@
 // @require     http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js
 // @require     http://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js
 // @require     https://github.com/iamcal/js-emoji/raw/master/lib/emoji.js
-// @downloadURL https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/Periscope_Web_Client.user.js
-// @updateURL   https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/Periscope_Web_Client.meta.js
-// @icon        https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/openperiscope.png
+// @downloadURL https://github.com/Pmmlabs/OpenPeriscope/raw/master/Periscope_Web_Client.user.js
+// @updateURL   https://github.com/Pmmlabs/OpenPeriscope/raw/master/Periscope_Web_Client.meta.js
+// @icon        https://github.com/Pmmlabs/OpenPeriscope/raw/master/images/openperiscope.png
 // @noframes
 // ==/UserScript==
 
