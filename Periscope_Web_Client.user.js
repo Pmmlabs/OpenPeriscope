@@ -718,6 +718,7 @@ ApiTest: function () {
     var submitButton = $('<a class="button">Submit</div>');
     submitButton.click(function () {
         try {
+            $('#ApiTest form').submit();
             var method = $('#method').val().trim();
             if (method == '')
                 throw Error('Method is empty');
@@ -739,7 +740,7 @@ ApiTest: function () {
         $('<div id="ApiTest"/>').append(
             '<a href="https://github.com/Pmmlabs/OpenPeriscope"><img style="position: absolute; top: 0; right: 0; border: 0;" src="' + IMG_PATH + '/images/forkme.png" alt="Fork me on GitHub"></a>' +
             'Some documentation can be found in <a href="http://static.pmmlabs.ru/OpenPeriscope" target="_blank">docs by @cjhbtn</a>' +
-            '<br/><dt>Method</dt><form onsubmit="return false"><input id="method" type="text" placeholder="mapGeoBroadcastFeed" autocomplete="on"/></form><br/>' +
+            '<br/><dt>Method</dt><iframe id="forautocomplete" name="forautocomplete" style="display: none;"></iframe><form target="forautocomplete"><input id="method" type="text" placeholder="mapGeoBroadcastFeed" autocomplete="on"/></form><br/>' +
             '<dt>Parameters</dt><textarea id="params" placeholder=\'{"include_replay": true, "p1_lat": 1, "p1_lng": 2, "p2_lat": 3, "p2_lng": 4}\'/><br/><br/>'
             , submitButton, '<br/><br/><pre id="response"/>Response is also displayed in the browser console, if [Debug mode] is checked</pre>')
     );
