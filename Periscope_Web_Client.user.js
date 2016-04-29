@@ -1439,6 +1439,9 @@ function Api(method, params, callback, callback_fail) {
     GM_xmlhttpRequest({
         method: 'POST',
         url: 'https://api.periscope.tv/api/v2/' + method,
+        // headers: {
+        //     'User-Agent': 'Periscope/2699 (iPhone; iOS 8.1.2; Scale/2.00)'
+        // },
         data: JSON.stringify(params),
         onload: function (r) {
             Progress.stop();
