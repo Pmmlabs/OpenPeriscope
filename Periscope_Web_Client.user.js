@@ -75,6 +75,14 @@ const css = '<style>\
             margin-left: 220px;\
         }\
     }\
+    @media (max-width: 800px) {\
+        div#userlist {\
+            width: 0;\
+        }\
+        div#userlist:hover {\
+            width: 200px;\
+        }\
+    }\
     html, body, #left, #Map, #Chat {\
         height: 100%;\
     }\
@@ -326,9 +334,9 @@ const css = '<style>\
     #userlist {\
         float: right;\
         width: 250px;\
+        transition: width 0.2s ease-out;\
     }\
     #chat {\
-        margin-right: 250px;\
         word-break: break-all;\
     }\
     #chat, #userlist {\
