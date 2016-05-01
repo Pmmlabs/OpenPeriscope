@@ -4,7 +4,12 @@ Unofficial in-browser web client for Periscope (userscript)
 
 ### Using as standalone application
 
-If you have [NW.js](http://nwjs.io) installed, you can run ` nw . ` in repo directory
+If you have [NW.js](http://nwjs.io) installed, you can run
+```
+ npm install
+ nw . 
+ ```
+ in repo directory
 
 Or, you can use pre-built executables from [Releases page](https://github.com/Pmmlabs/OpenPeriscope/releases)
 

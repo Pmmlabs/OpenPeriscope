@@ -1,11 +1,11 @@
-// ==UserScript==
+﻿// ==UserScript==
 // @id          OpenPeriscope@pmmlabs.ru
 // @name        Periscope Web Client
 // @namespace   https://greasyfork.org/users/23
 // @description Periscope client based on API requests. Visit example.net for launch.
 // @include     https://api.twitter.com/oauth/openperiscope*
 // @include     http://example.net/*
-// @version     1.2
+// @version     1.3
 // @author      Pmmlabs@github
 // @grant       GM_xmlhttpRequest
 // @connect     periscope.tv
@@ -22,7 +22,7 @@
 // @noframes
 // ==/UserScript==
 
-var emoji = emoji || new EmojiConvertor();  // js-emoji 3.0 upgrade
+var emoji = new EmojiConvertor();
 NODEJS = typeof GM_xmlhttpRequest == 'undefined';
 var IMG_PATH = 'https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master';
 if (NODEJS) {  // for NW.js
