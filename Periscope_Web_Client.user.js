@@ -3,7 +3,7 @@
 // @name        Periscope Web Client
 // @namespace   https://greasyfork.org/users/23
 // @description Periscope client based on API requests. Visit example.net for launch.
-// @include     https://api.twitter.com/oauth/404*
+// @include     https://api.twitter.com/oauth/openperiscope*
 // @include     http://example.net/*
 // @version     1.2
 // @author      Pmmlabs@github
@@ -450,7 +450,7 @@ const css = '<style>\
     }\
 </style>';
 
-if (location.href.indexOf('twitter.com/oauth/404') > 0) {
+if (location.href.indexOf('twitter.com/oauth/openperiscope') > 0) {
     location.href = 'http://example.net/' + location.search;
 } else {
     $('style').remove();
@@ -1497,7 +1497,7 @@ function SignIn1() {
         $(this).text('Loading...');
         OAuth('request_token', function (oauth) {
             location.href = 'https://api.twitter.com/oauth/authorize?oauth_token=' + oauth.oauth_token;
-        }, {oauth_callback: (NODEJS ? 'app://openperiscope/index.html' : '404')});
+        }, {oauth_callback: (NODEJS ? 'app://openperiscope/index.html' : 'openperiscope')});
     }
 }
 function SignOut() {
