@@ -1175,7 +1175,7 @@ Chat: function () {
                     console.log('Sending messages available only in NW.js version');
                 };
             }
-            $('#sendMessage').off().click(sendMessage);
+            $('#sendMessage').off().click(sendMessage.bind(null, null));
             $('#sendLike').off().click(sendMessage.bind(null, 2));
             textBox.off().keypress(function (e) {
                 if (e.which == 13) {
