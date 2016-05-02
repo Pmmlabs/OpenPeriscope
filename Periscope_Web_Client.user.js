@@ -997,6 +997,8 @@ Chat: function () {
     }
     var playButton = $('<a class="button" id="startchat">OK</a>').click(function () {
         clearInterval(chat_interval);
+        if (NODEJS && ws && ws.readyState == ws.OPEN)
+            ws.pause(); // close() doesn't close :-/
         chat.empty();
         userlist.empty();
         title.empty();
@@ -1090,8 +1092,6 @@ Chat: function () {
             }));
             // Chat reading & posting
             if (NODEJS) {
-                if (ws && ws.readyState == ws.OPEN)
-                    ws.pause(); // close() doesn't close :-/
                 var openSocket = function (failures) {
                     ws = new WebSocket(broadcast.endpoint.replace('https:', 'wss:').replace('http:', 'ws:') + '/chatapi/v1/chatnow');
 
@@ -1185,8 +1185,6 @@ Chat: function () {
             });
         }, function (error) {
             title.append('<b>' + error + '</b>');
-            if (NODEJS && ws && ws.readyState == ws.OPEN)
-                ws.pause(); // close() doesn't close :-/
         });
     });
     $('#right').append(
