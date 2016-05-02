@@ -12,6 +12,8 @@
     "plugin": true
   },
   "chromium-args": "--ppapi-flash-path=plugins/libpepflashplayer.so",
+  //"chromium-args": "--ppapi-flash-path=c:\\Windows\\System32\\Macromed\\Flash\\pepflashplayer32_21_0_0_213.dll",
+  //"chromium-args": "--ppapi-flash-path=c:\\Windows\\System32\\Macromed\\Flash\\pepflashplayer64_21_0_0_213.dll",
   "single-instance": false,
   "window": {
     "icon": "images/openperiscope.png",
