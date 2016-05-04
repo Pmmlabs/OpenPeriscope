@@ -812,6 +812,7 @@ Create: function () {
         Api('createBroadcast', {
             lat: 0,
             lng: 0,
+            //supports_psp_version: [1, 0, 0],
             region: $('#server').val(),
             width: +widthInput.val(),
             height: +heightInput.val()
@@ -1055,6 +1056,7 @@ Chat: function () {
                 + emoji.replace_unified(broadcast.broadcast.user_display_name) + ' ')
                 .append(userLink,
                     broadcast.hls_url ? ' | <a href="' + broadcast.hls_url + '">M3U Link</a>' : '',
+                    broadcast.replay_url ? ' | <a href="' + broadcast.replay_url + '">Replay Link</a>' : '',
                     broadcast.rtmp_url ? ' | <a href="' + broadcast.rtmp_url + '">RTMP Link</a>' : '',
                     ' | ', srtLink
                 );
