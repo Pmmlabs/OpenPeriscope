@@ -870,15 +870,20 @@ Chat: function () {
         });
     }
 
+    function userlistAdd(user){
+        var id = user.id || user.remoteID || user.user_id;
+        if (!userlist.find('#'+id).length)
+            userlist.append($('<div class="user" id="' + id + '">' + emoji.replace_unified(user.display_name || user.displayName) + ' </div>')
+                .append($('<div class="username">(' + user.username + ')</div>')
+                    .click(switchSection.bind(null, 'User', id))));
+    }
     function renderMessages(event, container) {
         if (event.occupants) {  // "presense" for websockets
             userlist.empty();
             var user;
             for (var j in event.occupants)
                 if ((user = event.occupants[j]) && user.display_name) {
-                    userlist.append($('<div class="user">' + emoji.replace_unified(user.display_name) + ' </div>')
-                        .append($('<div class="username">(' + user.username + ')</div>')
-                            .click(switchSection.bind(null, 'User', user.user_id))));
+                    userlistAdd(user);
                 }
         }
         else
@@ -910,9 +915,7 @@ Chat: function () {
                 break;
             case 3: // "joined"
                 if (event.displayName && !$.isArray(container))
-                    userlist.append($('<div class="user">' + emoji.replace_unified(event.displayName) + ' </div>')
-                        .append($('<div class="username">(' + event.username + ')</div>')
-                            .click(switchSection.bind(null, 'User', event.remoteID))));
+                    userlistAdd(event);
                 break;
             case 4: // broadcaster moved to new place
                 if ($('#debug')[0].checked && !$.isArray(container))
@@ -972,6 +975,8 @@ Chat: function () {
                     container.append('<div class="service">*** ' + (event.displayName || '') + ' (@' + event.username + ') has made the screenshot</div>');
                 break;
             default: // service messages (event.action = join, leave, timeout, state_changed)
+                if ($('#debug')[0].checked)
+                    console.log('renderMessages default!', event);
                 /*event.occupancy && event.total_participants*/
                 break;
         }
@@ -1011,9 +1016,7 @@ Chat: function () {
             var user;
             for (var j in viewers.live)
                 if ((user = viewers.live[j]) && user.display_name) {
-                    userlist.append($('<div class="user">' + emoji.replace_unified(user.display_name) + ' </div>')
-                        .append($('<div class="username">(' + user.username + ')</div>')
-                            .click(switchSection.bind(null, 'User', user.id))));
+                    userlistAdd(user);
                 }
         });
         Api('accessChannel', {
