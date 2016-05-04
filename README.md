@@ -12,6 +12,7 @@ If you have [NW.js](http://nwjs.io) 12.x installed, you can run
  in repo directory
 
 Or, you can use pre-built executables from [Releases page](https://github.com/Pmmlabs/OpenPeriscope/releases)
+On Windows, be sure to install PepperFlash (go to [https://get.adobe.com/ru/flashplayer/otherversions](https://get.adobe.com/ru/flashplayer/otherversions), choose OS, chose "PPAPI")
 
 ### Using as userscript
 
@@ -23,7 +24,7 @@ In this case posting to chat will not work.
 
 ### Authorization
 
-1. Type consumer secret of Periscope App (_Where do I get it?_ Hunt out. Reverse the app, steal from twitter's devs, or something else)
+1. Type consumer secret of Periscope App (_Where do I get it?_ Hunt out. Reverse the app, steal from twitter's devs, or something [else](http://pastebin.com))
 1. Click "Sign in with twitter"
 1. Login to the Twitter (if not yet) and click "Authorize"
 1. Here you go!
