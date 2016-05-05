@@ -293,6 +293,20 @@ const css = '<style>\
         background-image: url("' + IMG_PATH + '/images/camera-black.png");\
         height: 14px;\
     }\
+    .date {\
+        background-image: url("' + IMG_PATH + '/images/calendar-black.png");\
+        height: 14px;\
+        padding-left: 20px;\
+        background-repeat: no-repeat;\
+        background-position: 0 center;\
+    }\
+    .time {\
+        background-image: url("' + IMG_PATH + '/images/clock-black.png");\
+        height: 14px;\
+        padding-left: 30px;\
+        background-repeat: no-repeat;\
+        background-position: 10px center;\
+    }\
     dt {\
         width: 150px;\
         float: left;\
@@ -1440,8 +1454,8 @@ function getDescription(stream) {
                 <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>'+featured_reason+'\
             </div>')
         .append(deleteLink, '<br/>', screenlistLink, userLink, '<br/>', chatLink,
-            'Created: ' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth() + 1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes())
-            + (duration ? '<br/>Duration: ' + zeros(duration.getUTCHours()) + ':' + zeros(duration.getMinutes()) + ':' + zeros(duration.getSeconds()) : '')
+            '<span class="date" title="Created">' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth() + 1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes()) + '</span>'
+            + (duration ? '<span class="time" title="Duration">' + zeros(duration.getUTCHours()) + ':' + zeros(duration.getMinutes()) + ':' + zeros(duration.getSeconds()) + '</span>' : '')
             + (stream.country || stream.city ? '<br/>' + stream.country + ', ' + stream.city : ''), '<div class="links" />');
     return description[0];
 }
