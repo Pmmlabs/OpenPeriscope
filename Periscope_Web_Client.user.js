@@ -16,6 +16,7 @@
 // @require     http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js
 // @require     http://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js
 // @require     https://github.com/iamcal/js-emoji/raw/master/lib/emoji.js
+// @require     https://github.com/zenorocha/clipboard.js/raw/master/dist/clipboard.min.js
 // @downloadURL https://github.com/Pmmlabs/OpenPeriscope/raw/master/Periscope_Web_Client.user.js
 // @updateURL   https://github.com/Pmmlabs/OpenPeriscope/raw/master/Periscope_Web_Client.meta.js
 // @icon        https://github.com/Pmmlabs/OpenPeriscope/raw/master/images/openperiscope.png
@@ -151,7 +152,7 @@ const css = '<style>\
         height: 36px;\
         overflow: hidden;\
     }\
-    .button, .card {\
+    .button, .card, .contextmenu {\
         box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);\
     }\
     .button:hover {\
@@ -171,7 +172,7 @@ const css = '<style>\
         background-color: #26A69A;\
         color: #EAFAF9;\
     }\
-    .menu:hover:not(.active) {\
+    .menu:hover:not(.active), .contextmenu div:hover {\
         background-color: #f0f0f0;\
     }\
     #progress {\
@@ -311,7 +312,6 @@ const css = '<style>\
         min-height: 128px;\
         margin: 0.5rem 0 1rem 0;\
         background-color: #fff;\
-        transition: box-shadow .25s;\
         border-radius: 2px;\
     }\
     .card .description {\
@@ -351,6 +351,9 @@ const css = '<style>\
     #chat .user {\
         color: #2927cc;\
         cursor: pointer;\
+    }\
+    #userlist .user {\
+        cursor: default;\
     }\
     .user div {\
         display: inline;\
@@ -447,6 +450,15 @@ const css = '<style>\
     }\
     .verifiedicon {\
         float: right;\
+    }\
+    .contextmenu {\
+        position: absolute;\
+        padding: 0;\
+        background: white;\
+    }\
+    .contextmenu div {\
+        padding: 5px;\
+        cursor: pointer;\
     }\
 </style>';
 
@@ -866,7 +878,44 @@ Chat: function () {
         if (!userlist.find('#'+id).length)
             userlist.append($('<div class="user" id="' + id + '">' + emoji.replace_unified(user.display_name || user.displayName) + ' </div>')
                 .append($('<div class="username">(' + user.username + ')</div>')
-                    .click(switchSection.bind(null, 'User', id))));
+                    .click(switchSection.bind(null, 'User', id)))
+                .contextmenu(function (ev) {
+                    ev.preventDefault();
+                    var contextmenu = $('<div class="contextmenu" style="top: ' + ev.pageY + 'px; left: ' + ev.pageX + 'px;"/>')
+                        .append($('<div>Follow</div>').click(function () {
+                            Api('follow', {
+                                user_id: id
+                            });
+                        }))
+                        .append($('<div>Unfollow</div>').click(function () {
+                            Api('unfollow', {
+                                user_id: id
+                            });
+                        }))
+                        .append('<div data-clipboard-text="https://periscope.tv/' + user.username + '">Copy profile URL</div>' +
+                                '<div data-clipboard-text="' + id + '">Copy user ID</div>')
+                        .append($('<div>Block user</div>').click(function () {
+                            Api('block/add', {
+                                to: id
+                            });
+                        }))
+                        .append($('<div>Unlock user</div>').click(function () {
+                            Api('block/remove', {
+                                to: id
+                            });
+                        }))
+                        .click(function (event) {
+                            $(this).remove();
+                        })
+                        .mousedown(function (event) {
+                            event.stopPropagation();
+                        });
+                    $('body').append(contextmenu).off('mousedown').mousedown(function () {
+                        contextmenu.remove();
+                    });
+                    new Clipboard('.contextmenu div');
+                })
+            );
     }
     function renderMessages(event, container) {
         if (event.occupants) {  // "presense" for websockets
@@ -916,7 +965,7 @@ Chat: function () {
                 if (!$.isArray(container))
                     container.append('<div class="service">*** ' + (event.displayName || 'Broadcaster') + (event.username ? ' (@' + event.username + ')' : '') + ' ended the broadcast</div>');
                 break;
-            case 6: // followers invited 
+            case 6: // followers invited
                 if (!$.isArray(container))
                     container.append('<div class="service">*** ' + (event.displayName || '') + ' (@' + event.username + '): ' + event.body.replace('*%s*', event.invited_count) + '</div>');
                 break;
@@ -960,7 +1009,7 @@ Chat: function () {
             case 15: //SUBSCRIBER_SHARED_ON_FACEBOOK
                 if (!$.isArray(container))
                     container.append('<div class="service">*** ' + (event.displayName || '') + ' (@' + event.username + ') shared on facebook</div>');
-                break;      
+                break;
             case 16: //SCREENSHOT
                 if (!$.isArray(container))
                     container.append('<div class="service">*** ' + (event.displayName || '') + ' (@' + event.username + ') has made the screenshot</div>');
@@ -1018,7 +1067,6 @@ Chat: function () {
                 Progress.start();
                 var data = [];
                 historyLoad('', data, function(){
-                    Progress.stop();
                     data.sort(function (a, b) { return a.date - b.date; });
                     var start = new Date(broadcast.broadcast.start);
                     var srt = '';
@@ -1440,7 +1488,8 @@ function Api(method, params, callback, callback_fail) {
             Progress.stop();
             if (r.status == 200) {
                 var response = JSON.parse(r.responseText);
-                callback(response);
+                if (callback)
+                    callback(response);
                 if ($('#debug').length && $('#debug')[0].checked)
                     console.log('Method:', method, 'params:', params, 'response:', response);
                 $(window).trigger('scroll');    // for lazy load
