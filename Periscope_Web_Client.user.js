@@ -613,37 +613,27 @@ Map: function () {
     $(document.head).append('<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />')
         .append('<link rel="stylesheet" href="http://leaflet.github.io/Leaflet.markercluster/dist/MarkerCluster.css" />');
     $('#right').append('<div id="Map"/>');
+    // Set center
     var map = L.map('Map').setView([0, 0], 2);
     if (navigator.geolocation)
         navigator.geolocation.getCurrentPosition(function (position) {
             map.setView([position.coords.latitude, position.coords.longitude], 11);
         });
-    var tileLayers = [
-        {
-            text: "Open Street Map",
-            layer: L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: 'Map data &copy; OpenStreetMap'
-            }).addTo(map)
-        },
-        {
-            text: "Mapbox",
-            layer: L.tileLayer('http://{s}.tiles.mapbox.com/v4/mapbox.streets/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpamV0Zms2ZzAwMGh0Zm01MDR3YmV2cHgifQ.m9a-_eKcMy9A6glxEtuj3Q', {
-                attribution: 'Map data &copy; OpenStreetMap'
-            })
-        },
-        {
-            text: "Google",
-            layer: L.tileLayer('http://mt{s}.google.com/vt/x={x}&y={y}&z={z}', {
-                subdomains: '123',
-                attribution: 'Map data &copy; Google'
-            })
-        }
-    ];
-
-    var tileLayersMin = {};
-    for (var i in tileLayers)
-        tileLayersMin[tileLayers[i].text] = tileLayers[i].layer;
-    L.control.layers(tileLayersMin).addTo(map);
+    // Layers list
+    var tileLayers = {
+        "Open Street Map": L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; OpenStreetMap'
+        }).addTo(map),
+        "Mapbox": L.tileLayer('http://{s}.tiles.mapbox.com/v4/mapbox.streets/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpamV0Zms2ZzAwMGh0Zm01MDR3YmV2cHgifQ.m9a-_eKcMy9A6glxEtuj3Q', {
+            attribution: 'Map data &copy; OpenStreetMap'
+        }),
+        "Google": L.tileLayer('http://mt{s}.google.com/vt/x={x}&y={y}&z={z}', {
+            subdomains: '123',
+            attribution: 'Map data &copy; Google'
+        })
+    };
+    L.control.layers(tileLayers).addTo(map);
+    // Cluster icons
     var iconCreate = function (prefix) {
         return function (cluster) {
             var childCount = cluster.getChildCount();
