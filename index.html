@@ -13145,15 +13145,6 @@ Connection: close
                                                 <td>User</td>
                                             </tr>
                                             <tr>
-                                                <td>id</td>
-                                                <td>
-                                                    string
-                                                </td>
-                                                <td>Yes</td>
-                                                <td>Unique identifier of the user</td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
                                                 <td>created_at</td>
                                                 <td>
                                                     datestring
@@ -13163,9 +13154,36 @@ Connection: close
                                                 <td></td>
                                             </tr>
                                             <tr>
-                                                <td>updated_at</td>
+                                                <td>description</td>
                                                 <td>
-                                                    datestring
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>display_name</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td>First and last name</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>id</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td>Unique identifier of the user</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>initials</td>
+                                                <td>
+                                                    string
                                                 </td>
                                                 <td>Yes</td>
                                                 <td></td>
@@ -13190,7 +13208,25 @@ Connection: close
                                                 <td>false</td>
                                             </tr>
                                             <tr>
-                                                <td>is_twitter_verified</td>
+                                                <td>is_following</td>
+                                                <td>
+                                                    boolean
+                                                </td>
+                                                <td>No</td>
+                                                <td>Returns only from private methods</td>
+                                                <td>false</td>
+                                            </tr>
+                                            <tr>
+                                                <td>is_muted</td>
+                                                <td>
+                                                    boolean
+                                                </td>
+                                                <td>No</td>
+                                                <td>Returns only from private methods</td>
+                                                <td>false</td>
+                                            </tr>
+                                            <tr>
+                                                <td>is_twitter_friend</td>
                                                 <td>
                                                     boolean
                                                 </td>
@@ -13199,60 +13235,13 @@ Connection: close
                                                 <td>false</td>
                                             </tr>
                                             <tr>
-                                                <td>twitter_screen_name</td>
+                                                <td>is_twitter_verified</td>
                                                 <td>
-                                                    string
+                                                    boolean
                                                 </td>
                                                 <td>Yes</td>
                                                 <td></td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td>username</td>
-                                                <td>
-                                                    string
-                                                </td>
-                                                <td>Yes</td>
-                                                <td>Periscope Username</td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td>display_name</td>
-                                                <td>
-                                                    string
-                                                </td>
-                                                <td>Yes</td>
-                                                <td>First and last name</td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td>description</td>
-                                                <td>
-                                                    string
-                                                </td>
-                                                <td>Yes</td>
-                                                <td></td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td>profile_image_urls</td>
-                                                <td>
-                                                    <a href="#ProfileImageUrls" title="ProfileImageUrls Object">
-                                                        array of ProfileImageUrls
-                                                    </a>
-                                                </td>
-                                                <td>Yes</td>
-                                                <td></td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td>initials</td>
-                                                <td>
-                                                    string
-                                                </td>
-                                                <td>Yes</td>
-                                                <td></td>
-                                                <td></td>
+                                                <td>false</td>
                                             </tr>
                                             <tr>
                                                 <td>n_followers</td>
@@ -13273,22 +13262,13 @@ Connection: close
                                                 <td></td>
                                             </tr>
                                             <tr>
-                                                <td>is_following</td>
+                                                <td>n_hearts_given</td>
                                                 <td>
-                                                    boolean
+                                                    integer
                                                 </td>
                                                 <td>No</td>
-                                                <td>Returns only from private methods</td>
-                                                <td>false</td>
-                                            </tr>
-                                            <tr>
-                                                <td>is_muted</td>
-                                                <td>
-                                                    boolean
-                                                </td>
-                                                <td>No</td>
-                                                <td>Returns only from private methods</td>
-                                                <td>false</td>
+                                                <td>Count of hearts given in current chat</td>
+                                                <td>0</td>
                                             </tr>
                                             <tr>
                                                 <td>n_replay_hearts</td>
@@ -13309,12 +13289,14 @@ Connection: close
                                                 <td>0</td>
                                             </tr>
                                             <tr>
-                                                <td>start</td>
+                                                <td>profile_image_urls</td>
                                                 <td>
-                                                    time in ATOM format
+                                                    <a href="#ProfileImageUrls" title="ProfileImageUrls Object">
+                                                        array of ProfileImageUrls
+                                                    </a>
                                                 </td>
-                                                <td>No</td>
-                                                <td>User join time in current chat</td>
+                                                <td>Yes</td>
+                                                <td></td>
                                                 <td></td>
                                             </tr>
                                             <tr>
@@ -13327,13 +13309,40 @@ Connection: close
                                                 <td></td>
                                             </tr>
                                             <tr>
-                                                <td>n_hearts_given</td>
+                                                <td>start</td>
                                                 <td>
-                                                    integer
+                                                    time in ATOM format
                                                 </td>
                                                 <td>No</td>
-                                                <td>Count of hearts given in current chat</td>
-                                                <td>0</td>
+                                                <td>User join time in current chat</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>twitter_screen_name</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>updated_at</td>
+                                                <td>
+                                                    datestring
+                                                </td>
+                                                <td>No</td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>username</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td>Periscope Username</td>
+                                                <td></td>
                                             </tr>
                                             </tbody>
                                         </table>
