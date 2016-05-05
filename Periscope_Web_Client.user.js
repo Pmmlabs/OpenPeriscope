@@ -298,6 +298,12 @@ const css = '<style>\
     .time {\
         background-image: url("' + IMG_PATH + '/images/clock-black.png");\
     }\
+     .friend_chat {\
+        background-image: url("' + IMG_PATH + '/images/eye-black.png");\
+    }\
+    .is_locked {\
+        background-image: url("' + IMG_PATH + '/images/lock-black.png");\
+    }\
     dt {\
         width: 150px;\
         float: left;\
@@ -1444,6 +1450,8 @@ function getDescription(stream) {
         .append(deleteLink, '<br/>', screenlistLink, userLink, '<br/>', chatLink,
             '<span class="date icon" title="Created">' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth() + 1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes()) + '</span>'
             + (duration ? '<span class="time icon" title="Duration">' + zeros(duration.getUTCHours()) + ':' + zeros(duration.getMinutes()) + ':' + zeros(duration.getSeconds()) + '</span>' : '')
+            + (stream.friend_chat ? '<span class="friend_chat" title="Chat only for friends"/>' : '')
+            + (stream.is_locked ? '<span class="is_locked" title="Locked"/>' : '')
             + (stream.country || stream.city ? '<br/>' + stream.country + ', ' + stream.city : ''), '<div class="links" />');
     return description[0];
 }
