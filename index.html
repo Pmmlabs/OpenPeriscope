@@ -575,7 +575,7 @@
                                     After this, the application proceeds to grab a list of the Featured Broadcasts, and
                                     Broadcasts from users that are being followed by the current user. These are the
                                     calls to <a href="#/featuredBroadcastFeed">/featuredBroadcastFeed</a> and <a
-                                        href="#/followingBroadcastFeed">/followingBroadcastFeed.</a> </br>
+                                        href="#/followingBroadcastFeed">/followingBroadcastFeed.</a>
                                     <br/>
                                     Finally, the application appears to register the device token against the user, most
                                     likely allowing for notifications of broadcasts to be sent to the device. This is on
@@ -3012,6 +3012,163 @@ Content-Length: 14004
                                 </div>
                             </div>
                         </div>
+                        <div class="panel panel-default">
+                            <div id="/broadcastSearch" class="panel-heading">/broadcastSearch - Search broadcasts by title
+                                <span class="pull-right badge"><i class="fa fa-lock"
+                                                                  title="This endpoint requires authentication"></i></span>
+                            </div>
+                            <div class="panel-footer">
+                                <code>https://api.periscope.tv/api/v2/broadcastSearch</code>
+                            </div>
+                            <div class="panel-body">
+                                <p>
+                                    [TODO - To be documented]
+                                </p>
+
+                                <hr>
+
+                                <div id="broadcastSearch-requests" class="panel panel-success">
+                                    <div id="broadcastSearch-requests-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#broadcastSearch-requests" href="#broadcastSearch-requests-content"
+                                           aria-expanded="false" aria-controls="broadcastSearch-requests-content">
+                                            Request Parameters
+                                        </a>
+                                    </div>
+                                    <div id="broadcastSearch-requests-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="broadcastSearch-requests-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Parameter</th>
+                                                <th>Type</th>
+                                                <th>Optional</th>
+                                                <th>Description</th>
+                                                <th>Default Value</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>cookie</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>No</td>
+                                                <td>Periscope Authentication Cookie</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>query</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td>?</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>search</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>No</td>
+                                                <td>Search string</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>include_replay</td>
+                                                <td>
+                                                    boolean
+                                                </td>
+                                                <td>Yes</td>
+                                                <td>Whether to include replays to results</td>
+                                                <td>false</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div id="broadcastSearch-responses" class="panel panel-info">
+                                    <div id="broadcastSearch-responses-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#broadcastSearch-responses" href="#broadcastSearch-responses-content"
+                                           aria-expanded="false" aria-controls="broadcastSearch-responses-content">
+                                            Response Values
+                                        </a>
+                                    </div>
+                                    <div id="broadcastSearch-responses-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="broadcastSearch-responses-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Key</th>
+                                                <th>Type</th>
+                                                <th>Always Available</th>
+                                                <th>Description</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <td>[none]</td>
+                                            <td>
+                                                <a href="#Broadcast" title="Broadcast Object">
+                                                    array of Broadcast
+                                                </a>
+                                            </td>
+                                            <td>Yes</td>
+                                            <td>Search results</td>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div id="broadcastSearch-errors" class="panel panel-danger">
+                                    <div id="broadcastSearch-errors-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#broadcastSearch-errors" href="#broadcastSearch-errors-content"
+                                           aria-expanded="false" aria-controls="-errors-content">
+                                            Error Responses
+                                        </a>
+                                    </div>
+                                    <div id="broadcastSearch-errors-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="broadcastSearch-errors-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Status Code</th>
+                                                <th>Error Text</th>
+                                                <th>Description</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>400</td>
+                                                <td>Bad Request</td>
+                                                <td>Request did not meet requirements - potentially missing parameter
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>401</td>
+                                                <td>Unauthorized</td>
+                                                <td>This endpoint requires authentication and no cookie value was
+                                                    provided, or is invalid
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>404</td>
+                                                <td>Not Found</td>
+                                                <td></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <hr/>
@@ -3773,7 +3930,6 @@ Content-Length: 57838
                                                 <td>broadcast_ids</td>
                                                 <td>
                                                     array of string
-                                                    </a>
                                                 </td>
                                                 <td>No</td>
                                                 <td>A list of Periscope Broadcast IDs</td>
@@ -5420,17 +5576,6 @@ Connection: keep-alive
                                 </div>
 
                                 <hr>
-
-                                <div id="-publicReplayThumbnailPlaylist-example" class="panel panel-warning">
-                                    <div id="-publicReplayThumbnailPlaylist-example-heading" class="panel-heading">
-                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
-                                           data-parent="#-publicReplayThumbnailPlaylist-example"
-                                           href="#-publicReplayThumbnailPlaylist-example-content" aria-expanded="false"
-                                           aria-controls="-publicReplayThumbnailPlaylist-example-content">
-                                            Example Request and Response
-                                        </a>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                         <div class="panel panel-default">
@@ -6804,7 +6949,6 @@ Connection: close
                                                 <td>lock</td>
                                                 <td>
                                                     array of string
-                                                    </a>
                                                 </td>
                                                 <td>No</td>
                                                 <td></td>
@@ -13065,6 +13209,252 @@ Connection: close
                                     </div>
                                     <div id="j-errors-content" class="panel-collapse collapse out"
                                          role="tabpanel" aria-labelledby="j-errors-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Status Code</th>
+                                                <th>Error Text</th>
+                                                <th>Description</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>400</td>
+                                                <td>Bad Request</td>
+                                                <td>Request did not meet requirements - potentially missing parameter
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>401</td>
+                                                <td>Unauthorized</td>
+                                                <td>This endpoint requires authentication and no cookie value was
+                                                    provided, or is invalid
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>404</td>
+                                                <td>Not Found</td>
+                                                <td></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div id="/accessChat" class="panel-heading">/accessChat - [TODO - To be documented]
+                                <span class="pull-right badge"><i class="fa fa-lock"
+                                                                  title="This endpoint requires authentication"></i></span>
+                            </div>
+                            <div class="panel-footer">
+                                <code>https://api.periscope.tv/api/v2/accessChat</code>
+                            </div>
+                            <div class="panel-body">
+                                <p>
+                                    [TODO - To be documented]
+                                </p>
+
+                                <hr>
+
+                                <div id="accessChat-requests" class="panel panel-success">
+                                    <div id="accessChat-requests-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#accessChat-requests" href="#accessChat-requests-content"
+                                           aria-expanded="false" aria-controls="accessChat-requests-content">
+                                            Request Parameters
+                                        </a>
+                                    </div>
+                                    <div id="accessChat-requests-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="accessChat-requests-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Parameter</th>
+                                                <th>Type</th>
+                                                <th>Optional</th>
+                                                <th>Description</th>
+                                                <th>Default Value</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>cookie</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>No</td>
+                                                <td>Periscope Authentication Cookie</td>
+                                                <td></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div id="accessChat-responses" class="panel panel-info">
+                                    <div id="accessChat-responses-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#accessChat-responses" href="#accessChat-responses-content"
+                                           aria-expanded="false" aria-controls="accessChat-responses-content">
+                                            Response Values
+                                        </a>
+                                    </div>
+                                    <div id="accessChat-responses-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="accessChat-responses-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Key</th>
+                                                <th>Type</th>
+                                                <th>Always Available</th>
+                                                <th>Description</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div id="accessChat-errors" class="panel panel-danger">
+                                    <div id="accessChat-errors-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#accessChat-errors" href="#accessChat-errors-content"
+                                           aria-expanded="false" aria-controls="-errors-content">
+                                            Error Responses
+                                        </a>
+                                    </div>
+                                    <div id="accessChat-errors-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="accessChat-errors-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Status Code</th>
+                                                <th>Error Text</th>
+                                                <th>Description</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>400</td>
+                                                <td>Bad Request</td>
+                                                <td>Request did not meet requirements - potentially missing parameter
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>401</td>
+                                                <td>Unauthorized</td>
+                                                <td>This endpoint requires authentication and no cookie value was
+                                                    provided, or is invalid
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>404</td>
+                                                <td>Not Found</td>
+                                                <td></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div id="/accessVideo" class="panel-heading">/accessVideo - [TODO - To be documented]
+                                <span class="pull-right badge"><i class="fa fa-lock"
+                                                                  title="This endpoint requires authentication"></i></span>
+                            </div>
+                            <div class="panel-footer">
+                                <code>https://api.periscope.tv/api/v2/accessVideo</code>
+                            </div>
+                            <div class="panel-body">
+                                <p>
+                                    [TODO - To be documented]
+                                </p>
+
+                                <hr>
+
+                                <div id="accessVideo-requests" class="panel panel-success">
+                                    <div id="accessVideo-requests-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#accessVideo-requests" href="#accessVideo-requests-content"
+                                           aria-expanded="false" aria-controls="accessVideo-requests-content">
+                                            Request Parameters
+                                        </a>
+                                    </div>
+                                    <div id="accessVideo-requests-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="accessVideo-requests-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Parameter</th>
+                                                <th>Type</th>
+                                                <th>Optional</th>
+                                                <th>Description</th>
+                                                <th>Default Value</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>cookie</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>No</td>
+                                                <td>Periscope Authentication Cookie</td>
+                                                <td></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div id="accessVideo-responses" class="panel panel-info">
+                                    <div id="accessVideo-responses-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#accessVideo-responses" href="#accessVideo-responses-content"
+                                           aria-expanded="false" aria-controls="accessVideo-responses-content">
+                                            Response Values
+                                        </a>
+                                    </div>
+                                    <div id="accessVideo-responses-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="accessVideo-responses-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Key</th>
+                                                <th>Type</th>
+                                                <th>Always Available</th>
+                                                <th>Description</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div id="accessVideo-errors" class="panel panel-danger">
+                                    <div id="accessVideo-errors-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#accessVideo-errors" href="#accessVideo-errors-content"
+                                           aria-expanded="false" aria-controls="-errors-content">
+                                            Error Responses
+                                        </a>
+                                    </div>
+                                    <div id="accessVideo-errors-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="accessVideo-errors-heading">
                                         <table class="table table-striped table-bordered">
                                             <thead>
                                             <tr>
