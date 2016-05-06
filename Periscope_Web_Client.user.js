@@ -1518,6 +1518,15 @@ function getUserDescription(user) {
                     el.innerHTML = el.innerHTML == 'follow' ? 'unfollow' : 'follow';
             })
         }))
+        .append($('<a class="button">' + (user.is_blocked ? 'unblock' : 'block') + '</a>').click(function () {
+            var el = this;
+            Api(el.innerHTML == 'block' ? 'block/add' : 'block/remove', {
+                to: user.id
+            }, function (r) {
+                if (r.success)
+                    el.innerHTML = el.innerHTML == 'block' ? 'unblock' : 'block';
+            })
+        }))
         .append('<div style="clear:both"/>');
 }
 /* LEVEL 0 */
