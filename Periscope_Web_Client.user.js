@@ -305,7 +305,7 @@ const css = '<style>\
         background-image: url("' + IMG_PATH + '/images/lock-black.png");\
     }\
     dt {\
-        width: 150px;\
+        min-width: 150px;\
         float: left;\
         padding-top: 0.5rem;\
     }\
@@ -523,6 +523,7 @@ function Ready(loginInfo) {
         {text: 'Top', id: 'Top'},
         {text: 'Following', id: 'Following'},
         {text: 'Newest', id: 'Newest'},
+        {text: 'Search broadcasts', id: 'Search'},
         {text: 'New broadcast', id: 'Create'},
         {text: 'Chat', id: 'Chat'},
         {text: 'Suggested people', id: 'People'},
@@ -770,18 +771,32 @@ Top: function () {
     var langDt = $(languageSelect);
     langDt.find(":contains(" + (navigator.language || navigator.userLanguage || "en").substr(0, 2) + ")").attr("selected", "selected");
     var button = $('<a class="button">Refresh</a>').click(function () {
-        Api('rankedBroadcastFeed', {languages: [langDt.find('.lang').val()]}, refreshList(ranked));
-        Api('featuredBroadcastFeed', {}, refreshList(featured));
+        Api('rankedBroadcastFeed', {languages: [langDt.find('.lang').val()]}, refreshList(ranked, '<h3>Ranked</h3>'));
+        Api('featuredBroadcastFeed', {}, refreshList(featured, '<h3>Featured</h3>'));
     });
-    var sort = $('<a class="watching right icon">Sort by watching</a>').click(sortClick.bind(null, ranked));
-    $('#right').append($('<div id="Top"/>').append(langDt, button, '<h3>Featured</h3>', featured, sort, '<h3>Ranked</h3>', ranked));
+    $('#right').append($('<div id="Top"/>').append(langDt, button, featured, ranked));
     button.click();
+},
+Search: function () {
+    var searchResults = $('<div/>');
+    var searchBroadcast = function () {
+        Api('broadcastSearch', {
+            search: $('#searchBroadcast').val(),
+            include_replay: $('#includeReplays')[0].checked
+        }, refreshList(searchResults, '<h3>Search results</h3>'));
+    };
+    var searchButton = $('<a class="button">Search</a>').click(searchBroadcast);
+    $('#right').append($('<div id="Search"/>').append($('<input id="searchBroadcast" type="text">').keypress(function (e) {
+        if (e.which == 13) {
+            searchBroadcast();
+            return false;
+        }
+    }), '<label><input id="includeReplays" type="checkbox"> Include replays</label>&nbsp;&nbsp;&nbsp;', searchButton, searchResults));
 },
 Following: function () {
     var result = $('<div/>');
     var button = $('<a class="button">Refresh</a>').click(Api.bind(null, 'followingBroadcastFeed', {}, refreshList(result)));
-    var sort = $('<a class="watching right icon">Sort by watching</a>').click(sortClick.bind(null, result));
-    $('#right').append($('<div id="Following"/>').append(button, sort, result));
+    $('#right').append($('<div id="Following"/>').append(button, result));
     button.click();
 },
 Newest: function () {
@@ -792,8 +807,7 @@ Newest: function () {
         count: +count.val().trim() || 253,
         since: +since.val().trim() || (Date.now() / 1000 | 0 ) - 60
     }, refreshList(result)));
-    var sort = $('<a class="watching right icon">Sort by watching</a>').click(sortClick.bind(null, result));
-    $('#right').append($('<div id="Newest"/>').append('Count: ', count, 'Since: ', since, button, sort, result));
+    $('#right').append($('<div id="Newest"/>').append('Count: ', count, 'Since: ', since, button, result));
     button.click();
 },
 Create: function () {
@@ -1326,7 +1340,12 @@ People: function () {
         });
     };
     var searchButton = $('<a class="button">Search</a>').click(searchPeople);
-    $('#right').append($('<div id="People"/>').append(languageSelect, refreshButton, $('<input id="search" type="text">').click(searchPeople), searchButton, '<div id="resultPeople" />'));
+    $('#right').append($('<div id="People"/>').append(languageSelect, refreshButton, $('<input id="search" type="text">').keypress(function (e) {
+        if (e.which == 13) {
+            searchPeople();
+            return false;
+        }
+    }), searchButton, '<div id="resultPeople" />'));
     $("#People .lang").find(":contains(" + (navigator.language || navigator.userLanguage || "en").substr(0, 2) + ")").attr("selected", "selected");
     refreshButton.click();
 }
@@ -1342,33 +1361,38 @@ var MESSAGE_KIND = {
 function zeros(number) {
     return (100 + number + '').substr(1);
 }
-function refreshList(jcontainer) {  // use it as callback arg
+function refreshList(jcontainer, title) {  // use it as callback arg
     return function (response) {
         jcontainer.empty();
-        var ids = [];
-        for (var i in response) {
-            var stream = $('<div class="card ' + response[i].state + ' ' + response[i].id + '"/>').append(getDescription(response[i]));
-            var link = $('<a>Get stream link</a>');
-            link.click(getM3U.bind(null, response[i].id, stream));
-            jcontainer.append(stream.append(link));
-            ids.push(response[i].id);
-        }
-        if (response.length)
+        if (title)
+            jcontainer.append(title);
+        if (response.length) {
+            jcontainer.prepend($('<a class="watching right icon">Sort by watching</a>').click(function () {  // sort cards in given jquery-container
+                var cards = jcontainer.find('.card');
+                var sorted = cards.sort(function (a, b) {
+                    return $(b).find('.watching').text() - $(a).find('.watching').text();
+                });
+                jcontainer.append(sorted);
+                $(window).trigger('scroll');    // for lazy load
+            }));
+
+            var ids = [];
+            for (var i in response) {
+                var stream = $('<div class="card ' + response[i].state + ' ' + response[i].id + '"/>').append(getDescription(response[i]));
+                var link = $('<a>Get stream link</a>');
+                link.click(getM3U.bind(null, response[i].id, stream));
+                jcontainer.append(stream.append(link));
+                ids.push(response[i].id);
+            }
             Api('getBroadcasts', {
                 broadcast_ids: ids
             }, function (info) {
                 for (var i in info)
                     $('.card.' + info[i].id + ' .watching').text(info[i].n_watching);
             })
+        } else
+            jcontainer.append('No results');
     };
-}
-function sortClick(jcontainer) { // sort cards in given jquery-container
-    var cards = jcontainer.find('.card');
-    var sorted = cards.sort(function (a, b) {
-        return $(b).find('.watching').text() - $(a).find('.watching').text();
-    });
-    jcontainer.append(sorted);
-    $(window).trigger('scroll');    // for lazy load
 }
 function getM3U(id, jcontainer) {
     jcontainer.find('.links').empty();
