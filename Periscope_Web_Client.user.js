@@ -1276,14 +1276,7 @@ User: function () {
         }, function (response) {
             resultUser.prepend(getUserDescription(response.user));
         });
-        var BroadcastsSpoiler = $('<div class="spoiler menu" data-spoiler-link="broadcasts">Broadcasts</div>');
-        var FollowersSpoiler = $('<div class="spoiler menu" data-spoiler-link="followers">Followers</div>');
-        var FollowingSpoiler = $('<div class="spoiler menu" data-spoiler-link="following">Following</div>');
-        resultUser.append(BroadcastsSpoiler, '<div class="spoiler-content" data-spoiler-link="broadcasts" id="userBroadcasts" />',
-            FollowersSpoiler, '<div class="spoiler-content" data-spoiler-link="followers" id="userFollowers" />',
-            FollowingSpoiler, '<div class="spoiler-content" data-spoiler-link="following" id="userFollowing" />');
-        $(".spoiler").spoiler({ triggerEvents: true });
-        BroadcastsSpoiler.on("jq-spoiler-visible", function() {
+        var BroadcastsSpoiler = $('<div class="spoiler menu" data-spoiler-link="broadcasts">Broadcasts</div>').on("jq-spoiler-visible", function() {
             Api('userBroadcasts', {
                 user_id: id,
                 all: true
@@ -1292,12 +1285,12 @@ User: function () {
                 refreshList($('#userBroadcasts'), '<h3/>')(broadcasts);
             });
         });
-        FollowersSpoiler.on("jq-spoiler-visible", function() {
+        var FollowersSpoiler = $('<div class="spoiler menu" data-spoiler-link="followers">Followers</div>').on("jq-spoiler-visible", function() {
             Api('followers', {
                 user_id: id
             }, function (followers) {
                 var followersDiv = $('#userFollowers');
-                followersDiv.css('height','auto');
+                followersDiv.css('height','auto').empty();
                 if (followers.length)
                     for (var i in followers)
                         followersDiv.append($('<div class="card"/>').append(getUserDescription(followers[i])));
@@ -1305,12 +1298,12 @@ User: function () {
                     followersDiv.html('No results');
             });
         });
-        FollowingSpoiler.on("jq-spoiler-visible", function() {
+        var FollowingSpoiler = $('<div class="spoiler menu" data-spoiler-link="following">Following</div>').on("jq-spoiler-visible", function() {
             Api('following', {
                 user_id: id
             }, function (following) {
                 var followingDiv = $('#userFollowing');
-                followingDiv.css('height','auto');
+                followingDiv.css('height','auto').empty();
                 if (following.length)
                     for (var i in following)
                         followingDiv.append($('<div class="card"/>').append(getUserDescription(following[i])));
@@ -1318,6 +1311,26 @@ User: function () {
                     followingDiv.html('No results');
             });
         });
+        resultUser.append(BroadcastsSpoiler, '<div class="spoiler-content" data-spoiler-link="broadcasts" id="userBroadcasts" />',
+            FollowersSpoiler, '<div class="spoiler-content" data-spoiler-link="followers" id="userFollowers" />',
+            FollowingSpoiler, '<div class="spoiler-content" data-spoiler-link="following" id="userFollowing" />');
+        if (id == loginTwitter.user.id) {   // Blocked list
+            var BlockedSpoiler = $('<div class="spoiler menu" data-spoiler-link="blocked">Blocked</div>').on("jq-spoiler-visible", function() {
+                Api('block/users', {}, function (blocked) {
+                    var blockedDiv = $('#userBlocked');
+                    blockedDiv.css('height','auto').empty();
+                    if (blocked.length)
+                        for (var i in blocked) {
+                            blocked[i].is_blocked = true;
+                            blockedDiv.append($('<div class="card"/>').append(getUserDescription(blocked[i])));
+                        }
+                    else
+                        blockedDiv.html('No results');
+                });
+            });
+            resultUser.append(BlockedSpoiler, '<div class="spoiler-content" data-spoiler-link="blocked" id="userBlocked" />');
+        }
+        $(".spoiler").spoiler({ triggerEvents: true });
     });
     $('#right').append($('<div id="User">id: <input id="user_id" type="text" size="15"></div>').append(showButton, '<br/><br/>', resultUser));
 },
