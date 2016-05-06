@@ -58,3 +58,4 @@ Docs by @cjhbtn, actualized by me: http://static.pmmlabs.ru/OpenPeriscope
 1. Leaflet.markercluster https://github.com/Leaflet/Leaflet.markercluster
 1. js-emoji https://github.com/iamcal/js-emoji
 1. clipboard.js https://clipboardjs.com
+1. jQuery Spoiler https://github.com/le717/jquery-spoiler

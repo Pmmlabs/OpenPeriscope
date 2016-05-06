@@ -17,6 +17,7 @@
 // @require     http://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js
 // @require     https://github.com/iamcal/js-emoji/raw/master/lib/emoji.js
 // @require     https://github.com/zenorocha/clipboard.js/raw/master/dist/clipboard.min.js
+// @require     https://github.com/le717/jquery-spoiler/raw/master/jquery.spoiler.min.js
 // @downloadURL https://github.com/Pmmlabs/OpenPeriscope/raw/master/Periscope_Web_Client.user.js
 // @updateURL   https://github.com/Pmmlabs/OpenPeriscope/raw/master/Periscope_Web_Client.meta.js
 // @icon        https://github.com/Pmmlabs/OpenPeriscope/raw/master/images/openperiscope.png
@@ -467,6 +468,10 @@ const css = '<style>\
     .contextmenu div {\
         padding: 5px;\
         cursor: pointer;\
+    }\
+    .spoiler-content-visible {\
+        padding: 5px;\
+        background: #fbfbfb;\
     }\
 </style>';
 
@@ -1265,41 +1270,52 @@ User: function () {
     var resultUser = $('<div id="resultUser" />');
     var showButton = $('<a class="button" id="showuser">OK</a>').click(function () {
         resultUser.empty();
+        var id =  $('#user_id').val().trim();
         Api('user', {
-            user_id: $('#user_id').val().trim()
+            user_id: id
         }, function (response) {
-            var user = response.user;
-            resultUser.append(getUserDescription(user));
+            resultUser.prepend(getUserDescription(response.user));
+        });
+        var BroadcastsSpoiler = $('<div class="spoiler menu" data-spoiler-link="broadcasts">Broadcasts</div>');
+        var FollowersSpoiler = $('<div class="spoiler menu" data-spoiler-link="followers">Followers</div>');
+        var FollowingSpoiler = $('<div class="spoiler menu" data-spoiler-link="following">Following</div>');
+        resultUser.append(BroadcastsSpoiler, '<div class="spoiler-content" data-spoiler-link="broadcasts" id="userBroadcasts" />',
+            FollowersSpoiler, '<div class="spoiler-content" data-spoiler-link="followers" id="userFollowers" />',
+            FollowingSpoiler, '<div class="spoiler-content" data-spoiler-link="following" id="userFollowing" />');
+        $(".spoiler").spoiler({ triggerEvents: true });
+        BroadcastsSpoiler.on("jq-spoiler-visible", function() {
             Api('userBroadcasts', {
-                user_id: user.id,
+                user_id: id,
                 all: true
-            }, function (streams) {
-                if (streams.length) {
-                    var userBroadcasts = $('<div/>');
-                    resultUser.append('<h1>Broadcasts</h1>', userBroadcasts);
-                    refreshList(userBroadcasts)(streams);
-                }
-                var followersDiv = $('<div id="followers"><h1>Followers</h1></div>');
-                var followingDiv = $('<div id="following"><h1>Following</h1></div>');
-                resultUser.append(followersDiv).append(followingDiv);
-                Api('followers', {
-                    user_id: user.id
-                }, function (followers) {
-                    Api('following', {
-                        user_id: user.id
-                    }, function (following) {
-                        if (following.length)
-                            for (var i in following)
-                                followingDiv.append($('<div class="card"/>').append(getUserDescription(following[i])));
-                        else
-                            followingDiv.remove();
-                    });
-                    if (followers.length)
-                        for (var i in followers)
-                            followersDiv.append($('<div class="card"/>').append(getUserDescription(followers[i])));
-                    else
-                        followersDiv.remove();
-                });
+            }, function(broadcasts) {
+                $('#userBroadcasts').css('height','auto');
+                refreshList($('#userBroadcasts'), '<h3/>')(broadcasts);
+            });
+        });
+        FollowersSpoiler.on("jq-spoiler-visible", function() {
+            Api('followers', {
+                user_id: id
+            }, function (followers) {
+                var followersDiv = $('#userFollowers');
+                followersDiv.css('height','auto');
+                if (followers.length)
+                    for (var i in followers)
+                        followersDiv.append($('<div class="card"/>').append(getUserDescription(followers[i])));
+                else
+                    followersDiv.html('No results');
+            });
+        });
+        FollowingSpoiler.on("jq-spoiler-visible", function() {
+            Api('following', {
+                user_id: id
+            }, function (following) {
+                var followingDiv = $('#userFollowing');
+                followingDiv.css('height','auto');
+                if (following.length)
+                    for (var i in following)
+                        followingDiv.append($('<div class="card"/>').append(getUserDescription(following[i])));
+                else
+                    followingDiv.html('No results');
             });
         });
     });
