@@ -13,7 +13,7 @@ If you have [NW.js](http://nwjs.io) 12.x installed, you can run
 
 Or, you can use pre-built executables from [Releases page](https://github.com/Pmmlabs/OpenPeriscope/releases)
 
-On Windows, be sure to install PepperFlash (go to [https://get.adobe.com/ru/flashplayer/otherversions](https://get.adobe.com/ru/flashplayer/otherversions), choose OS, chose "PPAPI")
+On Windows, be sure to install PepperFlash (go to [https://get.adobe.com/ru/flashplayer/otherversions](https://get.adobe.com/ru/flashplayer/otherversions), choose OS, choose "PPAPI")
 
 ### Using as userscript
 

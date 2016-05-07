@@ -261,8 +261,10 @@ const css = '<style>\
         font-weight: bold;\
     }\
     .leaflet-popup-content .description {\
-        width: 300px;\
         min-height: 128px;\
+    }\
+    .leaflet-popup-content {\
+        width: 350px !important;\
     }\
     .description a {\
         font-weight: bold;\
