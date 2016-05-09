@@ -1284,7 +1284,7 @@ User: function () {
                 all: true
             }, function(broadcasts) {
                 $('#userBroadcasts').css('height','auto');
-                refreshList($('#userBroadcasts'), '<h3/>')(broadcasts);
+                refreshList($('#userBroadcasts'))(broadcasts);
             });
         });
         var FollowersSpoiler = $('<div class="spoiler menu" data-spoiler-link="followers">Followers</div>').on("jq-spoiler-visible", function() {
@@ -1394,9 +1394,7 @@ function zeros(number) {
 }
 function refreshList(jcontainer, title) {  // use it as callback arg
     return function (response) {
-        jcontainer.empty();
-        if (title)
-            jcontainer.append(title);
+        jcontainer.html(title || '<div style="clear:both"/>');
         if (response.length) {
             jcontainer.prepend($('<a class="watching right icon">Sort by watching</a>').click(function () {  // sort cards in given jquery-container
                 var cards = jcontainer.find('.card');
