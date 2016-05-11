@@ -100,7 +100,7 @@ const css = '<style>\
     body > input[type="text"] {\
         margin-left: 10px;\
     }\
-    a {\
+    a, .edit {\
         color: #039be5;\
         text-decoration: none;\
         cursor: pointer;\
@@ -307,6 +307,9 @@ const css = '<style>\
     }\
     .is_locked {\
         background-image: url("' + IMG_PATH + '/images/lock-black.png");\
+    }\
+    .edit {\
+        background-image: url("' + IMG_PATH + '/images/edit-black.png");\
     }\
     dt {\
         min-width: 150px;\
@@ -520,12 +523,11 @@ function Ready(loginInfo) {
     var signOutButton = $('<a class="button">Sign out</a>');
     signOutButton.click(SignOut);
 
-    var userLink = $('<div id="display_name">' + emoji.replace_unified(loginInfo.user.display_name) + '</div>\
-        <a class="username">@' + (loginInfo.user.username || loginInfo.user.twitter_screen_name) + '</a>');
-    userLink.click(switchSection.bind(null, 'User', loginInfo.user.id));
-    var left = $('<div id="left"/>').append(signOutButton)
-        .append('<img src="' + loginInfo.user.profile_image_urls[1].url + '" width="140"/>')
-        .append(userLink);
+    var userLink = $('<a class="username">@' + (loginInfo.user.username || loginInfo.user.twitter_screen_name) + '</a>').click(switchSection.bind(null, 'User', loginInfo.user.id));
+    var userEdit = $('<span class="right icon edit">&nbsp;</span>').click(switchSection.bind(null, 'Edit'));
+    var left = $('<div id="left"/>').append(signOutButton,
+        '<img src="' + loginInfo.user.profile_image_urls[1].url + '" width="140"/>', userEdit,
+        '<div id="display_name">' + emoji.replace_unified(loginInfo.user.display_name) + '</div>', userLink);
     $(document.body).html(left).append('<div id="right"/>');
     var menu = [
         {text: 'API test', id: 'ApiTest'},
@@ -1390,6 +1392,43 @@ People: function () {
     }), searchButton, '<div id="resultPeople" />'));
     $("#People .lang").find(":contains(" + (navigator.language || navigator.userLanguage || "en").substr(0, 2) + ")").attr("selected", "selected");
     refreshButton.click();
+},
+Edit: function () {
+    var button = $('<a class="button">Save</a>').click(function () {
+        var uname = $('#uname').val();
+        if (uname != loginTwitter.user.username) {
+            Api('verifyUsername', {
+                username: uname,
+                display_name: loginTwitter.user.display_name
+            }, function () {
+                loginTwitter.user.username = uname;
+                localStorage.setItem('loginTwitter', JSON.stringify(loginTwitter));
+            });
+        }
+        var description = $('#description').val();
+        if (description != loginTwitter.user.description)
+            Api('updateDescription', {
+                description: description
+            }, function () {
+                loginTwitter.user.description = description;
+                localStorage.setItem('loginTwitter', JSON.stringify(loginTwitter));
+            });
+        var dname = $('#dname').val();
+        if (dname != loginTwitter.user.display_name) {
+            Api('updateDisplayName', {
+                display_name: dname
+            }, function () {
+                loginTwitter.user.display_name = dname;
+                localStorage.setItem('loginTwitter', JSON.stringify(loginTwitter));
+            });
+        }
+    });
+    $('#right').append($('<div id="Edit"/>').append(
+        '<dt>Display name:</dt><input id="dname" type="text" value="' + loginTwitter.user.display_name + '"><br/>' +
+        '<dt>Username:</dt><input id="uname" type="text" value="' + loginTwitter.user.username + '"><br/>' +
+        '<dt>Description:</dt><input id="description" type="text" value="' + loginTwitter.user.description + '"><br/>',
+        button
+    ));
 }
 };
 var chat_interval;
@@ -1576,6 +1615,8 @@ function Api(method, params, callback, callback_fail) {
                 if ($('#debug').length && $('#debug')[0].checked)
                     console.log('Method:', method, 'params:', params, 'response:', response);
                 $(window).trigger('scroll');    // for lazy load
+            } else if (r.status == 406) {
+                alert(JSON.parse(r.responseText).errors[0].error);
             } else {
                 var error = 'API error: ' + r.status + ' ' + r.responseText;
                 console.log(error);
