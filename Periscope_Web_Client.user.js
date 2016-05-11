@@ -97,6 +97,9 @@ const css = '<style>\
     #secret, body > a {\
         margin: 10px;\
     }\
+    body > input[type="text"] {\
+        margin-left: 10px;\
+    }\
     a {\
         color: #039be5;\
         text-decoration: none;\
@@ -485,7 +488,6 @@ if (location.href.indexOf('twitter.com/oauth/openperiscope') > 0) {
     var oauth_token, oauth_verifier, session_key, session_secret, loginTwitter, consumer_secret = localStorage.getItem('consumer_secret');
     
     $(function() {
-        $(document.body).html('<div id="left"/><div id="right"/>').append(Progress.elem);
         if (loginTwitter = localStorage.getItem('loginTwitter')) {
             loginTwitter = JSON.parse(loginTwitter);
             Ready(loginTwitter);
@@ -499,9 +501,11 @@ if (location.href.indexOf('twitter.com/oauth/openperiscope') > 0) {
             SignIn2(oauth_token, oauth_verifier);
         } else {
             var signInButton = $('<a class="button">Sign in with twitter</a>').click(SignIn1);
+            var signInSMSButton = $('<a class="button">Sign in with SMS</a>').click(SignInSMS);
             $(document.body).html('<input type="text" id="secret" size="60" placeholder="Periscope consumer secret" value="' +
-                (consumer_secret || '') + '"/><br/>').append(signInButton);
+                (consumer_secret || '') + '"/><br/>').append(signInButton, signInSMSButton);
         }
+        $(document.body).append(Progress.elem);
     });
 }
 
@@ -519,9 +523,10 @@ function Ready(loginInfo) {
     var userLink = $('<div id="display_name">' + emoji.replace_unified(loginInfo.user.display_name) + '</div>\
         <a class="username">@' + (loginInfo.user.username || loginInfo.user.twitter_screen_name) + '</a>');
     userLink.click(switchSection.bind(null, 'User', loginInfo.user.id));
-    var left = $('#left').append(signOutButton)
+    var left = $('<div id="left"/>').append(signOutButton)
         .append('<img src="' + loginInfo.user.profile_image_urls[1].url + '" width="140"/>')
         .append(userLink);
+    $(document.body).html(left).append('<div id="right"/>');
     var menu = [
         {text: 'API test', id: 'ApiTest'},
         {text: 'Map', id: 'Map'},
@@ -937,7 +942,7 @@ Chat: function () {
                         .mousedown(function (event) {
                             event.stopPropagation();
                         });
-                    $('body').append(contextmenu).off('mousedown').mousedown(function () {
+                    $(document.body).append(contextmenu).off('mousedown').mousedown(function () {
                         contextmenu.remove();
                     });
                     new Clipboard('.contextmenu div');
@@ -1520,7 +1525,7 @@ function getUserDescription(user) {
         .append((user.profile_image_urls.length ? '<a href="' + user.profile_image_urls[user.profile_image_urls.length - 1].url + '" target="_blank"><img class="avatar" width="128" lazysrc="' + user.profile_image_urls[0].url + '"></a>' : '<img class="avatar" width="128"/>')
         + '<div class="watching right icon" title="Followers">' + user.n_followers + '</div>'
         + (user.n_hearts ? '<div class="hearts right icon" title="hearts">' + user.n_hearts + '</div>' : '')
-        + '<a class="twitterlink right icon" title="Profile on Twitter" target="_blank" href="https://twitter.com/' + user.twitter_screen_name + '"><svg viewBox="0 0 16 14" height="1em" version="1.2"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g transform="translate(-187.000000, -349.000000)" fill="#A4B8BE"><g transform="translate(187.000000, 349.000000)"><path d="M16,2.19685162 C15.4113025,2.4579292 14.7786532,2.63438042 14.1146348,2.71373958 C14.7924065,2.30746283 15.3128644,1.66416205 15.5579648,0.897667303 C14.9237353,1.27380396 14.2212078,1.5469961 13.4734994,1.69424362 C12.8746772,1.05626857 12.0215663,0.6576 11.0774498,0.6576 C9.26453784,0.6576 7.79475475,2.12732457 7.79475475,3.94011948 C7.79475475,4.19739297 7.8238414,4.44793615 7.87979078,4.68817903 C5.15161491,4.55129033 2.73285782,3.24443931 1.11383738,1.25847055 C0.83128132,1.74328711 0.669402685,2.30717021 0.669402685,2.90874306 C0.669402685,4.04757037 1.24897034,5.05231817 2.12976334,5.64095711 C1.591631,5.62392649 1.08551154,5.4762693 0.642891108,5.23040808 C0.64265701,5.2441028 0.64265701,5.25785604 0.64265701,5.27166782 C0.64265701,6.86212833 1.77416877,8.18887766 3.27584769,8.49039564 C3.00037309,8.56542399 2.71038443,8.60551324 2.41097333,8.60551324 C2.19946596,8.60551324 1.99381104,8.58497115 1.79342331,8.54663764 C2.21111233,9.85079653 3.42338783,10.7998291 4.85981199,10.8263406 C3.7363766,11.706724 2.32096273,12.2315127 0.783057171,12.2315127 C0.518116976,12.2315127 0.256805296,12.2160037 0,12.1856881 C1.45269395,13.1170462 3.17817038,13.6604458 5.0319324,13.6604458 C11.0697831,13.6604458 14.3714986,8.65853639 14.3714986,4.32076252 C14.3714986,4.17843105 14.3683383,4.0368604 14.3620176,3.89610909 C15.0033286,3.43329772 15.5598961,2.85513466 16,2.19685162" id="Fill-1" sketch:type="MSShapeGroup"></path></g></g></g></svg></a>'
+        + (user.twitter_screen_name ? '<a class="twitterlink right icon" title="Profile on Twitter" target="_blank" href="https://twitter.com/' + user.twitter_screen_name + '"><svg viewBox="0 0 16 14" height="1em" version="1.2"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g transform="translate(-187.000000, -349.000000)" fill="#A4B8BE"><g transform="translate(187.000000, 349.000000)"><path d="M16,2.19685162 C15.4113025,2.4579292 14.7786532,2.63438042 14.1146348,2.71373958 C14.7924065,2.30746283 15.3128644,1.66416205 15.5579648,0.897667303 C14.9237353,1.27380396 14.2212078,1.5469961 13.4734994,1.69424362 C12.8746772,1.05626857 12.0215663,0.6576 11.0774498,0.6576 C9.26453784,0.6576 7.79475475,2.12732457 7.79475475,3.94011948 C7.79475475,4.19739297 7.8238414,4.44793615 7.87979078,4.68817903 C5.15161491,4.55129033 2.73285782,3.24443931 1.11383738,1.25847055 C0.83128132,1.74328711 0.669402685,2.30717021 0.669402685,2.90874306 C0.669402685,4.04757037 1.24897034,5.05231817 2.12976334,5.64095711 C1.591631,5.62392649 1.08551154,5.4762693 0.642891108,5.23040808 C0.64265701,5.2441028 0.64265701,5.25785604 0.64265701,5.27166782 C0.64265701,6.86212833 1.77416877,8.18887766 3.27584769,8.49039564 C3.00037309,8.56542399 2.71038443,8.60551324 2.41097333,8.60551324 C2.19946596,8.60551324 1.99381104,8.58497115 1.79342331,8.54663764 C2.21111233,9.85079653 3.42338783,10.7998291 4.85981199,10.8263406 C3.7363766,11.706724 2.32096273,12.2315127 0.783057171,12.2315127 C0.518116976,12.2315127 0.256805296,12.2160037 0,12.1856881 C1.45269395,13.1170462 3.17817038,13.6604458 5.0319324,13.6604458 C11.0697831,13.6604458 14.3714986,8.65853639 14.3714986,4.32076252 C14.3714986,4.17843105 14.3683383,4.0368604 14.3620176,3.89610909 C15.0033286,3.43329772 15.5598961,2.85513466 16,2.19685162" id="Fill-1" sketch:type="MSShapeGroup"></path></g></g></g></svg></a>' : '')
         + '<a class="periscopelink right icon" title="Profile on Periscope" target="_blank" href="https://periscope.tv/' + user.username + '"><svg version="1.1" height="1em" viewBox="0 0 113.583 145.426"><g><path fill="#A4B8BE" class="tofill" d="M113.583,56.791c0,42.229-45.414,88.635-56.791,88.635C45.416,145.426,0,99.02,0,56.791	C0,25.426,25.426,0,56.792,0C88.159,0,113.583,25.426,113.583,56.791z"/><path fill="#FFFFFF" d="M56.792,22.521c-2.731,0-5.384,0.327-7.931,0.928c4.619,2.265,7.807,6.998,7.807,12.489	c0,7.686-6.231,13.917-13.917,13.917c-7.399,0-13.433-5.779-13.874-13.067c-4.112,5.675-6.543,12.647-6.543,20.191	c0,19.031,15.427,34.458,34.458,34.458S91.25,76.01,91.25,56.979S75.823,22.521,56.792,22.521z"/></g></svg></a>')
         .append($('<div class="username">' + verified_icon + emoji.replace_unified(user.display_name) + ' (@' + user.username + ')</div>').click(switchSection.bind(null, 'User', user.id)))
         .append('Created: ' + (new Date(user.created_at)).toLocaleString()
@@ -1676,4 +1681,81 @@ function OAuth(endpoint, callback, extra) {
                 console.log('oauth error: ' + r.status + ' ' + r.responseText);
         }
     });
+}
+
+function SignInSMS() {
+    consumer_secret = $('#secret').val();
+    if (consumer_secret) {
+        localStorage.setItem('consumer_secret', consumer_secret);
+        OAuthDigits('oauth2/token', {
+            form: {
+                grant_type: 'client_credentials'
+            },
+            token_type: 'Basic',
+            access_token: btoa('9I4iINIyd0R01qEPEwT9IC6RE:' + consumer_secret)
+        }, function (response_token) {
+            OAuthDigits('1.1/guest/activate.json', {
+                token_type: response_token.token_type,
+                access_token: response_token.access_token
+            }, function (response_activate) {
+                var phone = $('<input size="20" placeholder="+79001234567" type="text"/>');
+                $(document.body).append('<br/>', phone, $('<a class="button">Send SMS</a>').click(function () {
+                    OAuthDigits('1/sdk/login', {
+                        form: {
+                            x_auth_phone_number: phone.val(),
+                            verification_type: 'sms'
+                        },
+                        guest: response_activate.guest_token,
+                        token_type: response_token.token_type,
+                        access_token: response_token.access_token
+                    }, function (response_login) {
+                        var code = $('<input size="12" placeholder="Code from SMS" type="text"/>');
+                        $(document.body).append('<br/>', code, $('<a class="button">Check code</a>').click(function () {
+                            OAuthDigits('auth/1/xauth_challenge.json', {
+                                form: {
+                                    login_verification_request_id: response_login.login_verification_request_id,
+                                    login_verification_user_id: response_login.login_verification_user_id,
+                                    login_verification_challenge_response: code.val()
+                                },
+                                guest: response_activate.guest_token,
+                                token_type: response_token.token_type,
+                                access_token: response_token.access_token
+                            }, function (response_xauth) {
+                                SignIn3(response_xauth.oauth_token, response_xauth.oauth_token_secret);
+                            });
+                        }));
+                    });
+                }));
+            });
+        });
+    }
+}
+
+function OAuthDigits(endpoint, options, callback) {
+    Progress.start();
+    var args = {
+        method: 'POST',
+        url: 'https://api.digits.com/' + endpoint,
+        headers: {
+            'Authorization': options.token_type + ' ' + options.access_token
+        },
+        onload: function (r) {
+            Progress.stop();
+            if (r.status == 200)
+                callback(JSON.parse(r.responseText.replace(/"login_verification_user_id":(\d+)/, '"login_verification_user_id":"$1"'))); // fix for integral precision in JS
+            else if (r.status == 401)   // wrong sms code
+                alert('Authorization error!');
+        }
+    };
+    if (options.guest) {
+        args.headers['x-guest-token'] = options.guest;
+    }
+    if (options.form) {
+        args.headers['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8';
+        args.data = '';
+        for (var i in options.form)
+            args.data += i + '=' + encodeURIComponent(options.form[i]) + '&';
+        args.data = args.data.substr(0, args.data.length - 1);
+    }
+    GM_xmlhttpRequest(args);
 }
