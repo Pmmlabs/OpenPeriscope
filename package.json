@@ -1,23 +1,16 @@
 {
   "name": "openperiscope",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Unofficial Periscope client",
   "license": "GPL-2.0",
   "repository": "Pmmlabs/OpenPeriscope",
   "dependencies": {
     "ws": "*"
   },
-  "main": "app://openperiscope/index.html",
-  "webkit": {
-    "plugin": true
-  },
-  "chromium-args": "--ppapi-flash-path=plugins/libpepflashplayer.so",
-  //"chromium-args": "--ppapi-flash-path=c:\\Windows\\System32\\Macromed\\Flash\\pepflashplayer32_21_0_0_213.dll",
-  //"chromium-args": "--ppapi-flash-path=c:\\Windows\\System32\\Macromed\\Flash\\pepflashplayer64_21_0_0_213.dll",
-  "single-instance": false,
+  "main": "chrome-extension://bjhbjocpihnfbncblmbgdpacnmbkmadm/index.html",
+  "chromium-args":"--user-data-dir=userdata",
   "window": {
     "icon": "images/openperiscope.png",
-    "toolbar": true,
     "frame": true,
     "position": "center",
     "width": 800,
