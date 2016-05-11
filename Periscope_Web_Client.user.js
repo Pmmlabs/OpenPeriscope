@@ -1422,11 +1422,17 @@ Edit: function () {
                 localStorage.setItem('loginTwitter', JSON.stringify(loginTwitter));
             });
         }
+        if ($('input[name="image"]').val())
+            form.submit();
     });
+    var form = $('<form target="foravatar" action="https://api.periscope.tv/api/v2/uploadProfileImage" enctype="multipart/form-data" method="post">' +
+        '<input name="image" type="file" accept="image/jpeg,image/png,image/gif">' +
+        '<input name="cookie" type="hidden" value="'+loginTwitter.cookie+'"></form>');
     $('#right').append($('<div id="Edit"/>').append(
         '<dt>Display name:</dt><input id="dname" type="text" value="' + loginTwitter.user.display_name + '"><br/>' +
         '<dt>Username:</dt><input id="uname" type="text" value="' + loginTwitter.user.username + '"><br/>' +
-        '<dt>Description:</dt><input id="description" type="text" value="' + loginTwitter.user.description + '"><br/>',
+        '<dt>Description:</dt><input id="description" type="text" value="' + loginTwitter.user.description + '"><br/>' +
+        '<dt>Avatar:</dt><iframe id="foravatar" name="foravatar" style="display: none;"></iframe>', form, '<br/><br/>',
         button
     ));
 }
