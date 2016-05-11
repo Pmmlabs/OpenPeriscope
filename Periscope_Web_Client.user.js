@@ -1285,15 +1285,18 @@ User: function () {
             user_id: id
         }, function (response) {
             resultUser.prepend(getUserDescription(response.user));
+            $('div[data-spoiler-link="followers"]').append(' (' + response.user.n_followers + ')');
+            $('div[data-spoiler-link="following"]').append(' (' + response.user.n_following + ')');
         });
-        var BroadcastsSpoiler = $('<div class="spoiler menu" data-spoiler-link="broadcasts">Broadcasts</div>').on("jq-spoiler-visible", function() {
-            Api('userBroadcasts', {
-                user_id: id,
-                all: true
-            }, function(broadcasts) {
-                $('#userBroadcasts').css('height','auto');
-                refreshList($('#userBroadcasts'))(broadcasts);
-            });
+        Api('userBroadcasts', {
+            user_id: id,
+            all: true
+        }, function (broadcasts) {
+            $('div[data-spoiler-link="broadcasts"]').append(' (' + broadcasts.length + ')');
+            refreshList($('#userBroadcasts'))(broadcasts);
+        });
+        var BroadcastsSpoiler = $('<div class="spoiler menu" data-spoiler-link="broadcasts">Broadcasts</div>').on("jq-spoiler-visible", function(){
+            $('#userBroadcasts').css('height','auto');
         });
         var FollowersSpoiler = $('<div class="spoiler menu" data-spoiler-link="followers">Followers</div>').on("jq-spoiler-visible", function() {
             Api('followers', {
