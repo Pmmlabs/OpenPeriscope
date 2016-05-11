@@ -959,13 +959,18 @@ Chat: function () {
         switch (event.type) {
             case 1:  // text message
                 var date = new Date((parseInt(event.ntpForLiveFrame.toString(16).substr(0, 8), 16) - 2208988800) * 1000);
-                if ($.isArray(container))   // for subtitles
+                if ($.isArray(container)) {   // for subtitles
+                    for (var i = 0; i < event.body.length; i++) // remove emoji surrogates
+                        if (String.fromCodePoint(event.body.codePointAt(i)).length == 2) {
+                            event.body = event.body.slice(0, i) + event.body.slice(i + 2);
+                            i--;
+                        }
                     container.push({
                         date: date,
                         user: event.username,
                         text: event.body
                     });
-                else {
+                } else {
                     var html = $('<div/>').append('[' + zeros(date.getHours()) + ':' + zeros(date.getMinutes()) + ':' + zeros(date.getSeconds()) + '] ');
                     var username = $('<span class="user">&lt;' + event.username + '&gt;</span>');
                     username.click(function () { // insert username to text field
