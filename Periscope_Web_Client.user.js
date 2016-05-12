@@ -528,7 +528,7 @@ function Ready(loginInfo) {
     var left = $('<div id="left"/>').append(signOutButton,
         '<img src="' + loginInfo.user.profile_image_urls[1].url + '" width="140"/>', userEdit,
         '<div id="display_name">' + emoji.replace_unified(loginInfo.user.display_name) + '</div>', userLink);
-    $(document.body).html(left).append('<div id="right"/>');
+    $(document.body).html(left).append('<div id="right"/>', Progress.elem);
     var menu = [
         {text: 'API test', id: 'ApiTest'},
         {text: 'Map', id: 'Map'},
