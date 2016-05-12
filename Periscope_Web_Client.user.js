@@ -568,6 +568,18 @@ function Ready(loginInfo) {
         if (event.state && event.state.section)
             switchSection(event.state.section, event.state.param, true);
     });
+    // Back & Forward hotkeys
+    if (NODEJS) {
+        $(window).on('keydown', function (e) {
+            if (e.keyCode == 8 && e.target == document.body) {  //backspace
+                if (e.shiftKey)
+                    history.forward();
+                else
+                    history.back();
+            } else if (e.keyCode == 116)    //F5
+                location.href='/index.html';
+        });
+    }
 }
 function switchSection(section, param, popstate) {
     // Switch menu
