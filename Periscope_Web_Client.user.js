@@ -210,9 +210,6 @@ const css = '<style>\
         margin-left: 220px;\
         transition: margin-left 0.2s ease-out;\
     }\
-    #display_name {\
-        font-size: 16px;\
-    }\
     .username, .leaflet-container a.username {\
         color: grey;\
         font-weight: bold;\
@@ -527,7 +524,7 @@ function Ready(loginInfo) {
     var userEdit = $('<span class="right icon edit">&nbsp;</span>').click(switchSection.bind(null, 'Edit'));
     var left = $('<div id="left"/>').append(signOutButton,
         '<img src="' + loginInfo.user.profile_image_urls[1].url + '" width="140"/>', userEdit,
-        '<div id="display_name">' + emoji.replace_unified(loginInfo.user.display_name) + '</div>', userLink);
+        '<div>' + emoji.replace_unified(loginInfo.user.display_name) + '</div>', userLink);
     $(document.body).html(left).append('<div id="right"/>', Progress.elem);
     var menu = [
         {text: 'API test', id: 'ApiTest'},
