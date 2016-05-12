@@ -1382,22 +1382,12 @@ People: function () {
                 if (!found_exact && response[i].username == $('#search').val())
                     found_exact=true;
             }
-            if (!found_exact) {
-                Progress.start();
-                GM_xmlhttpRequest({
-                    method: 'GET',
-                    url: 'https://www.periscope.tv/' + $('#search').val(),
-                    onload: function (r) {
-                        Progress.stop();
-                        if (r.status == 200) {
-                            var response = $('<div>' + r.responseText).find('#broadcast-data');
-                            if (response.length)
-                                result.prepend($('<div class="card"/>').append(getUserDescription(JSON.parse(response.attr('content')).user)));
-                            $(window).trigger('scroll');    // for lazy load
-                        }
-                    }
+            if (!found_exact)
+                Api('user', {
+                    username: $('#search').val()
+                }, function (user) {
+                    result.prepend($('<div class="card"/>').append(getUserDescription(user.user)));
                 });
-            }
         });
     };
     var searchButton = $('<a class="button">Search</a>').click(searchPeople);
