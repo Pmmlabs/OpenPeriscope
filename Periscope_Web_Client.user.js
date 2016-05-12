@@ -10,6 +10,7 @@
 // @grant       GM_xmlhttpRequest
 // @connect     periscope.tv
 // @connect     twitter.com
+// @connect     digits.com
 // @require     https://code.jquery.com/jquery-1.11.3.js
 // @require     http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/hmac-sha1.js
 // @require     http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js
