@@ -1376,8 +1376,28 @@ People: function () {
         }, function (response) {
             var result = $('#resultPeople');
             result.html('<h1>Search results</h1>');
-            for (var i in response)
+            var found_exact = false;
+            for (var i in response) {
                 result.append($('<div class="card"/>').append(getUserDescription(response[i])));
+                if (!found_exact && response[i].username == $('#search').val())
+                    found_exact=true;
+            }
+            if (!found_exact) {
+                Progress.start();
+                GM_xmlhttpRequest({
+                    method: 'GET',
+                    url: 'https://www.periscope.tv/' + $('#search').val(),
+                    onload: function (r) {
+                        Progress.stop();
+                        if (r.status == 200) {
+                            var response = $('<div>' + r.responseText).find('#broadcast-data');
+                            if (response.length)
+                                result.prepend($('<div class="card"/>').append(getUserDescription(JSON.parse(response.attr('content')).user)));
+                            $(window).trigger('scroll');    // for lazy load
+                        }
+                    }
+                });
+            }
         });
     };
     var searchButton = $('<a class="button">Search</a>').click(searchPeople);
