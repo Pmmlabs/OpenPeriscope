@@ -1394,7 +1394,7 @@ People: function () {
             var found_exact = false;
             for (var i in response) {
                 result.append($('<div class="card"/>').append(getUserDescription(response[i])));
-                if (!found_exact && response[i].username == $('#search').val())
+                if (!found_exact && response[i].username.toUpperCase() == $('#search').val().toUpperCase())
                     found_exact=true;
             }
             if (!found_exact)
