@@ -522,8 +522,11 @@ function Ready(loginInfo) {
 
     var userLink = $('<a class="username">@' + (loginInfo.user.username || loginInfo.user.twitter_screen_name) + '</a>').click(switchSection.bind(null, 'User', loginInfo.user.id));
     var userEdit = $('<span class="right icon edit">&nbsp;</span>').click(switchSection.bind(null, 'Edit'));
+    loginInfo.user.profile_image_urls.sort(function (a, b) {
+        return a.width * a.height - b.width * b.height;
+    });
     var left = $('<div id="left"/>').append(signOutButton,
-        '<img src="' + loginInfo.user.profile_image_urls[1].url + '" width="140"/>', userEdit,
+        '<img src="' + loginInfo.user.profile_image_urls[0].url + '" width="140"/>', userEdit,
         '<div>' + emoji.replace_unified(loginInfo.user.display_name) + '</div>', userLink);
     $(document.body).html(left).append('<div id="right"/>', Progress.elem);
     var menu = [
