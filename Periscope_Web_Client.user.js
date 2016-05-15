@@ -308,6 +308,9 @@ const css = '<style>\
     .edit {\
         background-image: url("' + IMG_PATH + '/images/edit-black.png");\
     }\
+    .lives {\
+        background-image: url("' + IMG_PATH + '/images/video-black.png");\
+    }\
     dt {\
         min-width: 150px;\
         float: left;\
@@ -803,19 +806,83 @@ Top: function () {
 },
 Search: function () {
     var searchResults = $('<div/>');
-    var searchBroadcast = function () {
+    var channels = $('<div/>');
+    var searchBroadcast = function (query) {
+        if (typeof query == 'string')
+            input.val(query);
         Api('broadcastSearch', {
-            search: $('#searchBroadcast').val(),
+            search: input.val(),
             include_replay: $('#includeReplays')[0].checked
-        }, refreshList(searchResults, '<h3>Search results</h3>'));
+        }, refreshList(searchResults, '<h3>Search results for '+input.val()+'</h3>'));
     };
     var searchButton = $('<a class="button">Search</a>').click(searchBroadcast);
-    $('#right').append($('<div id="Search"/>').append($('<input id="searchBroadcast" type="text">').keypress(function (e) {
-        if (e.which == 13) {
+    var langDt = $(languageSelect).change(RefreshChannels);
+    langDt.find(":contains(" + (navigator.language || navigator.userLanguage || "en").substr(0, 2) + ")").attr("selected", "selected");
+    var authorization_token;
+
+    function ApiChannels(callback, cid) {
+        Progress.start();
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: 'https://channels.periscope.tv/v1/channels' + (cid ? '/' + cid + '/broadcasts' : ''),
+            headers: {
+                Authorization: authorization_token,
+                locale: langDt.find('.lang').val()
+            },
+            onload: function (r) {
+                Progress.stop();
+                if (r.status == 200) {
+                    var response = JSON.parse(r.responseText);
+                    if ($('#debug')[0].checked)
+                        console.log('channels' + (cid ? ' cid ' + cid : '') + ': ', response);
+                    callback(response);
+                }
+                else
+                    console.log('channels error: ' + r.status + ' ' + r.responseText);
+            }
+        });
+    }
+
+    function RefreshChannels() {
+        Api('authorizeToken', {
+            service: 'channels'
+        }, function (authorizeToken) {
+            authorization_token = authorizeToken.authorization_token;
+            ApiChannels(function (response) {
+                channels.empty();
+                for (var i in response.Channels) {
+                    var channel = response.Channels[i];
+                    var Name = $('<a>' + channel.Name + '</a>').click(searchBroadcast.bind(null, channel.Name));
+                    var PublicTag = $('<a>' + channel.PublicTag + '</a>').click(searchBroadcast.bind(null, channel.PublicTag));
+                    var PublicChannel = $('<a>' + channel.Name + '</a>').click(ApiChannels.bind(null, function (channelName) {
+                        return function (chan) {
+                            var ids = [];
+                            for (var i in chan.Broadcasts)
+                                ids.push(chan.Broadcasts[i].BID);
+                            Api('getBroadcasts', {
+                                broadcast_ids: ids
+                            }, refreshList(searchResults, '<h3>' + channelName + ', ' + chan.NLive + ' lives, ' + chan.NReplay + ' replays</h3>'));
+                        };
+                    }(channel.Name), channel.CID));
+                    channels.append($('<p/>').append('<div class="lives right icon" title="Lives / Replays">' + channel.NLive + ' / ' + channel.NReplay + '</div>',
+                        PublicChannel, (channel.Featured ? ' FEATURED<br>' : ''), '<br>',
+                        (channel.PublicTag ? ['Tags: ', Name, ', ', PublicTag, '<br>'] : ''),
+                        'Description: ' + channel.Description)
+                    );
+                }
+            });
+        });
+    }
+
+    var input = $('<input type="text">').keypress(function (e) {
+        if (e.keyCode == 13) {
             searchBroadcast();
             return false;
         }
-    }), '<label><input id="includeReplays" type="checkbox"> Include replays</label>&nbsp;&nbsp;&nbsp;', searchButton, searchResults));
+    });
+    $('#right').append($('<div id="Search"/>').append(input, '<label><input id="includeReplays" type="checkbox"> Include replays</label>&nbsp;&nbsp;&nbsp;', searchButton,
+        '<h3>Channels</h3>', langDt, '<br><br>', channels, searchResults));
+    RefreshChannels();
 },
 Following: function () {
     var result = $('<div/>');
@@ -1491,14 +1558,20 @@ function refreshList(jcontainer, title) {  // use it as callback arg
                 jcontainer.append(stream.append(link));
                 ids.push(response[i].id);
             }
-            Api('getBroadcasts', {
-                broadcast_ids: ids
-            }, function (info) {
-                for (var i in info)
-                    $('.card.' + info[i].id + ' .watching').text(info[i].n_watching);
-            })
+            if (typeof response[0].n_watching == 'undefined')
+                Api('getBroadcasts', {
+                    broadcast_ids: ids
+                }, function (info) {
+                    for (var i in info)
+                        $('.card.' + info[i].id + ' .watching').text(info[i].n_watching);
+                });
         } else
             jcontainer.append('No results');
+        // if jcontainer isn't visible, scroll to it
+        var top = jcontainer.offset().top;
+        if ($(window).scrollTop() + $(window).height() - 100 < top) {
+            $(window).scrollTop(top);
+        }
     };
 }
 function getM3U(id, jcontainer) {
@@ -1575,7 +1648,7 @@ function getDescription(stream) {
     var chatLink = $('<a class="chatlink right icon">Chat</a>').click(switchSection.bind(null, 'Chat', stream.id));
     var description = $('<div class="description">\
                 <a href="' + stream.image_url + '" target="_blank"><img lazysrc="' + stream.image_url_small + '"/></a>\
-                <div class="watching right icon" title="Watching"/>\
+                <div class="watching right icon" title="Watching">' + (stream.n_watching || 0) + '</div>\
                 <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>'+featured_reason+'\
             </div>')
         .append(deleteLink, '<br/>', screenlistLink, userLink, '<br/>', chatLink,
