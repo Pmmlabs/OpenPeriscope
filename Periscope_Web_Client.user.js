@@ -83,6 +83,20 @@ const css = '<style>\
             width: 200px;\
         }\
     }\
+    @font-face {\
+        font-family: "Roboto";\
+        font-style: normal;\
+        font-weight: 400;\
+        src: local("Roboto"), local("Roboto-Regular"), url(' + IMG_PATH + '/fonts/Roboto-latin.woff2) format("woff2");\
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;\
+    }\
+    @font-face {\
+        font-family: "Roboto";\
+        font-style: normal;\
+        font-weight: 400;\
+        src: local("Roboto"), local("Roboto-Regular"), url(' + IMG_PATH + '/fonts/Roboto-cyrillic.woff2) format("woff2");\
+        unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;\
+    }\
     html, body, #left, #Map, #Chat {\
         height: 100%;\
     }\
@@ -436,7 +450,7 @@ const css = '<style>\
     /* USER */\
     img.avatar {\
         border: none;\
-        background: url("https://abs.twimg.com/sticky/default_profile_images/default_profile_4_reasonably_small.png");\
+        background: url("' + IMG_PATH + '/images/default_avatar.png");\
     }\
     #People .username {\
         font-size: 17px;\
@@ -485,8 +499,8 @@ if (location.href.indexOf('twitter.com/oauth/openperiscope') > 0) {
     location.href = 'http://example.net/' + location.search;
 } else {
     $('style').remove();
-    $(document.head).append(css, '<link href="https://fonts.googleapis.com/css?family=Roboto&subset=latin,cyrillic" rel="stylesheet" type="text/css">');
-    
+    $(document.head).append(css);
+
     document.title = 'OpenPeriscope';
     var oauth_token, oauth_verifier, session_key, session_secret, loginTwitter, consumer_secret = localStorage.getItem('consumer_secret');
     
