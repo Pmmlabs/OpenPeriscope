@@ -59,6 +59,16 @@ if (NODEJS) {  // for NW.js
         req.end();
     };
     IMG_PATH = '';
+    // Back & Forward hotkeys
+    $(window).on('keydown', function (e) {
+        if (e.keyCode == 8 && e.target == document.body) {  //backspace
+            if (e.shiftKey)
+                history.forward();
+            else
+                history.back();
+        } else if (e.keyCode == 116)    //F5
+            location.href='/index.html';
+    });
 }
 const css = '<style>\
     @media (max-width: 640px) {\
@@ -495,6 +505,8 @@ const css = '<style>\
     }\
 </style>';
 
+var settings = JSON.parse(localStorage.getItem('settings')) || {};
+
 if (location.href.indexOf('twitter.com/oauth/openperiscope') > 0) {
     location.href = 'http://example.net/' + location.search;
 } else {
@@ -502,7 +514,7 @@ if (location.href.indexOf('twitter.com/oauth/openperiscope') > 0) {
     $(document.head).append(css);
 
     document.title = 'OpenPeriscope';
-    var oauth_token, oauth_verifier, session_key, session_secret, loginTwitter, consumer_secret = localStorage.getItem('consumer_secret');
+    var oauth_token, oauth_verifier, session_key, session_secret, loginTwitter;
     
     $(function() {
         if (loginTwitter = localStorage.getItem('loginTwitter')) {
@@ -520,7 +532,7 @@ if (location.href.indexOf('twitter.com/oauth/openperiscope') > 0) {
             var signInButton = $('<a class="button">Sign in with twitter</a>').click(SignIn1);
             var signInSMSButton = $('<a class="button">Sign in with SMS</a>').click(SignInSMS);
             $(document.body).html('<input type="text" id="secret" size="60" placeholder="Periscope consumer secret" value="' +
-                (consumer_secret || '') + '"/><br/>').append(signInButton, signInSMSButton);
+                (settings.consumer_secret || '') + '"/><br/>').append(signInButton, signInSMSButton);
         }
         $(document.body).append(Progress.elem);
     });
@@ -588,19 +600,59 @@ function Ready(loginInfo) {
         if (event.state && event.state.section)
             switchSection(event.state.section, event.state.param, true);
     });
-    // Back & Forward hotkeys
-    if (NODEJS) {
-        $(window).on('keydown', function (e) {
-            if (e.keyCode == 8 && e.target == document.body) {  //backspace
-                if (e.shiftKey)
-                    history.forward();
-                else
-                    history.back();
-            } else if (e.keyCode == 116)    //F5
-                location.href='/index.html';
-        });
-    }
+    Notifications.start();
 }
+var Notifications = {
+    interval: null,
+    notifs_available: null,
+    old_list: null,
+    default_interval: 15,
+    start: function () {
+        if (typeof this.notifs_available !== 'boolean') {
+            this.notifs_available = false;
+            if ("Notification" in window && Notification.permission === "granted")
+                this.notifs_available = true;
+            else if (Notification.permission !== 'denied')
+                Notification.requestPermission(function (permission) {
+                    if (permission === "granted")
+                        Notifications.notifs_available = true;
+                });
+        }
+        this.old_list = JSON.parse(localStorage.getItem('followingBroadcastFeed')) || [];
+        if (!settings.followingInterval)
+            setSet('followingInterval', this.default_interval);
+        if (settings.followingNotifications)
+            this.interval = setInterval(Api.bind(null, 'followingBroadcastFeed', {}, function (new_list) {
+                for (var i in new_list) {
+                    var contains = false;
+                    for (var j in Notifications.old_list)
+                        if (Notifications.old_list[j].id == new_list[i].id) {
+                            contains = true;
+                            break;
+                        }
+                    if (!contains && Notifications.notifs_available)
+                        setTimeout(function (i) {   // fix for massive firing
+                            return function () {
+                                new Notification(new_list[i].user_display_name + (new_list[i].state == 'RUNNING' ? ' is live now' : ' uploaded replay'), {
+                                    body: status || 'Untitled',
+                                    icon: new_list[i].image_url,
+                                    data: new_list[i].id
+                                }).onclick = function () {
+                                    window.open('https://www.periscope.tv/w/' + this.data);
+                                    this.close();
+                                };
+                            };
+                        }(i), 300 * i);
+                }
+                Notifications.old_list = new_list;
+                localStorage.setItem('followingBroadcastFeed', JSON.stringify(Notifications.old_list));
+            }), (settings.followingInterval || this.default_interval) * 1000);
+    },
+    stop: function () {
+        if (this.interval)
+            clearInterval(this.interval);
+    }
+};
 function switchSection(section, param, popstate) {
     // Switch menu
     $('.menu.active').removeClass('active');
@@ -1531,12 +1583,25 @@ Edit: function () {
     var form = $('<form target="foravatar" action="https://api.periscope.tv/api/v2/uploadProfileImage" enctype="multipart/form-data" method="post">' +
         '<input name="image" type="file" accept="image/jpeg,image/png,image/gif">' +
         '<input name="cookie" type="hidden" value="'+loginTwitter.cookie+'"></form>');
+    var notifications = $('<label><input type="checkbox" ' + (settings.followingNotifications ? 'checked' : '') + '/> Enable notifications</label>').click(function (e) {
+        setSet('followingNotifications', e.target.checked);
+        if (e.target.checked)
+            Notifications.start();
+        else
+            Notifications.stop();
+    });
+    var notifications_interval = $('<input type="number" min="2" value="' + (settings.followingInterval || Notifications.default_interval) + '">').change(function () {
+        setSet('followingInterval', this.value);
+        Notifications.stop();
+        Notifications.start();
+    });
     $('#right').append($('<div id="Edit"/>').append(
         '<dt>Display name:</dt><input id="dname" type="text" value="' + loginTwitter.user.display_name + '"><br/>' +
         '<dt>Username:</dt><input id="uname" type="text" value="' + loginTwitter.user.username + '"><br/>' +
         '<dt>Description:</dt><input id="description" type="text" value="' + loginTwitter.user.description + '"><br/>' +
         '<dt>Avatar:</dt><iframe id="foravatar" name="foravatar" style="display: none;"></iframe>', form, '<br/><br/>',
-        button
+        button, '<br>', '<h3>OpenPeriscope settings</h3>',  notifications , '<br>',
+        'Notifications refresh interval: ', notifications_interval ,' seconds'
     ));
 }
 };
@@ -1707,6 +1772,10 @@ function getUserDescription(user) {
         }))
         .append('<div style="clear:both"/>');
 }
+function setSet(key, value) {
+    settings[key] = value;
+    localStorage.setItem('settings', JSON.stringify(settings));
+}
 /* LEVEL 0 */
 function Api(method, params, callback, callback_fail) {
     if (!params)
@@ -1772,9 +1841,8 @@ function SignIn2(oauth_token, oauth_verifier) {
     }, {oauth_token: oauth_token, oauth_verifier: oauth_verifier});
 }
 function SignIn1() {
-    consumer_secret = $('#secret').val();
-    if (consumer_secret) {
-        localStorage.setItem('consumer_secret', consumer_secret);
+    setSet('consumer_secret', $('#secret').val());
+    if (settings.consumer_secret) {
         $(this).text('Loading...');
         OAuth('request_token', function (oauth) {
             location.href = 'https://api.twitter.com/oauth/authorize?oauth_token=' + oauth.oauth_token;
@@ -1783,7 +1851,7 @@ function SignIn1() {
 }
 function SignOut() {
     localStorage.clear();
-    localStorage.setItem('consumer_secret', consumer_secret);
+    setSet();
     location.pathname = 'index.html';
 }
 function OAuth(endpoint, callback, extra) {
@@ -1808,7 +1876,7 @@ function OAuth(endpoint, callback, extra) {
 
     params.oauth_signature = encodeURIComponent(
         CryptoJS.enc.Base64.stringify(
-            CryptoJS.HmacSHA1(signatureBaseString, consumer_secret + '&' + (session_secret || ''))
+            CryptoJS.HmacSHA1(signatureBaseString, settings.consumer_secret + '&' + (session_secret || ''))
         )
     );
 
@@ -1843,15 +1911,14 @@ function OAuth(endpoint, callback, extra) {
 }
 
 function SignInSMS() {
-    consumer_secret = $('#secret').val();
-    if (consumer_secret) {
-        localStorage.setItem('consumer_secret', consumer_secret);
+    setSet('consumer_secret', $('#secret').val());
+    if (settings.consumer_secret) {
         OAuthDigits('oauth2/token', {
             form: {
                 grant_type: 'client_credentials'
             },
             token_type: 'Basic',
-            access_token: btoa('9I4iINIyd0R01qEPEwT9IC6RE:' + consumer_secret)
+            access_token: btoa('9I4iINIyd0R01qEPEwT9IC6RE:' + settings.consumer_secret)
         }, function (response_token) {
             OAuthDigits('1.1/guest/activate.json', {
                 token_type: response_token.token_type,
