@@ -1799,17 +1799,16 @@ function Api(method, params, callback, callback_fail) {
                 var response = JSON.parse(r.responseText);
                 if (callback)
                     callback(response);
-                if ($('#debug').length && $('#debug')[0].checked)
-                    console.log('Method:', method, 'params:', params, 'response:', response);
                 $(window).trigger('scroll');    // for lazy load
             } else if (r.status == 406) {
                 alert(JSON.parse(r.responseText).errors[0].error);
             } else {
-                var error = 'API error: ' + r.status + ' ' + r.responseText;
-                console.log(error);
+                var response = 'API error: ' + r.status + ' ' + r.responseText;
                 if (callback_fail)
-                    callback_fail(error);
+                    callback_fail(response);
             }
+            if ($('#debug').length && $('#debug')[0].checked)
+                console.log('Method:', method, 'params:', params, 'response:', response);
         }
     });
 }
