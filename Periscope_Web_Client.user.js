@@ -974,6 +974,9 @@ Create: function () {
         '<dt>Height:</dt><input id="height" type="text" autocomplete="on" placeholder="568"><br/>' +
         '<dt>Filename:</dt><input id="filename" type="text" autocomplete="on"><label><input id="camera" type="checkbox"> From camera</label><br/>' +
         '<dt>Streaming bitrate:</dt><input id="bitrate" type="text" value="200">kBps<br/>' +
+        '<dt>Latitude:</dt><input id="lat" type="text" placeholder="0"><br/>' +
+        '<dt>Longitude:</dt><input id="lon" type="text" placeholder="0"><br/>' +
+        '<dt>Language:</dt><input id="cr_lang" type="text" value="'+(navigator.language || navigator.userLanguage || "en").substr(0, 2)+'"><br/>' +
         '<dt>Server:</dt><select id="server">' +
             '<option>us-west-1</option>' +
             '<option selected>eu-central-1</option>' +
@@ -991,8 +994,8 @@ Create: function () {
         if (heightInput.val().trim() == '')
             heightInput.val(568);
         Api('createBroadcast', {
-            lat: 0,
-            lng: 0,
+            lat: +$('#lat').val() || 0,
+            lng: +$('#lon').val() || 0,
             //supports_psp_version: [1, 0, 0],
             region: $('#server').val(),
             width: +widthInput.val(),
@@ -1001,10 +1004,10 @@ Create: function () {
             Api('publishBroadcast', {
                 broadcast_id: createInfo.broadcast.id,
                 friend_chat: $('#friend_chat')[0].checked,
-                has_location: false,
-                //"locale": "ru",
-                //"lat": 0.0,    // location latitude
-                //"lng": -20.0,  // location longitude
+                has_location: true,
+                locale: $('#cr_lang').val(),
+                lat: +$('#lat').val() || 0,
+                lng: +$('#lon').val() || 0,
                 status: $('#status').val().trim()
             }, function () {
                 var filename = $('#filename').val();
