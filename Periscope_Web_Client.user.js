@@ -64,8 +64,8 @@ if (NODEJS) {  // for NW.js
         if (e.keyCode == 8 && e.target == document.body) {  //backspace
             if (e.shiftKey)
                 history.forward();
-            else
-                history.back();
+            //else
+            //    history.back();
         } else if (e.keyCode == 116)    //F5
             location.href='/index.html';
     });
@@ -659,13 +659,15 @@ function switchSection(section, param, popstate) {
     $('#menu'+section).addClass('active');
     // Switch content
     $('#right > div:visible').hide();
+    if (param && param.target)  // jQuery event
+        param = null;
+    if (popstate != true)
+        history.pushState({section: section, param: param}, section, '/' + section + (param ? '/' + param : ''));
     var sectionContainer = $('#' + section);
     if (!sectionContainer.length)
         Inits[section]();
     else
         sectionContainer.show();
-    if (param && param.target)  // jQuery event
-        param = null;
     if (param)
         switch (section) {
             case 'User':
@@ -680,9 +682,12 @@ function switchSection(section, param, popstate) {
                     $('#startchat').click();
                 }
                 break;
+            case 'Map':
+                var latlng = param.split(',');
+                var mapcenter = map.getCenter();
+                if (latlng[0] != mapcenter.lat || latlng[1] != mapcenter.lng)
+                    map.setView([latlng[0], latlng[1]], 17);
         }
-    if (popstate != true)
-        history.pushState({section: section, param: param}, section, '/' + section + (param ? '/' + param : ''));
 }
 var Progress = {
     elem: $('<div id="progress"/>'),
@@ -724,15 +729,12 @@ var languageSelect = '<dt>Language: <select class="lang">\
         </select></dt>';
 var Inits= {
 Map: function () {
-    $(document.head).append('<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />')
-        .append('<link rel="stylesheet" href="http://leaflet.github.io/Leaflet.markercluster/dist/MarkerCluster.css" />');
+    $(document.head).append('<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />',
+        '<link rel="stylesheet" href="http://leaflet.github.io/Leaflet.markercluster/dist/MarkerCluster.css" />');
     $('#right').append('<div id="Map"/>');
     // Set center
-    var map = L.map('Map').setView([0, 0], 2);
-    if (navigator.geolocation)
-        navigator.geolocation.getCurrentPosition(function (position) {
-            map.setView([position.coords.latitude, position.coords.longitude], 11);
-        });
+    map = L.map('Map').setView([0, 0], 2);
+
     // Layers list
     var tileLayers = {
         "Open Street Map": L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -824,8 +826,14 @@ Map: function () {
             }
         });
     };
+    if (!history.state.param) {
+        if (navigator.geolocation)
+            navigator.geolocation.getCurrentPosition(function (position) {
+                map.setView([position.coords.latitude, position.coords.longitude], 11);
+            });
+        refreshMap();
+    }
     map.on('moveend', refreshMap);
-    refreshMap();
 },
 ApiTest: function () {
     var submitButton = $('<a class="button">Submit</div>');
@@ -1737,8 +1745,8 @@ function getDescription(stream) {
             '<span class="date icon" title="Created">' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth() + 1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes()) + '</span>'
             + (duration ? '<span class="time icon" title="Duration">' + zeros(duration.getUTCHours()) + ':' + zeros(duration.getMinutes()) + ':' + zeros(duration.getSeconds()) + '</span>' : '')
             + (stream.friend_chat ? '<span class="friend_chat" title="Chat only for friends"/>' : '')
-            + (stream.is_locked ? '<span class="is_locked" title="Locked"/>' : '')
-            + (stream.country || stream.city ? '<br/>' + stream.country + ', ' + stream.city : ''), '<div class="links" />');
+            + (stream.is_locked ? '<span class="is_locked" title="Locked"/>' : ''),
+            (stream.has_location ? $('<br/><span style="cursor:pointer;">' + stream.country + ', ' + stream.city + '</span>').click(switchSection.bind(null, 'Map', stream.ip_lat + ',' + stream.ip_lng)) : ''), '<div class="links" />');
     return description[0];
 }
 function getUserDescription(user) {
