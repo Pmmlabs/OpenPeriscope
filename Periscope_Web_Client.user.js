@@ -1035,7 +1035,7 @@ Create: function () {
                     'while true\n' +
                     ' do\n' +
                     '  echo -e "\\033[0;32m[OpenPeriscope] `curl -s --form "cookie=' + loginTwitter.cookie + '" --form "broadcast_id=' + createInfo.broadcast.id + '" https://api.periscope.tv/api/v2/pingBroadcast`\\033[0m"\n' +
-                    '  sleep 20s\n' +
+                    '  sleep 20\n' +
                     ' done\n' +
                     'curl --form "cookie=' + loginTwitter.cookie + '" --form "broadcast_id=' + createInfo.broadcast.id + '" https://api.periscope.tv/api/v2/endBroadcast';
                 var sh = 'stream_' + filename + '.sh';
