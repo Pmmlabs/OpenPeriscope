@@ -64,8 +64,8 @@ if (NODEJS) {  // for NW.js
         if (e.keyCode == 8 && e.target == document.body) {  //backspace
             if (e.shiftKey)
                 history.forward();
-            //else
-            //    history.back();
+            else
+                history.back();
         } else if (e.keyCode == 116)    //F5
             location.href='/index.html';
     });
@@ -1056,7 +1056,7 @@ Chat: function () {
     var textBox = $('<input type="text" id="message">');
     var historyDiv = $('<div/>');
     if (NODEJS) {
-        const WebSocket = require('ws');
+        WebSocket = require('ws');
         $(window).unload(function(){
             if (ws)
                 ws.close();
@@ -1361,11 +1361,21 @@ Chat: function () {
 
                     ws.on('close', function (code) {
                         ws.close();
-                        if (code == 1006) { // 1006=timeout
-                            setTimeout(openSocket.bind(null, failures + 1), 100);
-                            console.log('reconnect');
-                        } else if (code != 1000) // 1000=broadcast ended
-                            console.log('websocket closed, code: ', code);
+                        switch (code) {
+                            case 403:   // 403=forbidden
+                                console.log('Forbidden');
+                                break;
+                            case 1006:  // 1006=timeout
+                                if (failures < 4) {
+                                    setTimeout(openSocket.bind(null, failures + 1), 100);
+                                    console.log('reconnect ' + failures);
+                                }
+                                break;
+                            case 1000:  // 1000=broadcast ended
+                                break;
+                            default:
+                                console.log('websocket closed, code: ', code);
+                        }
                     });
                 };
 
