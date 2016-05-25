@@ -50,6 +50,10 @@ For replays:
 
 Docs by @cjhbtn, actualized by me: http://static.pmmlabs.ru/OpenPeriscope
 
+### Screenshot
+
+![screenshot](https://cloud.githubusercontent.com/assets/2682026/15555303/3540d09e-22d9-11e6-9934-fb84a201a0e9.png)
+
 ### Third-party software
 
 1. jQuery https://jquery.com
