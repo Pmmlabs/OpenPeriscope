@@ -633,8 +633,10 @@ var Notifications = {
                     if (!contains && Notifications.notifs_available)
                         setTimeout(function (i) {   // fix for massive firing
                             return function () {
+                                var date_created = new Date(new_list[i].start);
+                                var start = zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth() + 1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes());
                                 new Notification(new_list[i].user_display_name + (new_list[i].state == 'RUNNING' ? ' is live now' : ' uploaded replay'), {
-                                    body: status || 'Untitled',
+                                    body: '['+start+'] ' + (new_list[i].status || 'Untitled'),
                                     icon: new_list[i].image_url,
                                     data: new_list[i].id
                                 }).onclick = function () {
