@@ -854,6 +854,11 @@ Map: function () {
             }
             refreshList(mapList)(r);
         });
+        var mapCenter = map.getCenter();
+        history.replaceState({
+            section: 'Map',
+            param: mapCenter.lat + ',' + mapCenter.lng
+        }, 'Map', '/Map/' + mapCenter.lat + ',' + mapCenter.lng);
     };
     if (!history.state.param) {
         if (navigator.geolocation)
