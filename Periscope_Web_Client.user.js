@@ -714,6 +714,7 @@ function switchSection(section, param, popstate) {
                 if (latlng[0] != mapcenter.lat || latlng[1] != mapcenter.lng)
                     map.setView([latlng[0], latlng[1]], 17);
         }
+    document.title = section + ' - ' + 'OpenPeriscope';
 }
 var Progress = {
     elem: $('<div id="progress"/>'),
