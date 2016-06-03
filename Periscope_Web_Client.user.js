@@ -18,6 +18,7 @@
 // @require     https://github.com/iamcal/js-emoji/raw/master/lib/emoji.js
 // @require     https://github.com/zenorocha/clipboard.js/raw/master/dist/clipboard.min.js
 // @require     https://github.com/le717/jquery-spoiler/raw/master/jquery.spoiler.min.js
+// @require     https://github.com/nathancahill/Split.js/raw/master/split.min.js
 // @downloadURL https://github.com/Pmmlabs/OpenPeriscope/raw/master/Periscope_Web_Client.user.js
 // @updateURL   https://github.com/Pmmlabs/OpenPeriscope/raw/master/Periscope_Web_Client.meta.js
 // @icon        https://github.com/Pmmlabs/OpenPeriscope/raw/master/images/openperiscope.png
@@ -107,7 +108,7 @@ const css = '<style>\
         src: local("Roboto"), local("Roboto-Regular"), url(' + IMG_PATH + '/fonts/Roboto-cyrillic.woff2) format("woff2");\
         unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;\
     }\
-    html, body, #left, #Map, #Chat {\
+    html, body, #left, #Map, #Chat, #map {\
         height: 100%;\
     }\
     body {\
@@ -242,7 +243,7 @@ const css = '<style>\
         text-overflow: ellipsis;\
         cursor: pointer;\
     }\
-    #Map, #Chat {\
+    #Map, #Chat, #map {\
         width:100%;\
     }\
     .live-cluster-small div{\
@@ -503,6 +504,27 @@ const css = '<style>\
         padding: 5px;\
         background: #fbfbfb;\
     }\
+    /* Split.js */\
+    .gutter {\
+        background-color: #eee;\
+        background-repeat: no-repeat;\
+        background-position: 50%;\
+    }\
+    .gutter.gutter-horizontal {\
+        background-image: url("' + IMG_PATH + '/images/vertical.png");\
+        cursor: ew-resize;\
+    }\
+    .split, .gutter.gutter-horizontal {\
+        height: 100%;\
+        float: left;\
+    }\
+    .split {\
+        -webkit-box-sizing: border-box;\
+        -moz-box-sizing: border-box;\
+        box-sizing: border-box;\
+        overflow-y: auto;\
+        overflow-x: hidden;\
+    }\
 </style>';
 
 var settings = JSON.parse(localStorage.getItem('settings')) || {};
@@ -544,6 +566,24 @@ function getParameterByName(name) {
         results = regex.exec(location.search);
     return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
+function lazyLoad(parent) {
+    var right = $('#right');
+    $(parent).on('scroll', function () {
+        clearTimeout($.data(this, 'scrollTimer'));      // for preventing dozens of firing
+        $.data(this, 'scrollTimer', setTimeout(function () {
+            var windowHeight = $(window).height();
+            var scrollTop = $(window).scrollTop();
+            right.find('img[lazysrc]:visible').each(function () {
+                var el = $(this);
+                var top = el.offset().top;
+                if (scrollTop < top + el.height() + 100 && scrollTop + windowHeight + 100 > top) {  // 100 is handicap
+                    el.attr('src', el.attr('lazysrc'));
+                    el.removeAttr('lazysrc');
+                }
+            })
+        }, 100));
+    });
+}
 function Ready(loginInfo) {
     console.log('ready! ', loginInfo);
     var signOutButton = $('<a class="button">Sign out</a>');
@@ -578,23 +618,7 @@ function Ready(loginInfo) {
     $('.menu').first().click();
     left.append('<label title="All API requests will be logged to console"><input type="checkbox" id="debug"/> Debug mode</label>');
     emoji.img_sets[emoji.img_set].path = 'http://unicodey.com/emoji-data/img-apple-64/';
-    // Lazy load
-    var right = $('#right');
-    $(window).on('scroll', function () {
-        clearTimeout($.data(this, 'scrollTimer'));      // for preventing dozens of firing
-        $.data(this, 'scrollTimer', setTimeout(function () {
-            var windowHeight = $(window).height();
-            var scrollTop = $(window).scrollTop();
-            right.find('img[lazysrc]:visible').each(function () {
-                var el = $(this);
-                var top = el.offset().top;
-                if (scrollTop < top + el.height() + 100 && scrollTop + windowHeight + 100 > top) {  // 100 is handicap
-                    el.attr('src', el.attr('lazysrc'));
-                    el.removeAttr('lazysrc');
-                }
-            })
-        }, 100));
-    });
+    lazyLoad(window);
     $(window).on('popstate', function(event) {
         event = event.originalEvent;
         if (event.state && event.state.section)
@@ -733,9 +757,10 @@ var Inits= {
 Map: function () {
     $(document.head).append('<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />',
         '<link rel="stylesheet" href="http://leaflet.github.io/Leaflet.markercluster/dist/MarkerCluster.css" />');
-    $('#right').append('<div id="Map"/>');
+    var mapList = $('<div class="split"/>');
+    $('#right').append($('<div id="Map"/>').append('<div id="map" class="split"/>',mapList));
     // Set center
-    map = L.map('Map').setView([0, 0], 2);
+    map = L.map('map').setView([0, 0], 2);
 
     // Layers list
     var tileLayers = {
@@ -826,16 +851,24 @@ Map: function () {
                     (stream.state == 'RUNNING' ? live : replay).addLayer(marker);
                 }
             }
+            refreshList(mapList)(r);
         });
     };
     if (!history.state.param) {
         if (navigator.geolocation)
             navigator.geolocation.getCurrentPosition(function (position) {
                 map.setView([position.coords.latitude, position.coords.longitude], 11);
+                refreshMap();
+            }, function(){
+                refreshMap();
             });
-        refreshMap();
     }
     map.on('moveend', refreshMap);
+    Split($('.split'), {
+        sizes: [80, 20],
+        minSize: [100, 100]
+    });
+    lazyLoad(mapList);
 },
 ApiTest: function () {
     var submitButton = $('<a class="button">Submit</div>');

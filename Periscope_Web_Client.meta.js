@@ -18,6 +18,7 @@
 // @require     https://github.com/iamcal/js-emoji/raw/master/lib/emoji.js
 // @require     https://github.com/zenorocha/clipboard.js/raw/master/dist/clipboard.min.js
 // @require     https://github.com/le717/jquery-spoiler/raw/master/jquery.spoiler.min.js
+// @require     https://github.com/nathancahill/Split.js/raw/master/split.min.js
 // @downloadURL https://github.com/Pmmlabs/OpenPeriscope/raw/master/Periscope_Web_Client.user.js
 // @updateURL   https://github.com/Pmmlabs/OpenPeriscope/raw/master/Periscope_Web_Client.meta.js
 // @icon        https://github.com/Pmmlabs/OpenPeriscope/raw/master/images/openperiscope.png
