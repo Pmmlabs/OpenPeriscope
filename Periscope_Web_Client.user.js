@@ -58,6 +58,7 @@ if (NODEJS) {  // for NW.js
         if (options.data)
             req.write(options.data);
         req.end();
+        return req;
     };
     IMG_PATH = '';
     // Back & Forward hotkeys
@@ -811,6 +812,7 @@ Map: function () {
     var refreshMap = function () {
         //if (e && e.hard === false) return;    // zoom change case
         var mapBounds = map.getBounds();
+        clearXHR();
         Api('mapGeoBroadcastFeed', {
             "include_replay": true,
             "p1_lat": mapBounds._northEast.lat,
@@ -1838,14 +1840,23 @@ function setSet(key, value) {
     settings[key] = value;
     localStorage.setItem('settings', JSON.stringify(settings));
 }
+function clearXHR() {   // abort all running XHR requests
+    for (var i in XHR) {
+        Progress.stop();
+        XHR[i].abort();
+    }
+    XHR=[];
+}
 /* LEVEL 0 */
+var XHR = [];
 function Api(method, params, callback, callback_fail) {
     if (!params)
         params = {};
     if (loginTwitter && loginTwitter.cookie)
         params.cookie = loginTwitter.cookie;
     Progress.start();
-    GM_xmlhttpRequest({
+    var xhrIndex = XHR.length;
+    var req = GM_xmlhttpRequest({
         method: 'POST',
         url: 'https://api.periscope.tv/api/v2/' + method,
         headers: {
@@ -1854,6 +1865,7 @@ function Api(method, params, callback, callback_fail) {
         data: JSON.stringify(params),
         onload: function (r) {
             Progress.stop();
+            XHR.splice(xhrIndex, 1);
             if (r.status == 200) {
                 var response = JSON.parse(r.responseText);
                 if (callback)
@@ -1870,6 +1882,7 @@ function Api(method, params, callback, callback_fail) {
                 console.log('Method:', method, 'params:', params, 'response:', response);
         }
     });
+    XHR.push(req);
 }
 function SignIn3(session_key, session_secret) {
     Api('loginTwitter', {
