@@ -33,6 +33,8 @@ if (NODEJS) {  // for NW.js
     GM_xmlhttpRequest = function (options) {
         var onload = options.onload;
         options.onload = null;
+        var onerror = options.onerror;
+        options.onerror = null;
         var u = url.parse(options.url);
         options.host = u.host;
         options.hostname = u.hostname;
@@ -52,7 +54,10 @@ if (NODEJS) {  // for NW.js
             });
         });
         req.on('error', function (e) {
-            console.error(e);
+            if (onerror)
+                onerror(e);
+            else
+                console.error(e);
         });
         if (options.data)
             req.write(options.data);
@@ -1322,6 +1327,9 @@ Chat: function () {
                             if (Object.prototype.toString.call(callback) === '[object Function]')
                                 callback();
                         }
+                    },
+                    onerror: function(e) {
+                        console.log(e);
                     }
                 });
             }
