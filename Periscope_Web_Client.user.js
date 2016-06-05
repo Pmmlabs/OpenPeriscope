@@ -504,6 +504,7 @@ const css = '<style>\
     .spoiler-content-visible {\
         padding: 5px;\
         background: #fbfbfb;\
+        height: auto !important;\
     }\
     /* Split.js */\
     .gutter {\
@@ -1496,8 +1497,8 @@ User: function () {
             user_id: id
         }, function (response) {
             resultUser.prepend(getUserDescription(response.user));
-            $('div[data-spoiler-link="followers"]').append(' (' + response.user.n_followers + ')');
-            $('div[data-spoiler-link="following"]').append(' (' + response.user.n_following + ')');
+            FollowersSpoiler.append(' (' + response.user.n_followers + ')');
+            FollowingSpoiler.append(' (' + response.user.n_following + ')');
         });
         Api('userBroadcasts', {
             user_id: id,
@@ -1506,51 +1507,49 @@ User: function () {
             refreshList($('#userBroadcasts'))(broadcasts);
             BroadcastsSpoiler.append(' (' + broadcasts.length + ')').click();
         });
-        var BroadcastsSpoiler = $('<div class="spoiler menu" data-spoiler-link="broadcasts">Broadcasts</div>').on("jq-spoiler-visible", function(){
-            $('#userBroadcasts').css('height','auto');
-        });
+        var BroadcastsSpoiler = $('<div class="spoiler menu" data-spoiler-link="broadcasts">Broadcasts</div>');
         var FollowersSpoiler = $('<div class="spoiler menu" data-spoiler-link="followers">Followers</div>').on("jq-spoiler-visible", function() {
-            Api('followers', {
-                user_id: id
-            }, function (followers) {
-                var followersDiv = $('#userFollowers');
-                followersDiv.css('height','auto').empty();
-                if (followers.length)
-                    for (var i in followers)
-                        followersDiv.append($('<div class="card"/>').append(getUserDescription(followers[i])));
-                else
-                    followersDiv.html('No results');
-            });
+            var followersDiv = $('#userFollowers');
+            if (!followersDiv.html())
+                Api('followers', {
+                    user_id: id
+                }, function (followers) {
+                    if (followers.length)
+                        for (var i in followers)
+                            followersDiv.append($('<div class="card"/>').append(getUserDescription(followers[i])));
+                    else
+                        followersDiv.html('No results');
+                });
         });
         var FollowingSpoiler = $('<div class="spoiler menu" data-spoiler-link="following">Following</div>').on("jq-spoiler-visible", function() {
-            Api('following', {
-                user_id: id
-            }, function (following) {
-                var followingDiv = $('#userFollowing');
-                followingDiv.css('height','auto').empty();
-                if (following.length)
-                    for (var i in following)
-                        followingDiv.append($('<div class="card"/>').append(getUserDescription(following[i])));
-                else
-                    followingDiv.html('No results');
-            });
+            var followingDiv = $('#userFollowing');
+            if (!followingDiv.html())
+                Api('following', {
+                    user_id: id
+                }, function (following) {
+                    if (following.length)
+                        for (var i in following)
+                            followingDiv.append($('<div class="card"/>').append(getUserDescription(following[i])));
+                    else
+                        followingDiv.html('No results');
+                });
         });
         resultUser.append(BroadcastsSpoiler, '<div class="spoiler-content" data-spoiler-link="broadcasts" id="userBroadcasts" />',
             FollowersSpoiler, '<div class="spoiler-content" data-spoiler-link="followers" id="userFollowers" />',
             FollowingSpoiler, '<div class="spoiler-content" data-spoiler-link="following" id="userFollowing" />');
         if (id == loginTwitter.user.id) {   // Blocked list
             var BlockedSpoiler = $('<div class="spoiler menu" data-spoiler-link="blocked">Blocked</div>').on("jq-spoiler-visible", function() {
-                Api('block/users', {}, function (blocked) {
-                    var blockedDiv = $('#userBlocked');
-                    blockedDiv.css('height','auto').empty();
-                    if (blocked.length)
-                        for (var i in blocked) {
-                            blocked[i].is_blocked = true;
-                            blockedDiv.append($('<div class="card"/>').append(getUserDescription(blocked[i])));
-                        }
-                    else
-                        blockedDiv.html('No results');
-                });
+                var blockedDiv = $('#userBlocked');
+                if (!blockedDiv.html())
+                    Api('block/users', {}, function (blocked) {
+                        if (blocked.length)
+                            for (var i in blocked) {
+                                blocked[i].is_blocked = true;
+                                blockedDiv.append($('<div class="card"/>').append(getUserDescription(blocked[i])));
+                            }
+                        else
+                            blockedDiv.html('No results');
+                    });
             });
             resultUser.append(BlockedSpoiler, '<div class="spoiler-content" data-spoiler-link="blocked" id="userBlocked" />');
         }
