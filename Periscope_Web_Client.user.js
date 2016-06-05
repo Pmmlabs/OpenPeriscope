@@ -1503,8 +1503,8 @@ User: function () {
             user_id: id,
             all: true
         }, function (broadcasts) {
-            $('div[data-spoiler-link="broadcasts"]').append(' (' + broadcasts.length + ')');
             refreshList($('#userBroadcasts'))(broadcasts);
+            BroadcastsSpoiler.append(' (' + broadcasts.length + ')').click();
         });
         var BroadcastsSpoiler = $('<div class="spoiler menu" data-spoiler-link="broadcasts">Broadcasts</div>').on("jq-spoiler-visible", function(){
             $('#userBroadcasts').css('height','auto');
