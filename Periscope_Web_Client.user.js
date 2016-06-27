@@ -1729,7 +1729,7 @@ function getM3U(id, jcontainer) {
         // For replay
         var replay_url = r.replay_url;
         if (replay_url) {
-            var replay_base_url = replay_url.replace('playlist.m3u8', '');
+            var replay_base_url = replay_url.replace(/playlist.*m3u8/ig, '');
             var params = '?';
             for (var i in r.cookies)
                 params += r.cookies[i].Name.replace('CloudFront-', '') + '=' + r.cookies[i].Value + '&';
