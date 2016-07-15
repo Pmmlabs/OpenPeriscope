@@ -612,6 +612,8 @@ function Ready(loginInfo) {
         {text: 'Suggested people', id: 'People'},
         {text: 'User', id: 'User'}
     ];
+    if (NODEJS)
+        menu.push({text: 'Console', id: 'Console'});
     for (var i in menu) {
         var link = $('<div class="menu" id="menu'+menu[i].id+'">' + menu[i].text + '</div>');
         link.click(switchSection.bind(null, menu[i].id));
@@ -715,6 +717,13 @@ function switchSection(section, param, popstate) {
                 var mapcenter = map.getCenter();
                 if (latlng[0] != mapcenter.lat || latlng[1] != mapcenter.lng)
                     map.setView([latlng[0], latlng[1]], 17);
+                break;
+            case 'Console':
+                if ($('#download_url').val() != param) {
+                    $('#download_url').val(param);
+                    $('#download').click();
+                }
+                break;
         }
     document.title = section + ' - ' + 'OpenPeriscope';
 }
@@ -1666,6 +1675,61 @@ Edit: function () {
         button, '<br>', '<h3>OpenPeriscope settings</h3>',  notifications , '<br>',
         'Notifications refresh interval: ', notifications_interval ,' seconds'
     ));
+},
+Console: function () {
+    function _arrayBufferToString(buf, callback) {
+        var bb = new Blob([new Uint8Array(buf)]);
+        var f = new FileReader();
+        f.onload = function (e) {
+            callback(e.target.result);
+        };
+        f.readAsText(bb);
+    }
+
+    var resultConsole = $('<pre id="resultConsole" />');
+    var downloadButton = $('<a class="button" id="download">Download</a>').click(function () {
+        resultConsole.empty();
+        var url = $('#download_url').val().trim();
+
+        var date = new Date();
+        const spawn = require('child_process').spawn('ffmpeg', ['-i', url, '-c', 'copy', '-bsf:a', 'aac_adtstoasc', zeros(date.getDate()) + '-' + zeros(date.getMonth() + 1) + '-' + date.getFullYear() + '_' + zeros(date.getHours()) + '-' + zeros(date.getMinutes()) + 'result.mp4']);
+
+        if (!spawn.pid)
+            resultConsole.append('FFMpeg not found. On Windows, place the static build into OpenPeriscope directory.');
+
+        spawn.stdout.on('data', function (data) {
+            _arrayBufferToString(data, function (d) {
+                resultConsole.append(d);
+            });
+        });
+
+        spawn.stderr.on('data', function (data) {
+            _arrayBufferToString(data, function (d) {
+                resultConsole.append(d);
+            });
+        });
+
+        // ls.on('close', function (code) {
+        //     console.log('child process exited with code', code);
+        // });
+        spawn.on('error', function (code) {
+            _arrayBufferToString(data, function (d) {
+                console.log('error: ', d);
+            });
+        });
+
+        $(window).keydown(function(event){
+            spawn.stdin.write(String.fromCharCode(event.keyCode)+'\r\n');
+            //spawn.stdin.close();
+        });
+
+        stopButton.show().unbind('click').click(function () {
+            spawn.kill();
+            this.hide();
+        });
+    });
+    var stopButton = $('<a class="button">Stop</a>').hide();
+    $('#right').append($('<div id="Console"/>').append('url: ', '<input id="download_url" type="text" size="20">', downloadButton, stopButton, '<br/><br/>', resultConsole));
 }
 };
 var chat_interval;
@@ -1724,7 +1788,7 @@ function getM3U(id, jcontainer) {
         // For live
         var hls_url = r.hls_url || r.https_hls_url;
         if (hls_url) {
-            jcontainer.find('.links').append('<a href="' + hls_url + '">Live M3U link</a>');
+            jcontainer.find('.links').append('<a href="' + hls_url + '">Live M3U link</a>', NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', hls_url))] : '');
         }
         // For replay
         var replay_url = r.replay_url;
@@ -1742,7 +1806,7 @@ function getM3U(id, jcontainer) {
                     m3u_text = m3u_text.responseText.replace(/(chunk_\d+\.ts)/g, replay_base_url + '$1' + params);
                     var filename = 'playlist.m3u8';
                     var link = $('<a href="data:text/plain;charset=utf-8,' + encodeURIComponent(m3u_text) + '" download="' + filename + '">Download replay M3U</a>').click(saveAs.bind(null, m3u_text, filename));
-                        jcontainer.find('.links').append(link);                    
+                    jcontainer.find('.links').append(link, NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', replay_url))] : '');
                 }
             });
         }
