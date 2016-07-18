@@ -4,14 +4,15 @@ Unofficial in-browser web client for Periscope (userscript)
 
 ### Using as standalone application
 
-If you have [NW.js](http://nwjs.io) >=0.13 installed, you can run
+You can use pre-built executables from [Releases page](https://github.com/Pmmlabs/OpenPeriscope/releases), or 
+
+1. Download NW.js: http://nwjs.io/
+1. Download NPM (bundled with node.js): https://nodejs.org/download/release/latest/
+1. Run in repo directory
 ```
  npm install
  nw . 
  ```
- in repo directory
-
-Or, you can use pre-built executables from [Releases page](https://github.com/Pmmlabs/OpenPeriscope/releases)
 
 ### Using as userscript
 
@@ -62,3 +63,6 @@ Docs by @cjhbtn, actualized by me: http://static.pmmlabs.ru/OpenPeriscope
 1. clipboard.js https://clipboardjs.com
 1. jQuery Spoiler https://github.com/le717/jquery-spoiler
 1. Split.js https://github.com/nathancahill/Split.js
+
+### Donate
+Buy me a beer: [paypal.me/pmmlabs](https://paypal.me/pmmlabs)
