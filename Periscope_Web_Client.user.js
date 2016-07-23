@@ -1692,7 +1692,7 @@ Console: function () {
         var url = $('#download_url').val().trim();
 
         var date = new Date();
-        const spawn = require('child_process').spawn('ffmpeg', ['-i', url, '-c', 'copy', '-bsf:a', 'aac_adtstoasc', zeros(date.getDate()) + '-' + zeros(date.getMonth() + 1) + '-' + date.getFullYear() + '_' + zeros(date.getHours()) + '-' + zeros(date.getMinutes()) + 'result.mp4']);
+        const spawn = require('child_process').spawn('ffmpeg', ['-i', url, '-c', 'copy', '-bsf:a', 'aac_adtstoasc', zeros(date.getDate()) + '-' + zeros(date.getMonth() + 1) + '-' + date.getFullYear() + '_' + zeros(date.getHours()) + '-' + zeros(date.getMinutes()) + '.mp4']);
 
         if (!spawn.pid)
             resultConsole.append('FFMpeg not found. On Windows, place the static build into OpenPeriscope directory.');
@@ -1718,14 +1718,14 @@ Console: function () {
             });
         });
 
-        $(window).keydown(function(event){
-            spawn.stdin.write(String.fromCharCode(event.keyCode)+'\r\n');
-            //spawn.stdin.close();
-        });
+        // $(window).keydown(function(event){
+        //     spawn.stdin.write(String.fromCharCode(event.keyCode)+'\r\n');
+        //     //spawn.stdin.close();
+        // });
 
         stopButton.show().unbind('click').click(function () {
             spawn.kill();
-            this.hide();
+            $(this).hide();
         });
     });
     var stopButton = $('<a class="button">Stop</a>').hide();
