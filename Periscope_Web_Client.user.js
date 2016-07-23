@@ -389,6 +389,10 @@ const css = '<style>\
         padding: 5px;\
         overflow-y: auto;\
     }\
+    #resultConsole {\
+        overflow-y: auto;\
+        height: 300px; \
+    }\
     .user {\
         white-space: nowrap;\
     }\
@@ -692,7 +696,7 @@ function switchSection(section, param, popstate) {
     if (param && param.target)  // jQuery event
         param = null;
     if (popstate != true)
-        history.pushState({section: section, param: param}, section, '/' + section + (param ? '/' + param : ''));
+        history.pushState({section: section, param: param}, section, '/' + section + (param ? '/' + (param.url ? param.url : param) : ''));
     var sectionContainer = $('#' + section);
     if (!sectionContainer.length)
         Inits[section]();
@@ -719,8 +723,9 @@ function switchSection(section, param, popstate) {
                     map.setView([latlng[0], latlng[1]], 17);
                 break;
             case 'Console':
-                if ($('#download_url').val() != param) {
-                    $('#download_url').val(param);
+                if ($('#download_url').val() != param.url) {    // if it other video
+                    $('#download_url').val(param.url);
+                    $('#download_cookies').val(param.cookies);
                     $('#download').click();
                 }
                 break;
@@ -1690,9 +1695,13 @@ Console: function () {
     var downloadButton = $('<a class="button" id="download">Download</a>').click(function () {
         resultConsole.empty();
         var url = $('#download_url').val().trim();
+        var cookies = $('#download_cookies').val().trim().split('&');
+        var ff_cookies ='';
+        for (var i in cookies)
+            ff_cookies += cookies[i] + '; path=/; domain=periscope.tv\n';
 
         var date = new Date();
-        const spawn = require('child_process').spawn('ffmpeg', ['-i', url, '-c', 'copy', '-bsf:a', 'aac_adtstoasc', zeros(date.getDate()) + '-' + zeros(date.getMonth() + 1) + '-' + date.getFullYear() + '_' + zeros(date.getHours()) + '-' + zeros(date.getMinutes()) + '.mp4']);
+        const spawn = require('child_process').spawn('ffmpeg', ['-cookies', ff_cookies, '-i', url, '-c', 'copy', '-bsf:a', 'aac_adtstoasc', zeros(date.getDate()) + '-' + zeros(date.getMonth() + 1) + '-' + date.getFullYear() + '_' + zeros(date.getHours()) + '-' + zeros(date.getMinutes()) + '.mp4']);
 
         if (!spawn.pid)
             resultConsole.append('FFMpeg not found. On Windows, place the static build into OpenPeriscope directory.');
@@ -1729,7 +1738,8 @@ Console: function () {
         });
     });
     var stopButton = $('<a class="button">Stop</a>').hide();
-    $('#right').append($('<div id="Console"/>').append('url: ', '<input id="download_url" type="text" size="20">', downloadButton, stopButton, '<br/><br/>', resultConsole));
+    $('#right').append($('<div id="Console"/>').append('<dt>URL:</dt><input id="download_url" type="text" size="50"><br/><dt>Cookies:</dt><input id="download_cookies" type="text" size="50"><br/>',
+                                                        downloadButton, stopButton, '<br/><br/>', resultConsole));
 }
 };
 var chat_interval;
@@ -1799,8 +1809,11 @@ function getM3U(id, jcontainer) {
         if (replay_url) {
             var replay_base_url = replay_url.replace(/playlist.*m3u8/ig, '');
             var params = '?';
-            for (var i in r.cookies)
+            var ffmpeg_cookies = '';
+            for (var i in r.cookies) {
                 params += r.cookies[i].Name.replace('CloudFront-', '') + '=' + r.cookies[i].Value + '&';
+                ffmpeg_cookies += r.cookies[i].Name + '=' + r.cookies[i].Value + '&';
+            }
             params += 'Expires=0';
             replay_url += params;
             GM_xmlhttpRequest({
@@ -1812,7 +1825,7 @@ function getM3U(id, jcontainer) {
                     var link = $('<a href="data:text/plain;charset=utf-8,' + encodeURIComponent(m3u_text) + '" download="' + filename + '">Download replay M3U</a>').click(saveAs.bind(null, m3u_text, filename));
                     var clipboardLink = $('<a data-clipboard-text="' + replay_url + '">Copy URL</a>');
                     jcontainer.find('.links').append(link,
-                                                    NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', replay_url))] : '',
+                                                    NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', {url: replay_url, cookies: ffmpeg_cookies}))] : '',
                                                     ' | ', clipboardLink);
                     new Clipboard(clipboardLink.get(0));
                 }
