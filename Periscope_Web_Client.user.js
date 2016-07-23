@@ -723,6 +723,11 @@ function switchSection(section, param, popstate) {
                     map.setView([latlng[0], latlng[1]], 17);
                 break;
             case 'Console':
+                if (typeof param == 'string')
+                    param = {
+                        url: param,
+                        cookies: ''
+                    };
                 if ($('#download_url').val() != param.url) {    // if it other video
                     $('#download_url').val(param.url);
                     $('#download_cookies').val(param.cookies);
@@ -1738,7 +1743,7 @@ Console: function () {
         });
     });
     var stopButton = $('<a class="button">Stop</a>').hide();
-    $('#right').append($('<div id="Console"/>').append('<dt>URL:</dt><input id="download_url" type="text" size="50"><br/><dt>Cookies:</dt><input id="download_cookies" type="text" size="50"><br/>',
+    $('#right').append($('<div id="Console"/>').append('<dt>URL:</dt><input id="download_url" type="text" size="45"><br/><dt>Cookies:</dt><input id="download_cookies" type="text" size="45"><br/>',
                                                         downloadButton, stopButton, '<br/><br/>', resultConsole));
 }
 };
