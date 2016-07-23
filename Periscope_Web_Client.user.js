@@ -1788,7 +1788,11 @@ function getM3U(id, jcontainer) {
         // For live
         var hls_url = r.hls_url || r.https_hls_url;
         if (hls_url) {
-            jcontainer.find('.links').append('<a href="' + hls_url + '">Live M3U link</a>', NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', hls_url))] : '');
+            var clipboardLink = $('<a data-clipboard-text="' + hls_url + '">Copy URL</a>');
+            jcontainer.find('.links').append('<a href="' + hls_url + '">Live M3U link</a>',
+                                            NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', hls_url))] : '',
+                                            ' | ', clipboardLink);
+            new Clipboard(clipboardLink.get(0));
         }
         // For replay
         var replay_url = r.replay_url;
@@ -1806,7 +1810,11 @@ function getM3U(id, jcontainer) {
                     m3u_text = m3u_text.responseText.replace(/(chunk_\d+\.ts)/g, replay_base_url + '$1' + params);
                     var filename = 'playlist.m3u8';
                     var link = $('<a href="data:text/plain;charset=utf-8,' + encodeURIComponent(m3u_text) + '" download="' + filename + '">Download replay M3U</a>').click(saveAs.bind(null, m3u_text, filename));
-                    jcontainer.find('.links').append(link, NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', replay_url))] : '');
+                    var clipboardLink = $('<a data-clipboard-text="' + replay_url + '">Copy URL</a>');
+                    jcontainer.find('.links').append(link,
+                                                    NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', replay_url))] : '',
+                                                    ' | ', clipboardLink);
+                    new Clipboard(clipboardLink.get(0));
                 }
             });
         }
