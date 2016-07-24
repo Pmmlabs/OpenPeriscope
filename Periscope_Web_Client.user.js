@@ -623,7 +623,10 @@ function Ready(loginInfo) {
         left.append(link);
     }
     $('.menu').first().click();
-    left.append('<label title="All API requests will be logged to console"><input type="checkbox" id="debug"/> Debug mode</label>');
+    $('#menuCreate').hide(); // Create broadcasts only for developers
+    left.append($('<label title="All API requests will be logged to console"/>').append($('<input type="checkbox" id="debug"/>').click(function(){
+        $('#menuCreate').toggle();
+    }), 'Debug mode'));
     emoji.img_sets[emoji.img_set].path = 'http://unicodey.com/emoji-data/img-apple-64/';
     lazyLoad(window);
     $(window).on('popstate', function(event) {
