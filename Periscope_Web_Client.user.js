@@ -1964,7 +1964,7 @@ function Api(method, params, callback, callback_fail) {
                 alert(JSON.parse(r.responseText).errors[0].error);
             } else {
                 var response = 'API error: ' + r.status + ' ' + r.responseText;
-                if (callback_fail)
+                if (callback_fail && Object.prototype.toString.call(callback_fail) === '[object Function]')
                     callback_fail(response);
             }
             if ($('#debug').length && $('#debug')[0].checked)
