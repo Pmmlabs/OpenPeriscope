@@ -1,6 +1,6 @@
 <img align="right" src="https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/openperiscope.png">
 # OpenPeriscope
-Unofficial in-browser web client for Periscope (userscript)
+Unofficial in-browser client for Periscope (userscript)
 
 ### Using as standalone application
 
@@ -37,6 +37,7 @@ In this case posting to chat will not work.
 * All functions of mobile client (except broadcasting)
 * Recording of live broadcasts
 * Downloading of replays
+* Notifications and automatic download, when broadcast from subscriptions starts
 * Screenlists
 * Chat history (also in SRT subtitles)
 * Periscope API test

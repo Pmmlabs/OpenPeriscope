@@ -596,7 +596,7 @@ function Ready(loginInfo) {
     signOutButton.click(SignOut);
 
     var userLink = $('<a class="username">@' + (loginInfo.user.username || loginInfo.user.twitter_screen_name) + '</a>').click(switchSection.bind(null, 'User', loginInfo.user.id));
-    var userEdit = $('<span class="right icon edit">&nbsp;</span>').click(switchSection.bind(null, 'Edit'));
+    var userEdit = $('<span class="right icon edit" title="Profile & settings">&nbsp;</span>').click(switchSection.bind(null, 'Edit'));
     loginInfo.user.profile_image_urls.sort(function (a, b) {
         return a.width * a.height - b.width * b.height;
     });
@@ -616,7 +616,7 @@ function Ready(loginInfo) {
         {text: 'User', id: 'User'}
     ];
     if (NODEJS)
-        menu.push({text: 'Console', id: 'Console'});
+        menu.push({text: 'Downloading', id: 'Console'});
     for (var i in menu) {
         var link = $('<div class="menu" id="menu'+menu[i].id+'">' + menu[i].text + '</div>');
         link.click(switchSection.bind(null, menu[i].id));
@@ -642,51 +642,72 @@ var Notifications = {
     old_list: null,
     default_interval: 15,
     start: function () {
-        if (typeof this.notifs_available !== 'boolean') {
-            this.notifs_available = false;
-            if ("Notification" in window && Notification.permission === "granted")
-                this.notifs_available = true;
-            else if (Notification.permission !== 'denied')
-                Notification.requestPermission(function (permission) {
-                    if (permission === "granted")
-                        Notifications.notifs_available = true;
-                });
-        }
-        this.old_list = JSON.parse(localStorage.getItem('followingBroadcastFeed')) || [];
-        if (!settings.followingInterval)
-            setSet('followingInterval', this.default_interval);
-        if (settings.followingNotifications)
-            this.interval = setInterval(Api.bind(null, 'followingBroadcastFeed', {}, function (new_list) {
-                for (var i in new_list) {
-                    var contains = false;
-                    for (var j in Notifications.old_list)
-                        if (Notifications.old_list[j].id == new_list[i].id) {
-                            contains = true;
-                            break;
+        if (!this.interval) {
+            if (typeof this.notifs_available !== 'boolean') {
+                this.notifs_available = false;
+                if ("Notification" in window && Notification.permission === "granted")
+                    this.notifs_available = true;
+                else if (Notification.permission !== 'denied')
+                    Notification.requestPermission(function (permission) {
+                        if (permission === "granted")
+                            Notifications.notifs_available = true;
+                    });
+            }
+            this.old_list = JSON.parse(localStorage.getItem('followingBroadcastFeed')) || [];
+            if (!settings.followingInterval)
+                setSet('followingInterval', this.default_interval);
+            if (settings.followingNotifications || settings.followingDownload)
+                this.interval = setInterval(Api.bind(null, 'followingBroadcastFeed', {}, function (new_list) {
+                    for (var i in new_list) {
+                        var contains = false;
+                        for (var j in Notifications.old_list)
+                            if (Notifications.old_list[j].id == new_list[i].id) {
+                                contains = true;
+                                break;
+                            }
+                        if (!contains) { // NEW BRDCST!
+                            // Show notification
+                            if (settings.followingNotifications && Notifications.notifs_available) {
+                                setTimeout(function (i) {   // fix for massive firing
+                                    return function () {
+                                        var date_created = new Date(new_list[i].start);
+                                        var start = zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth() + 1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes());
+                                        new Notification(new_list[i].user_display_name + (new_list[i].state == 'RUNNING' ? ' is live now' : ' uploaded replay'), {
+                                            body: '[' + start + '] ' + (new_list[i].status || 'Untitled'),
+                                            icon: new_list[i].image_url,
+                                            data: new_list[i].id
+                                        }).onclick = function () {
+                                            window.open('https://www.periscope.tv/w/' + this.data);
+                                            this.close();
+                                        };
+                                    };
+                                }(i), 300 * i);
+                            }
+                            // Start the record
+                            if (settings.followingDownload && NODEJS) {
+                                getURL(new_list[i].id, function (live, replay, cookies) {
+                                    if (live)
+                                        download(live);
+                                    else if (replay) {
+                                        var ffmpeg_cookies = [];
+                                        for (var i in cookies)
+                                            ffmpeg_cookies.push(cookies[i].Name + '=' + cookies[i].Value);
+                                        download(replay, ffmpeg_cookies);
+                                    }
+                                })
+                            }
                         }
-                    if (!contains && Notifications.notifs_available)
-                        setTimeout(function (i) {   // fix for massive firing
-                            return function () {
-                                var date_created = new Date(new_list[i].start);
-                                var start = zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth() + 1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes());
-                                new Notification(new_list[i].user_display_name + (new_list[i].state == 'RUNNING' ? ' is live now' : ' uploaded replay'), {
-                                    body: '['+start+'] ' + (new_list[i].status || 'Untitled'),
-                                    icon: new_list[i].image_url,
-                                    data: new_list[i].id
-                                }).onclick = function () {
-                                    window.open('https://www.periscope.tv/w/' + this.data);
-                                    this.close();
-                                };
-                            };
-                        }(i), 300 * i);
-                }
-                Notifications.old_list = new_list;
-                localStorage.setItem('followingBroadcastFeed', JSON.stringify(Notifications.old_list));
-            }), (settings.followingInterval || this.default_interval) * 1000);
+                    }
+                    Notifications.old_list = new_list;
+                    localStorage.setItem('followingBroadcastFeed', JSON.stringify(Notifications.old_list));
+                }), (settings.followingInterval || this.default_interval) * 1000);
+        }
     },
     stop: function () {
-        if (this.interval)
+        if (this.interval) {
             clearInterval(this.interval);
+            this.interval = null;
+        }
     }
 };
 function switchSection(section, param, popstate) {
@@ -1668,68 +1689,30 @@ Edit: function () {
         Notifications.stop();
         Notifications.start();
     });
+    if (NODEJS)
+        var autoDownload = $('<label><input type="checkbox" ' + (settings.followingDownload ? 'checked' : '') + '/> Auto-download broadcasts from subscriptions</label>').click(function (e) {
+            setSet('followingDownload', e.target.checked);
+            if (e.target.checked)
+                Notifications.start();
+            else
+                Notifications.stop();
+        });
     $('#right').append($('<div id="Edit"/>').append(
         '<dt>Display name:</dt><input id="dname" type="text" value="' + loginTwitter.user.display_name + '"><br/>' +
         '<dt>Username:</dt><input id="uname" type="text" value="' + loginTwitter.user.username + '"><br/>' +
         '<dt>Description:</dt><input id="description" type="text" value="' + loginTwitter.user.description + '"><br/>' +
         '<dt>Avatar:</dt><iframe id="foravatar" name="foravatar" style="display: none;"></iframe>', form, '<br/><br/>',
-        button, '<br>', '<h3>OpenPeriscope settings</h3>',  notifications , '<br>',
+        button, '<br><hr color="#E0E0E0" size="1"><h3>OpenPeriscope settings</h3>',  notifications , '<br>', autoDownload, '<br>',
         'Notifications refresh interval: ', notifications_interval ,' seconds'
     ));
 },
 Console: function () {
-    function _arrayBufferToString(buf, callback) {
-        var bb = new Blob([new Uint8Array(buf)]);
-        var f = new FileReader();
-        f.onload = function (e) {
-            callback(e.target.result);
-        };
-        f.readAsText(bb);
-    }
-
     var resultConsole = $('<pre id="resultConsole" />');
     var downloadButton = $('<a class="button" id="download">Download</a>').click(function () {
         resultConsole.empty();
-        var url = $('#download_url').val().trim();
-        var cookies = $('#download_cookies').val().trim().split('&');
-        var ff_cookies ='';
-        for (var i in cookies)
-            ff_cookies += cookies[i] + '; path=/; domain=periscope.tv\n';
-
-        var date = new Date();
-        const spawn = require('child_process').spawn('ffmpeg', ['-cookies', ff_cookies, '-i', url, '-c', 'copy', '-bsf:a', 'aac_adtstoasc', zeros(date.getDate()) + '-' + zeros(date.getMonth() + 1) + '-' + date.getFullYear() + '_' + zeros(date.getHours()) + '-' + zeros(date.getMinutes()) + '.mp4']);
-
-        if (!spawn.pid)
-            resultConsole.append('FFMpeg not found. On Windows, place the static build into OpenPeriscope directory.');
-
-        spawn.stdout.on('data', function (data) {
-            _arrayBufferToString(data, function (d) {
-                resultConsole.append(d);
-            });
-        });
-
-        spawn.stderr.on('data', function (data) {
-            _arrayBufferToString(data, function (d) {
-                resultConsole.append(d);
-            });
-        });
-
-        // ls.on('close', function (code) {
-        //     console.log('child process exited with code', code);
-        // });
-        spawn.on('error', function (code) {
-            _arrayBufferToString(data, function (d) {
-                console.log('error: ', d);
-            });
-        });
-
-        // $(window).keydown(function(event){
-        //     spawn.stdin.write(String.fromCharCode(event.keyCode)+'\r\n');
-        //     //spawn.stdin.close();
-        // });
-
+        var dl = download($('#download_url').val().trim(), $('#download_cookies').val().trim().split('&'), resultConsole);
         stopButton.show().unbind('click').click(function () {
-            spawn.kill();
+            dl.kill();
             $(this).hide();
         });
     });
@@ -1788,27 +1771,21 @@ function refreshList(jcontainer, title) {  // use it as callback arg
 }
 function getM3U(id, jcontainer) {
     jcontainer.find('.links').empty();
-    Api('getAccessPublic', {
-        broadcast_id: id
-    }, function (r) {
-        // For live
-        var hls_url = r.hls_url || r.https_hls_url;
+    getURL(id, function (hls_url, replay_url, cookies) {
         if (hls_url) {
             var clipboardLink = $('<a data-clipboard-text="' + hls_url + '">Copy URL</a>');
             jcontainer.find('.links').append('<a href="' + hls_url + '">Live M3U link</a>',
-                                            NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', hls_url))] : '',
-                                            ' | ', clipboardLink);
+                NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', hls_url))] : '',
+                ' | ', clipboardLink);
             new Clipboard(clipboardLink.get(0));
         }
-        // For replay
-        var replay_url = r.replay_url;
         if (replay_url) {
             var replay_base_url = replay_url.replace(/playlist.*m3u8/ig, '');
             var params = '?';
             var ffmpeg_cookies = '';
-            for (var i in r.cookies) {
-                params += r.cookies[i].Name.replace('CloudFront-', '') + '=' + r.cookies[i].Value + '&';
-                ffmpeg_cookies += r.cookies[i].Name + '=' + r.cookies[i].Value + '&';
+            for (var i in cookies) {
+                params += cookies[i].Name.replace('CloudFront-', '') + '=' + cookies[i].Value + '&';
+                ffmpeg_cookies += cookies[i].Name + '=' + cookies[i].Value + '&';
             }
             params += 'Expires=0';
             replay_url += params;
@@ -1821,13 +1798,85 @@ function getM3U(id, jcontainer) {
                     var link = $('<a href="data:text/plain;charset=utf-8,' + encodeURIComponent(m3u_text) + '" download="' + filename + '">Download replay M3U</a>').click(saveAs.bind(null, m3u_text, filename));
                     var clipboardLink = $('<a data-clipboard-text="' + replay_url + '">Copy URL</a>');
                     jcontainer.find('.links').append(link,
-                                                    NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', {url: replay_url, cookies: ffmpeg_cookies}))] : '',
-                                                    ' | ', clipboardLink);
+                        NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', {url: replay_url, cookies: ffmpeg_cookies}))] : '',
+                        ' | ', clipboardLink);
                     new Clipboard(clipboardLink.get(0));
                 }
             });
         }
     });
+}
+function getURL(id, callback){
+    Api('getAccessPublic', {
+        broadcast_id: id
+    }, function (r) {
+        // For live
+        var hls_url = r.hls_url || r.https_hls_url;
+        if (hls_url) {
+            callback(hls_url);
+        }
+        // For replay
+        var replay_url = r.replay_url;
+        if (replay_url) {
+            callback(null, replay_url, r.cookies);
+        }
+    });
+}
+function download(url, cookies, jcontainer) { // cookies=['key=val','key=val']
+    function _arrayBufferToString(buf, callback) {
+        var bb = new Blob([new Uint8Array(buf)]);
+        var f = new FileReader();
+        f.onload = function (e) {
+            callback(e.target.result);
+        };
+        f.readAsText(bb);
+    }
+
+    var ff_cookies = '';
+    if (cookies)
+        for (var i in cookies)
+            if (cookies[i].length)
+                ff_cookies += cookies[i] + '; path=/; domain=periscope.tv\n';
+    var date = new Date();
+    const spawn = require('child_process').spawn('ffmpeg', [
+        '-loglevel', 'warning',
+        '-cookies', ff_cookies,
+        '-i', url,
+        '-c', 'copy',
+        '-bsf:a', 'aac_adtstoasc',
+        zeros(date.getDate()) + '-' + zeros(date.getMonth() + 1) + '-' + date.getFullYear() + '_' + zeros(date.getHours()) + '-' + zeros(date.getMinutes()) + '.mp4'
+    ]);
+    if (jcontainer) {
+        if (!spawn.pid)
+            jcontainer.append('FFMpeg not found. On Windows, place the static build into OpenPeriscope directory.');
+
+        spawn.stdout.on('data', function (data) {
+            _arrayBufferToString(data, function (d) {
+                jcontainer.append(d);
+            });
+        });
+
+        spawn.stderr.on('data', function (data) {
+            _arrayBufferToString(data, function (d) {
+                jcontainer.append(d);
+            });
+        });
+
+        // ls.on('close', function (code) {
+        //     console.log('child process exited with code', code);
+        // });
+        spawn.on('error', function (code) {
+            _arrayBufferToString(data, function (d) {
+                console.log('error: ', d);
+            });
+        });
+
+        // $(window).keydown(function(event){
+        //     spawn.stdin.write(String.fromCharCode(event.keyCode)+'\r\n');
+        //     //spawn.stdin.close();
+        // });
+    }
+    return spawn;
 }
 function saveAs(data, filename) {
     if (NODEJS) {
