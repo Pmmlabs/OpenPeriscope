@@ -1,0 +1,21 @@
+./configure \
+--disable-programs \
+--enable-ffmpeg \
+--disable-doc \
+--disable-encoders \
+--disable-decoders \
+--disable-hwaccels \
+--disable-demuxers \
+--disable-muxers \
+--disable-parsers \
+--disable-bsfs \
+--disable-devices \
+--disable-filters \
+--disable-protocols \
+--enable-protocol=hls,http,https,tcp,tls_gnutls,file \
+--enable-gnutls \
+--enable-decoder=h264,aac \
+--enable-demuxer=hls,mpegts,dnxhd \
+--enable-muxer=mp4 \
+--enable-parser=h264,aac \
+--enable-bsf=aac_adtstoasc
