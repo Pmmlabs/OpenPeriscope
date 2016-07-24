@@ -1838,7 +1838,7 @@ function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=v
             if (cookies[i].length)
                 ff_cookies += cookies[i] + '; path=/; domain=periscope.tv\n';
     var date = new Date();
-    const spawn = require('child_process').spawn('ffmpeg', [
+    const spawn = require('child_process').spawn((process.platform === 'win32' ? '' : './') + 'ffmpeg', [
         '-loglevel', 'warning',
         '-cookies', ff_cookies,
         '-i', url,
