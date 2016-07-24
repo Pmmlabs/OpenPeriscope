@@ -687,12 +687,12 @@ var Notifications = {
                             if (settings.followingDownload && NODEJS) {
                                 getURL(new_list[i].id, function (live, replay, cookies) {
                                     if (live)
-                                        download(live);
+                                        download(new_list[i].status,live);
                                     else if (replay) {
                                         var ffmpeg_cookies = [];
                                         for (var i in cookies)
                                             ffmpeg_cookies.push(cookies[i].Name + '=' + cookies[i].Value);
-                                        download(replay, ffmpeg_cookies);
+                                        download(new_list[i].status,replay, ffmpeg_cookies);
                                     }
                                 })
                             }
@@ -1710,7 +1710,7 @@ Console: function () {
     var resultConsole = $('<pre id="resultConsole" />');
     var downloadButton = $('<a class="button" id="download">Download</a>').click(function () {
         resultConsole.empty();
-        var dl = download($('#download_url').val().trim(), $('#download_cookies').val().trim().split('&'), resultConsole);
+        var dl = download('', $('#download_url').val().trim(), $('#download_cookies').val().trim().split('&'), resultConsole);
         stopButton.show().unbind('click').click(function () {
             dl.kill();
             $(this).hide();
@@ -1822,7 +1822,7 @@ function getURL(id, callback){
         }
     });
 }
-function download(url, cookies, jcontainer) { // cookies=['key=val','key=val']
+function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=val']
     function _arrayBufferToString(buf, callback) {
         var bb = new Blob([new Uint8Array(buf)]);
         var f = new FileReader();
@@ -1844,7 +1844,7 @@ function download(url, cookies, jcontainer) { // cookies=['key=val','key=val']
         '-i', url,
         '-c', 'copy',
         '-bsf:a', 'aac_adtstoasc',
-        zeros(date.getDate()) + '-' + zeros(date.getMonth() + 1) + '-' + date.getFullYear() + '_' + zeros(date.getHours()) + '-' + zeros(date.getMinutes()) + '.mp4'
+        zeros(date.getDate()) + '-' + zeros(date.getMonth() + 1) + '-' + date.getFullYear() + '_' + zeros(date.getHours()) + '-' + zeros(date.getMinutes()) + '_'+name+'.mp4'
     ]);
     if (jcontainer) {
         if (!spawn.pid)
