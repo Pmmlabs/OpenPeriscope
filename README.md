@@ -7,7 +7,10 @@ Unofficial in-browser web client for Periscope (userscript)
 You can use pre-built executables from [Releases page](https://github.com/Pmmlabs/OpenPeriscope/releases), or 
 
 1. Download NW.js: http://nwjs.io/
-1. Download NPM (bundled with node.js): https://nodejs.org/download/release/latest/
+1. Unpack it and add path to PATH enviroment variable
+1. Download and unpack [ffmpeg library](https://github.com/iteufel/nwjs-ffmpeg-prebuilt/releases) to nw.js directory
+1. Download and unpack [ffmpeg static build](https://ffmpeg.zeranoe.com/builds/) to OpenPeriscope directory
+1. Download and install NPM (bundled with node.js): https://nodejs.org/download/release/latest/
 1. Run in repo directory
 ```
  npm install
@@ -29,21 +32,22 @@ In this case posting to chat will not work.
 1. Login to the Twitter (if not yet) and click "Authorize"
 1. Here you go!
 
-### Broadcasts downloading
+### Features
 
-With OpenPeriscope and FFmpeg, you can download live broadcasts and replays.
+* All functions of mobile client (except broadcasting)
+* Recording of live broadcasts
+* Downloading of replays
+* Screenlists
+* Chat history (also in SRT subtitles)
+* Periscope API test
 
-For live broadcasts:
+In userscript version, "Download" link is absent, so you can use FFmpeg (or other program) to download broadcasts:
 
-1. Click to "Get stream link"
-1. Right-click to "Live M3U link", then "Copy link"
-1. `ffmpeg -i "your_link_here" -c copy -bsf:a aac_adtstoasc result.mp4` (or open your favourite media player, and paste link to it)
+Lives:<br>
+`ffmpeg -i "your_link_here" -c copy -bsf:a aac_adtstoasc result.mp4`
 
-For replays:
-
-1. Click to "Get stream link" 
-1. Click to "Download replay M3U"
-1. Navigate to your downloads directory, and there `ffmpeg -protocol_whitelist file,https,tls,hls,tcp -i playlist.m3u8 -c copy -bsf:a aac_adtstoasc result.mp4`
+Replays:<br>
+`ffmpeg -protocol_whitelist file,https,tls,hls,tcp -i playlist.m3u8 -c copy -bsf:a aac_adtstoasc result.mp4`
 
 ### API Documentation
 
