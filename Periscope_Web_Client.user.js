@@ -609,7 +609,6 @@ function Ready(loginInfo) {
         {text: 'Map', id: 'Map'},
         {text: 'Top', id: 'Top'},
         {text: 'Following', id: 'Following'},
-        {text: 'Newest', id: 'Newest'},
         {text: 'Search broadcasts', id: 'Search'},
         {text: 'New broadcast', id: 'Create'},
         {text: 'Chat', id: 'Chat'},
@@ -1025,17 +1024,6 @@ Following: function () {
     var result = $('<div/>');
     var button = $('<a class="button">Refresh</a>').click(Api.bind(null, 'followingBroadcastFeed', {}, refreshList(result)));
     $('#right').append($('<div id="Following"/>').append(button, result));
-    button.click();
-},
-Newest: function () {
-    var result = $('<div/>');
-    var count = $('<input type="text" placeholder="253" size="3" value="10">');
-    var since = $('<input type="text" placeholder="' + (Date.now() / 1000 | 0) + '" size="12">');
-    var button = $('<a class="button">Refresh</a>').click(Api.bind(null, 'mapBroadcastFeed', {
-        count: +count.val().trim() || 253,
-        since: +since.val().trim() || (Date.now() / 1000 | 0 ) - 60
-    }, refreshList(result)));
-    $('#right').append($('<div id="Newest"/>').append('Count: ', count, 'Since: ', since, button, result));
     button.click();
 },
 Create: function () {
