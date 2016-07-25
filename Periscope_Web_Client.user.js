@@ -1712,7 +1712,7 @@ Console: function () {
         resultConsole.empty();
         var dl = download('', $('#download_url').val().trim(), $('#download_cookies').val().trim().split('&'), resultConsole);
         stopButton.show().unbind('click').click(function () {
-            dl.kill();
+            dl.stdin.end('q', dl.kill);
             $(this).hide();
         });
     });
