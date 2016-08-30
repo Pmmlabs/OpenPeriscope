@@ -542,15 +542,19 @@ if (location.href.indexOf('twitter.com/oauth/openperiscope') > 0) {
     $(document.head).append(css);
 
     document.title = 'OpenPeriscope';
-    var oauth_token, oauth_verifier, session_key, session_secret, loginTwitter;
+    var oauth_token = localStorage.getItem('oauth_token'),
+        oauth_verifier = localStorage.getItem('oauth_verifier'),
+        session_key = localStorage.getItem('session_key'),
+        session_secret = localStorage.getItem('session_secret'),
+        loginTwitter = localStorage.getItem('loginTwitter');
     
     $(function() {
-        if (loginTwitter = localStorage.getItem('loginTwitter')) {
+        if (loginTwitter) {
             loginTwitter = JSON.parse(loginTwitter);
             Ready(loginTwitter);
-        } else if ((session_key = localStorage.getItem('session_key')) && (session_secret = localStorage.getItem('session_secret'))) {
+        } else if (session_key && session_secret) {
             SignIn3(session_key, session_secret);
-        } else if ((oauth_token = localStorage.getItem('oauth_token')) && (oauth_verifier = localStorage.getItem('oauth_verifier'))) {
+        } else if (oauth_token && oauth_verifier) {
             SignIn2(oauth_token, oauth_verifier);
         } else if ((oauth_token = getParameterByName('oauth_token')) && (oauth_verifier = getParameterByName('oauth_verifier'))) {
             localStorage.setItem('oauth_token', oauth_token);
@@ -2035,7 +2039,7 @@ function SignIn3(session_key, session_secret) {
     })
 }
 function SignIn2(oauth_token, oauth_verifier) {
-    OAuth('access_token', function (oauth) {
+    OAuthTwitter('access_token', function (oauth) {
         localStorage.setItem('session_key', oauth.oauth_token);
         localStorage.setItem('session_secret', oauth.oauth_token_secret);
         session_key = oauth.oauth_token;
@@ -2047,7 +2051,7 @@ function SignIn1() {
     setSet('consumer_secret', $('#secret').val());
     if (settings.consumer_secret) {
         $(this).text('Loading...');
-        OAuth('request_token', function (oauth) {
+        OAuthTwitter('request_token', function (oauth) {
             location.href = 'https://api.twitter.com/oauth/authorize?oauth_token=' + oauth.oauth_token;
         }, {oauth_callback: (NODEJS ? 'chrome-extension://bjhbjocpihnfbncblmbgdpacnmbkmadm/index.html' : 'openperiscope')});
     }
@@ -2057,9 +2061,12 @@ function SignOut() {
     setSet();
     location.pathname = 'index.html';
 }
-function OAuth(endpoint, callback, extra) {
-    var method = 'POST';
-    var url = 'https://api.twitter.com/oauth/' + endpoint;
+function OAuthTwitter(endpoint, callback, extra){
+    OAuth('https://api.twitter.com/oauth/' + endpoint, 'POST', callback,extra);
+}
+function OAuth(endpoint, _method, callback, extra) {
+    var method = _method || 'POST';
+    var url = endpoint;
     var params = {
         oauth_consumer_key: '9I4iINIyd0R01qEPEwT9IC6RE',
         oauth_nonce: Date.now(),
@@ -2150,7 +2157,11 @@ function SignInSMS() {
                                 token_type: response_token.token_type,
                                 access_token: response_token.access_token
                             }, function (response_xauth) {
-                                SignIn3(response_xauth.oauth_token, response_xauth.oauth_token_secret);
+                                localStorage.setItem('session_key', response_xauth.oauth_token);
+                                localStorage.setItem('session_secret', response_xauth.oauth_token_secret);
+                                session_key = response_xauth.oauth_token;
+                                session_secret = response_xauth.oauth_token_secret;
+                                SignIn3(session_key, session_secret);
                             });
                         }));
                     });
@@ -2172,7 +2183,7 @@ function OAuthDigits(endpoint, options, callback) {
             Progress.stop();
             if (r.status == 200)
                 callback(JSON.parse(r.responseText.replace(/"login_verification_user_id":(\d+)/, '"login_verification_user_id":"$1"'))); // fix for integral precision in JS
-            else if (r.status == 401)   // wrong sms code
+            else if (r.status == 401 || r.status == 400)   // wrong sms code
                 alert('Authorization error!');
         }
     };
