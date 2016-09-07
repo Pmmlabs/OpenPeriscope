@@ -1718,7 +1718,9 @@ Console: function () {
         stopButton.show().unbind('click').click(function () {
             dl.stdin.end('q', dl.kill);
             $(this).hide();
+            downloadButton.show();
         });
+        $(this).hide();
     });
     var stopButton = $('<a class="button">Stop</a>').hide();
     $('#right').append($('<div id="Console"/>').append('<dt>URL:</dt><input id="download_url" type="text" size="45"><br/><dt>Cookies:</dt><input id="download_cookies" type="text" size="45"><br/>',
@@ -1785,13 +1787,16 @@ function getM3U(id, jcontainer) {
         }
         if (replay_url) {
             var replay_base_url = replay_url.replace(/playlist.*m3u8/ig, '');
-            var params = '?';
+            var params = '';
             var ffmpeg_cookies = '';
-            for (var i in cookies) {
-                params += cookies[i].Name.replace('CloudFront-', '') + '=' + cookies[i].Value + '&';
-                ffmpeg_cookies += cookies[i].Name + '=' + cookies[i].Value + '&';
+            if (cookies && cookies.length) {
+                params += '?';
+                for (var i in cookies) {
+                    params += cookies[i].Name.replace('CloudFront-', '') + '=' + cookies[i].Value + '&';
+                    ffmpeg_cookies += cookies[i].Name + '=' + cookies[i].Value + '&';
+                }
+                params += 'Expires=0';
             }
-            params += 'Expires=0';
             replay_url += params;
             GM_xmlhttpRequest({
                 method: 'GET',
@@ -1811,9 +1816,7 @@ function getM3U(id, jcontainer) {
     });
 }
 function getURL(id, callback){
-    Api('getAccessPublic', {
-        broadcast_id: id
-    }, function (r) {
+    var getURLCallback =function (r) {
         // For live
         var hls_url = r.hls_url || r.https_hls_url;
         if (hls_url) {
@@ -1824,6 +1827,13 @@ function getURL(id, callback){
         if (replay_url) {
             callback(null, replay_url, r.cookies);
         }
+    };
+    Api('getAccessPublic', {
+        broadcast_id: id
+    }, getURLCallback, function(){
+        Api('accessChannel', {  // private video case
+            broadcast_id: id
+        }, getURLCallback)
     });
 }
 function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=val']
@@ -1870,7 +1880,7 @@ function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=v
         //     console.log('child process exited with code', code);
         // });
         spawn.on('error', function (code) {
-            _arrayBufferToString(data, function (d) {
+            _arrayBufferToString(code, function (d) {
                 console.log('error: ', d);
             });
         });
