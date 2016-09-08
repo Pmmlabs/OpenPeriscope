@@ -72,6 +72,7 @@ if (NODEJS) {  // for NW.js
             location.href='/index.html';
     });
 }
+//<editor-fold desc="CSS style">
 const css = '<style>\
     @media (max-width: 640px) {\
         div#left {\
@@ -532,6 +533,7 @@ const css = '<style>\
         overflow-x: hidden;\
     }\
 </style>';
+//</editor-fold>
 
 var settings = JSON.parse(localStorage.getItem('settings')) || {};
 
