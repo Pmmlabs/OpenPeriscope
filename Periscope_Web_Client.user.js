@@ -685,7 +685,7 @@ var Notifications = {
                                 setTimeout(function (i) {   // fix for massive firing
                                     return function () {
                                         var date_created = new Date(new_list[i].start);
-                                        var start = zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth() + 1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes());
+                                        var start = date_created.getFullYear() + '-' + zeros(date_created.getMonth() + 1) + '-' + zeros(date_created.getDate()) + '_' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes());
                                         new Notification(new_list[i].user_display_name + (new_list[i].state == 'RUNNING' ? ' is live now' : ' uploaded replay'), {
                                             body: '[' + start + '] ' + (new_list[i].status || 'Untitled'),
                                             icon: new_list[i].image_url,
@@ -699,14 +699,14 @@ var Notifications = {
                             }
                             // Start the record
                             if (settings.followingDownload && NODEJS) {
-                                getURL(new_list[i].id, function (live, replay, cookies) {
+                                getURL(new_list[i].id, function (live, replay, cookies, _name) {
                                     if (live)
-                                        download(new_list[i].status,live);
+                                        download(_name, live);
                                     else if (replay) {
                                         var ffmpeg_cookies = [];
                                         for (var i in cookies)
                                             ffmpeg_cookies.push(cookies[i].Name + '=' + cookies[i].Value);
-                                        download(new_list[i].status,replay, ffmpeg_cookies);
+                                        download(_name, replay, ffmpeg_cookies);
                                     }
                                 })
                             }
@@ -760,14 +760,15 @@ function switchSection(section, param, popstate) {
                     map.setView([latlng[0], latlng[1]], 17);
                 break;
             case 'Console':
-                if (typeof param == 'string')
-                    param = {
-                        url: param,
-                        cookies: ''
-                    };
+                param = $.extend({
+                    url:'',
+                    cookies: '',
+                    name:''
+                }, param);
                 if ($('#download_url').val() != param.url) {    // if it other video
                     $('#download_url').val(param.url);
                     $('#download_cookies').val(param.cookies);
+                    $('#download_name').val(param.name);
                     $('#download').click();
                 }
                 break;
@@ -1724,7 +1725,7 @@ Console: function () {
     var resultConsole = $('<pre id="resultConsole" />');
     var downloadButton = $('<a class="button" id="download">Download</a>').click(function () {
         resultConsole.empty();
-        var dl = download('', $('#download_url').val().trim(), $('#download_cookies').val().trim().split('&'), resultConsole);
+        var dl = download($('#download_name').val().trim(), $('#download_url').val().trim(), $('#download_cookies').val().trim().split('&'), resultConsole);
         stopButton.show().unbind('click').click(function () {
             dl.stdin.end('q', dl.kill);
             $(this).hide();
@@ -1733,7 +1734,9 @@ Console: function () {
         $(this).hide();
     });
     var stopButton = $('<a class="button">Stop</a>').hide();
-    $('#right').append($('<div id="Console"/>').append('<dt>URL:</dt><input id="download_url" type="text" size="45"><br/><dt>Cookies:</dt><input id="download_cookies" type="text" size="45"><br/>',
+    $('#right').append($('<div id="Console"/>').append('<dt>URL:</dt><input id="download_url" type="text" size="45"><br/>' +
+                                                       '<dt>Cookies:</dt><input id="download_cookies" type="text" size="45"><br/>' +
+                                                       '<dt>Name:</dt><input id="download_name" type="text" size="45"><br/>',
                                                         downloadButton, stopButton, '<br/><br/>', resultConsole));
 }
 };
@@ -1787,11 +1790,11 @@ function refreshList(jcontainer, title) {  // use it as callback arg
 }
 function getM3U(id, jcontainer) {
     jcontainer.find('.links').empty();
-    getURL(id, function (hls_url, replay_url, cookies) {
+    getURL(id, function (hls_url, replay_url, cookies, _name) {
         if (hls_url) {
             var clipboardLink = $('<a data-clipboard-text="' + hls_url + '">Copy URL</a>');
             jcontainer.find('.links').append('<a href="' + hls_url + '">Live M3U link</a>',
-                NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', hls_url))] : '',
+                NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', {url: hls_url, name: _name}))] : '',
                 ' | ', clipboardLink);
             new Clipboard(clipboardLink.get(0));
         }
@@ -1817,7 +1820,7 @@ function getM3U(id, jcontainer) {
                     var link = $('<a href="data:text/plain;charset=utf-8,' + encodeURIComponent(m3u_text) + '" download="' + filename + '">Download replay M3U</a>').click(saveAs.bind(null, m3u_text, filename));
                     var clipboardLink = $('<a data-clipboard-text="' + replay_url + '">Copy URL</a>');
                     jcontainer.find('.links').append(link,
-                        NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', {url: replay_url, cookies: ffmpeg_cookies}))] : '',
+                        NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', {url: replay_url, cookies: ffmpeg_cookies, name: _name}))] : '',
                         ' | ', clipboardLink);
                     new Clipboard(clipboardLink.get(0));
                 }
@@ -1825,17 +1828,32 @@ function getM3U(id, jcontainer) {
         }
     });
 }
+/**
+ * @callback getURLCallback
+ * @param {String} hls_url
+ * @param {String} replay_url
+ * @param {Array} cookies
+ * @param {String} name
+ */
+
+/**
+ *
+ * @param {String} id - broadcast ID
+ * @param {getURLCallback} callback - function applied against result
+ */
 function getURL(id, callback){
     var getURLCallback =function (r) {
+        var date_created = new Date(r.broadcast.start);
+        var date_created_str = date_created.getFullYear() + '-' + zeros(date_created.getMonth() + 1) + '-' + zeros(date_created.getDate()) + '_' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes());
         // For live
         var hls_url = r.hls_url || r.https_hls_url;
         if (hls_url) {
-            callback(hls_url);
+            callback(hls_url, null, null, date_created_str + '_' + r.broadcast.status);
         }
         // For replay
         var replay_url = r.replay_url;
         if (replay_url) {
-            callback(null, replay_url, r.cookies);
+            callback(null, replay_url, r.cookies, date_created_str + '_' + r.broadcast.status);
         }
     };
     Api('getAccessPublic', {
@@ -1861,14 +1879,13 @@ function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=v
         for (var i in cookies)
             if (cookies[i].length)
                 ff_cookies += cookies[i] + '; path=/; domain=periscope.tv\n';
-    var date = new Date();
     const spawn = require('child_process').spawn((process.platform === 'win32' ? '' : './') + 'ffmpeg', [
         '-loglevel', 'warning',
         '-cookies', ff_cookies,
         '-i', url,
         '-c', 'copy',
         '-bsf:a', 'aac_adtstoasc',
-        zeros(date.getDate()) + '-' + zeros(date.getMonth() + 1) + '-' + date.getFullYear() + '_' + zeros(date.getHours()) + '-' + zeros(date.getMinutes()) + '_'+name+'.mp4'
+        name+'.mp4'
     ]);
     if (jcontainer) {
         if (!spawn.pid)
@@ -1914,7 +1931,7 @@ function getDescription(stream) {
     var title = emoji.replace_unified(stream.status || 'Untitled');
     var featured_reason = '';
     if (stream.featured) {
-        title += '<span class="featured" style="background: #' + (stream.featured_category_color || 'FFBD00') + '">' + (stream.featured_category || 'POPULAR') + '</span>';
+        title += '<span class="featured" style="background: ' + (stream.featured_category_color || '#FFBD00') + '">' + (stream.featured_category || 'POPULAR') + '</span>';
         if (stream.featured_reason)
             featured_reason = ' <i>'+stream.featured_reason+'</i>';
     }
