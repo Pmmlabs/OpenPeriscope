@@ -532,6 +532,14 @@ const css = '<style>\
         overflow-y: auto;\
         overflow-x: hidden;\
     }\
+    img.lock {\
+        height: 14px;\
+        width: 14px;\
+        margin-left: -30px;\
+        min-width: 14px;\
+        margin-top: 100px;\
+        border: none;\
+    }\
 </style>';
 //</editor-fold>
 
@@ -1935,7 +1943,7 @@ function getDescription(stream) {
     });
     var chatLink = $('<a class="chatlink right icon">Chat</a>').click(switchSection.bind(null, 'Chat', stream.id));
     var description = $('<div class="description">\
-                <a href="' + stream.image_url + '" target="_blank"><img lazysrc="' + stream.image_url_small + '"/></a>\
+                <a href="' + stream.image_url + '" target="_blank"><img lazysrc="' + stream.image_url_small + '"/>' + (stream.is_locked ? '<img src="' + IMG_PATH + '/images/lock-white.png" class="lock"/>' : '') + '</a>\
                 <div class="watching right icon" title="Watching">' + (stream.n_watching || 0) + '</div>\
                 <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>'+featured_reason+'\
             </div>')
