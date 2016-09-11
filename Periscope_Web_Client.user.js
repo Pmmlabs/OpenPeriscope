@@ -900,7 +900,8 @@ Map: function () {
                     marker.bindPopup(description);
                     marker.on('popupopen', getM3U.bind(null, stream.id, $(description)));
                     marker.on('popupopen', Api.bind(null, 'getBroadcasts', {
-                        broadcast_ids: [stream.id]
+                        broadcast_ids: [stream.id],
+                        only_public_publish: true
                     }, function (info) {
                         $('.leaflet-popup-content .watching').text(info[0].n_watching + info[0].n_web_watching);
                     }));
@@ -1035,7 +1036,8 @@ Search: function () {
                             for (var i in chan.Broadcasts)
                                 ids.push(chan.Broadcasts[i].BID);
                             Api('getBroadcasts', {
-                                broadcast_ids: ids
+                                broadcast_ids: ids,
+                                only_public_publish: true
                             }, refreshList(searchResults, '<h3>' + channelName + ', ' + chan.NLive + ' lives, ' + chan.NReplay + ' replays</h3>'));
                         };
                     }(channel.Name), channel.CID));
@@ -1483,7 +1485,7 @@ Chat: function () {
                         timestamp: timestamp,
                         remoteID: loginTwitter.user.id,
                         username: loginTwitter.user.username,
-                        uuid: "OpenPeriscope" + Math.random(),
+                        uuid: "OpenPeriscope" + (Math.random()+'').replace('.',''),
                         signer_token: broadcast.signer_token,
                         participant_index: broadcast.participant_index,
                         type: customtype || 1,    // "text message"
@@ -1748,6 +1750,13 @@ var MESSAGE_KIND = {
     AUTH: 3,
     PRESENCE: 4
 };
+/* LEVEL 1 */
+function cleanFilename(filename){
+    var tmp = filename.replace(/[<>+\\/:"|?*]/g, '');
+    if (tmp.length > 100)
+        tmp = tmp.substring(0, 100);
+    return tmp;
+}
 function zeros(number) {
     return (100 + number + '').substr(1);
 }
@@ -1774,7 +1783,8 @@ function refreshList(jcontainer, title) {  // use it as callback arg
             }
             if (typeof response[0].n_watching == 'undefined')
                 Api('getBroadcasts', {
-                    broadcast_ids: ids
+                    broadcast_ids: ids,
+                    only_public_publish: true
                 }, function (info) {
                     for (var i in info)
                         $('.card.' + info[i].id + ' .watching').text(info[i].n_watching);
@@ -1844,16 +1854,17 @@ function getM3U(id, jcontainer) {
 function getURL(id, callback){
     var getURLCallback =function (r) {
         var date_created = new Date(r.broadcast.start);
-        var date_created_str = date_created.getFullYear() + '-' + zeros(date_created.getMonth() + 1) + '-' + zeros(date_created.getDate()) + '_' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes());
+        var date_created_str = date_created.getFullYear() + '-' + zeros(date_created.getMonth() + 1) + '-' + zeros(date_created.getDate()) + '_' + zeros(date_created.getHours()) + '.' + zeros(date_created.getMinutes());
+        var name = cleanFilename(date_created_str + '_' + r.broadcast.user_display_name + '_'+r.broadcast.status);
         // For live
         var hls_url = r.hls_url || r.https_hls_url;
         if (hls_url) {
-            callback(hls_url, null, null, date_created_str + '_' + r.broadcast.status);
+            callback(hls_url, null, null, name);
         }
         // For replay
         var replay_url = r.replay_url;
         if (replay_url) {
-            callback(null, replay_url, r.cookies, date_created_str + '_' + r.broadcast.status);
+            callback(null, replay_url, r.cookies, name);
         }
     };
     Api('accessVideoPublic', {
@@ -1885,6 +1896,7 @@ function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=v
         '-i', url,
         '-c', 'copy',
         '-bsf:a', 'aac_adtstoasc',
+        '-y',
         name+'.mp4'
     ]);
     if (jcontainer) {
