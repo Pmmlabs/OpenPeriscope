@@ -1856,7 +1856,7 @@ function getURL(id, callback){
             callback(null, replay_url, r.cookies, date_created_str + '_' + r.broadcast.status);
         }
     };
-    Api('getAccessPublic', {
+    Api('accessVideoPublic', {
         broadcast_id: id
     }, getURLCallback, function(){
         Api('accessChannel', {  // private video case
