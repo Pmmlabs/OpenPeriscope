@@ -187,6 +187,8 @@
                             </a>
                             <a href="#/getAccessPublic" class="list-group-item">/getAccessPublic
                             </a>
+                            <a href="#/accessVideoPublic" class="list-group-item">/accessVideoPublic
+                            </a>
                             <a href="#/publicReplayThumbnailPlaylist" class="list-group-item">/publicReplayThumbnailPlaylist
                             </a>
                             <a href="#/getBroadcastPublic" class="list-group-item">/getBroadcastPublic
@@ -3110,14 +3112,16 @@ Content-Length: 14004
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            <td>[none]</td>
-                                            <td>
-                                                <a href="#Broadcast" title="Broadcast Object">
-                                                    array of Broadcast
-                                                </a>
-                                            </td>
-                                            <td>Yes</td>
-                                            <td>Search results</td>
+                                            <tr>
+                                                <td>[none]</td>
+                                                <td>
+                                                    <a href="#Broadcast" title="Broadcast Object">
+                                                        array of Broadcast
+                                                    </a>
+                                                </td>
+                                                <td>Yes</td>
+                                                <td>Search results</td>
+                                            </tr>
                                             </tbody>
                                         </table>
                                     </div>
@@ -5441,6 +5445,223 @@ Connection: keep-alive
 	&quot;https_hls_url&quot; : &quot;https://periscope-prod-us-east-1.global.ssl.fastly.net/idecbcd0e/liveorigin/[HIDDEN]/playlist.m3u8?t=[HIDDEN]&quot;,
 	&quot;type&quot; : &quot;StreamTypeWeb&quot;
 }</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div id="/accessVideoPublic" class="panel-heading">/accessVideoPublic - [TODO - To be
+                                documented]
+                            </div>
+                            <div class="panel-footer">
+                                <code>https://api.periscope.tv/api/v2/accessVideoPublic?broadcast_id=[broadcast_id]</code>
+                            </div>
+                            <div class="panel-body">
+                                <p>
+                                    Returns information for playing broadcast in browser
+                                    <br/>
+                                    *NOTE*<br/>
+                                    <br/>
+                                    This can be a GET request, with the broadcast_id parameter appearing as a query string
+                                    parameter, and can be POST request with JSON payload.
+                                </p>
+
+                                <hr>
+
+                                <div id="-accessVideoPublic-requests" class="panel panel-success">
+                                    <div id="-accessVideoPublic-requests-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#-accessVideoPublic-requests"
+                                           href="#-accessVideoPublic-requests-content" aria-expanded="false"
+                                           aria-controls="-accessVideoPublic-requests-content">
+                                            Request Parameters
+                                        </a>
+                                    </div>
+                                    <div id="-accessVideoPublic-requests-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="-accessVideoPublic-requests-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Parameter</th>
+                                                <th>Type</th>
+                                                <th>Optional</th>
+                                                <th>Description</th>
+                                                <th>Default Value</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>broadcast_id</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>No</td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div id="-accessVideoPublic-responses" class="panel panel-info">
+                                    <div id="-accessVideoPublic-responses-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#-accessVideoPublic-responses"
+                                           href="#-accessVideoPublic-responses-content" aria-expanded="false"
+                                           aria-controls="-accessVideoPublic-responses-content">
+                                            Response Values
+                                        </a>
+                                    </div>
+                                    <div id="-accessVideoPublic-responses-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="-accessVideoPublic-responses-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Key</th>
+                                                <th>Type</th>
+                                                <th>Always Available</th>
+                                                <th>Description</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>broadcast</td>
+                                                <td>
+                                                    <a href="#Broadcast">Broadcast</a>
+                                                </td>
+                                                <td>Yes</td>
+                                                <td>Info about broadcast</td>
+                                            </tr>
+                                            <tr>
+                                                <td>chat_token</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>cookies</td>
+                                                <td>
+                                                    <a href="#ReplayCookie" title="ReplayCookie Object">
+                                                        array of ReplayCookie
+                                                    </a>
+                                                </td>
+                                                <td>No</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>life_cycle_token</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>replay_url</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>No</td>
+                                                <td>Link to playlist.m3u8 with replay</td>
+                                            </tr>
+                                            <tr>
+                                                <td>session</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>type</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>hls_url</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>No</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>https_hls_url</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>No</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>type</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div id="-accessVideoPublic-errors" class="panel panel-danger">
+                                    <div id="-accessVideoPublic-errors-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#-accessVideoPublic-errors"
+                                           href="#-accessVideoPublic-errors-content" aria-expanded="false"
+                                           aria-controls="-accessVideoPublic-errors-content">
+                                            Error Responses
+                                        </a>
+                                    </div>
+                                    <div id="-accessVideoPublic-errors-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="-accessVideoPublic-errors-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Status Code</th>
+                                                <th>Error Text</th>
+                                                <th>Description</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>400</td>
+                                                <td>Bad Request</td>
+                                                <td>Request did not meet requirements - potentially missing parameter
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div id="-accessVideoPublic-example" class="panel panel-warning">
+                                    <div id="-accessVideoPublic-example-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#-accessVideoPublic-example"
+                                           href="#-accessVideoPublic-example-content" aria-expanded="false"
+                                           aria-controls="-accessVideoPublic-example-content">
+                                            Example Request and Response
+                                        </a>
+                                    </div>
+                                    <div id="-accessVideoPublic-example-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="-accessVideoPublic-example-heading">
+                                        <div class="panel-footer">
                                         </div>
                                     </div>
                                 </div>
@@ -8023,7 +8244,6 @@ Connection: close
                                                 <td>users</td>
                                                 <td>
                                                     array of string
-                                                    </a>
                                                 </td>
                                                 <td>No</td>
                                                 <td></td>
@@ -8880,10 +9100,12 @@ Connection: close
                                             </tr>
                                             </thead>
                                             <tbody>
+                                            <tr>
                                                 <td>chunks</td>
                                                 <td><a href="#Chunk">Array of Chunks</a></td>
                                                 <td>Yes</td>
                                                 <td></td>
+                                            </tr>
                                             </tbody>
                                         </table>
                                     </div>
