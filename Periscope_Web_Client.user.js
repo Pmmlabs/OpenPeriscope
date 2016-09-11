@@ -1297,7 +1297,7 @@ Chat: function () {
                 break;
             case 16: //SCREENSHOT
                 if (!$.isArray(container))
-                    container.append('<div class="service">*** ' + (event.displayName || '') + ' (@' + event.username + ') has made the screenshot</div>');
+                    container.append('<div class="service">*** ' + (event.displayName || '') + (event.username ? ' (@' + event.username + ')':'')+' has made the screenshot</div>');
                 break;
             default: // service messages (event.action = join, leave, timeout, state_changed)
                 if ($('#debug')[0].checked)
