@@ -5,13 +5,13 @@
 // @description Periscope client based on API requests. Visit example.net for launch.
 // @include     https://api.twitter.com/oauth/openperiscope*
 // @include     http://example.net/*
-// @version     1.4
+// @version     1.5
 // @author      Pmmlabs@github
 // @grant       GM_xmlhttpRequest
 // @connect     periscope.tv
 // @connect     twitter.com
 // @connect     digits.com
-// @require     https://code.jquery.com/jquery-1.11.3.js
+// @require     https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.js
 // @require     https://github.com/brix/crypto-js/raw/master/crypto-js.js
 // @require     http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js
 // @require     http://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js

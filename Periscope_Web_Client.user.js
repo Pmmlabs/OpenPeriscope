@@ -5,13 +5,13 @@
 // @description Periscope client based on API requests. Visit example.net for launch.
 // @include     https://api.twitter.com/oauth/openperiscope*
 // @include     http://example.net/*
-// @version     1.4
+// @version     1.5
 // @author      Pmmlabs@github
 // @grant       GM_xmlhttpRequest
 // @connect     periscope.tv
 // @connect     twitter.com
 // @connect     digits.com
-// @require     https://code.jquery.com/jquery-1.11.3.js
+// @require     https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.js
 // @require     https://github.com/brix/crypto-js/raw/master/crypto-js.js
 // @require     http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js
 // @require     http://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js
@@ -74,6 +74,7 @@ if (NODEJS) {  // for NW.js
             location.href='/index.html';
     });
 }
+//<editor-fold desc="CSS style">
 const css = '<style>\
     @media (max-width: 640px) {\
         div#left {\
@@ -533,7 +534,16 @@ const css = '<style>\
         overflow-y: auto;\
         overflow-x: hidden;\
     }\
+    img.lock {\
+        height: 14px;\
+        width: 14px;\
+        margin-left: -30px;\
+        min-width: 14px;\
+        margin-top: 100px;\
+        border: none;\
+    }\
 </style>';
+//</editor-fold>
 
 var settings = JSON.parse(localStorage.getItem('settings')) || {};
 
@@ -677,7 +687,7 @@ var Notifications = {
                                 setTimeout(function (i) {   // fix for massive firing
                                     return function () {
                                         var date_created = new Date(new_list[i].start);
-                                        var start = zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth() + 1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes());
+                                        var start = date_created.getFullYear() + '-' + zeros(date_created.getMonth() + 1) + '-' + zeros(date_created.getDate()) + '_' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes());
                                         new Notification(new_list[i].user_display_name + (new_list[i].state == 'RUNNING' ? ' is live now' : ' uploaded replay'), {
                                             body: '[' + start + '] ' + (new_list[i].status || 'Untitled'),
                                             icon: new_list[i].image_url,
@@ -691,14 +701,14 @@ var Notifications = {
                             }
                             // Start the record
                             if (settings.followingDownload && NODEJS) {
-                                getURL(new_list[i].id, function (live, replay, cookies) {
+                                getURL(new_list[i].id, function (live, replay, cookies, _name) {
                                     if (live)
-                                        download(new_list[i].status,live);
+                                        download(_name, live);
                                     else if (replay) {
                                         var ffmpeg_cookies = [];
                                         for (var i in cookies)
                                             ffmpeg_cookies.push(cookies[i].Name + '=' + cookies[i].Value);
-                                        download(new_list[i].status,replay, ffmpeg_cookies);
+                                        download(_name, replay, ffmpeg_cookies);
                                     }
                                 })
                             }
@@ -752,14 +762,15 @@ function switchSection(section, param, popstate) {
                     map.setView([latlng[0], latlng[1]], 17);
                 break;
             case 'Console':
-                if (typeof param == 'string')
-                    param = {
-                        url: param,
-                        cookies: ''
-                    };
+                param = $.extend({
+                    url:'',
+                    cookies: '',
+                    name:''
+                }, param);
                 if ($('#download_url').val() != param.url) {    // if it other video
                     $('#download_url').val(param.url);
                     $('#download_cookies').val(param.cookies);
+                    $('#download_name').val(param.name);
                     $('#download').click();
                 }
                 break;
@@ -891,7 +902,8 @@ Map: function () {
                     marker.bindPopup(description);
                     marker.on('popupopen', getM3U.bind(null, stream.id, $(description)));
                     marker.on('popupopen', Api.bind(null, 'getBroadcasts', {
-                        broadcast_ids: [stream.id]
+                        broadcast_ids: [stream.id],
+                        only_public_publish: true
                     }, function (info) {
                         $('.leaflet-popup-content .watching').text(info[0].n_watching + info[0].n_web_watching);
                     }));
@@ -1026,7 +1038,8 @@ Search: function () {
                             for (var i in chan.Broadcasts)
                                 ids.push(chan.Broadcasts[i].BID);
                             Api('getBroadcasts', {
-                                broadcast_ids: ids
+                                broadcast_ids: ids,
+                                only_public_publish: true
                             }, refreshList(searchResults, '<h3>' + channelName + ', ' + chan.NLive + ' lives, ' + chan.NReplay + ' replays</h3>'));
                         };
                     }(channel.Name), channel.CID));
@@ -1288,7 +1301,7 @@ Chat: function () {
                 break;
             case 16: //SCREENSHOT
                 if (!$.isArray(container))
-                    container.append('<div class="service">*** ' + (event.displayName || '') + ' (@' + event.username + ') has made the screenshot</div>');
+                    container.append('<div class="service">*** ' + (event.displayName || '') + (event.username ? ' (@' + event.username + ')':'')+' has made the screenshot</div>');
                 break;
             default: // service messages (event.action = join, leave, timeout, state_changed)
                 if ($('#debug')[0].checked)
@@ -1299,7 +1312,7 @@ Chat: function () {
     }
     function processWSmessage (message, div) {
         message.payload = JSON.parse(message.payload);
-        message.body = JSON.parse(message.payload.body);
+        message.body = $.extend(JSON.parse(message.payload.body), message.payload.sender);
         if ($('#autoscroll')[0].checked)
             chat[0].scrollTop = chat[0].scrollHeight;
         switch (message.kind) {
@@ -1474,7 +1487,7 @@ Chat: function () {
                         timestamp: timestamp,
                         remoteID: loginTwitter.user.id,
                         username: loginTwitter.user.username,
-                        uuid: "OpenPeriscope" + Math.random(),
+                        uuid: "OpenPeriscope" + (Math.random()+'').replace('.',''),
                         signer_token: broadcast.signer_token,
                         participant_index: broadcast.participant_index,
                         type: customtype || 1,    // "text message"
@@ -1716,14 +1729,18 @@ Console: function () {
     var resultConsole = $('<pre id="resultConsole" />');
     var downloadButton = $('<a class="button" id="download">Download</a>').click(function () {
         resultConsole.empty();
-        var dl = download('', $('#download_url').val().trim(), $('#download_cookies').val().trim().split('&'), resultConsole);
+        var dl = download($('#download_name').val().trim(), $('#download_url').val().trim(), $('#download_cookies').val().trim().split('&'), resultConsole);
         stopButton.show().unbind('click').click(function () {
             dl.stdin.end('q', dl.kill);
             $(this).hide();
+            downloadButton.show();
         });
+        $(this).hide();
     });
     var stopButton = $('<a class="button">Stop</a>').hide();
-    $('#right').append($('<div id="Console"/>').append('<dt>URL:</dt><input id="download_url" type="text" size="45"><br/><dt>Cookies:</dt><input id="download_cookies" type="text" size="45"><br/>',
+    $('#right').append($('<div id="Console"/>').append('<dt>URL:</dt><input id="download_url" type="text" size="45"><br/>' +
+                                                       '<dt>Cookies:</dt><input id="download_cookies" type="text" size="45"><br/>' +
+                                                       '<dt>Name:</dt><input id="download_name" type="text" size="45"><br/>',
                                                         downloadButton, stopButton, '<br/><br/>', resultConsole));
 }
 };
@@ -1735,6 +1752,13 @@ var MESSAGE_KIND = {
     AUTH: 3,
     PRESENCE: 4
 };
+/* LEVEL 1 */
+function cleanFilename(filename){
+    var tmp = filename.replace(/[<>+\\/:"|?*]/g, '');
+    if (tmp.length > 100)
+        tmp = tmp.substring(0, 100);
+    return tmp;
+}
 function zeros(number) {
     return (100 + number + '').substr(1);
 }
@@ -1761,7 +1785,8 @@ function refreshList(jcontainer, title) {  // use it as callback arg
             }
             if (typeof response[0].n_watching == 'undefined')
                 Api('getBroadcasts', {
-                    broadcast_ids: ids
+                    broadcast_ids: ids,
+                    only_public_publish: true
                 }, function (info) {
                     for (var i in info)
                         $('.card.' + info[i].id + ' .watching').text(info[i].n_watching);
@@ -1777,23 +1802,26 @@ function refreshList(jcontainer, title) {  // use it as callback arg
 }
 function getM3U(id, jcontainer) {
     jcontainer.find('.links').empty();
-    getURL(id, function (hls_url, replay_url, cookies) {
+    getURL(id, function (hls_url, replay_url, cookies, _name) {
         if (hls_url) {
             var clipboardLink = $('<a data-clipboard-text="' + hls_url + '">Copy URL</a>');
             jcontainer.find('.links').append('<a href="' + hls_url + '">Live M3U link</a>',
-                NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', hls_url))] : '',
+                NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', {url: hls_url, name: _name}))] : '',
                 ' | ', clipboardLink);
             new Clipboard(clipboardLink.get(0));
         }
         if (replay_url) {
             var replay_base_url = replay_url.replace(/playlist.*m3u8/ig, '');
-            var params = '?';
+            var params = '';
             var ffmpeg_cookies = '';
-            for (var i in cookies) {
-                params += cookies[i].Name.replace('CloudFront-', '') + '=' + cookies[i].Value + '&';
-                ffmpeg_cookies += cookies[i].Name + '=' + cookies[i].Value + '&';
+            if (cookies && cookies.length) {
+                params += '?';
+                for (var i in cookies) {
+                    params += cookies[i].Name.replace('CloudFront-', '') + '=' + cookies[i].Value + '&';
+                    ffmpeg_cookies += cookies[i].Name + '=' + cookies[i].Value + '&';
+                }
+                params += 'Expires=0';
             }
-            params += 'Expires=0';
             replay_url += params;
             GM_xmlhttpRequest({
                 method: 'GET',
@@ -1804,7 +1832,7 @@ function getM3U(id, jcontainer) {
                     var link = $('<a href="data:text/plain;charset=utf-8,' + encodeURIComponent(m3u_text) + '" download="' + filename + '">Download replay M3U</a>').click(saveAs.bind(null, m3u_text, filename));
                     var clipboardLink = $('<a data-clipboard-text="' + replay_url + '">Copy URL</a>');
                     jcontainer.find('.links').append(link,
-                        NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', {url: replay_url, cookies: ffmpeg_cookies}))] : '',
+                        NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', {url: replay_url, cookies: ffmpeg_cookies, name: _name}))] : '',
                         ' | ', clipboardLink);
                     new Clipboard(clipboardLink.get(0));
                 }
@@ -1812,20 +1840,41 @@ function getM3U(id, jcontainer) {
         }
     });
 }
+/**
+ * @callback getURLCallback
+ * @param {String} hls_url
+ * @param {String} replay_url
+ * @param {Array} cookies
+ * @param {String} name
+ */
+
+/**
+ *
+ * @param {String} id - broadcast ID
+ * @param {getURLCallback} callback - function applied against result
+ */
 function getURL(id, callback){
-    Api('getAccessPublic', {
-        broadcast_id: id
-    }, function (r) {
+    var getURLCallback =function (r) {
+        var date_created = new Date(r.broadcast.start);
+        var date_created_str = date_created.getFullYear() + '-' + zeros(date_created.getMonth() + 1) + '-' + zeros(date_created.getDate()) + '_' + zeros(date_created.getHours()) + '.' + zeros(date_created.getMinutes());
+        var name = cleanFilename(date_created_str + '_' + r.broadcast.user_display_name + '_'+r.broadcast.status);
         // For live
         var hls_url = r.hls_url || r.https_hls_url;
         if (hls_url) {
-            callback(hls_url);
+            callback(hls_url, null, null, name);
         }
         // For replay
         var replay_url = r.replay_url;
         if (replay_url) {
-            callback(null, replay_url, r.cookies);
+            callback(null, replay_url, r.cookies, name);
         }
+    };
+    Api('accessVideoPublic', {
+        broadcast_id: id
+    }, getURLCallback, function(){
+        Api('accessChannel', {  // private video case
+            broadcast_id: id
+        }, getURLCallback)
     });
 }
 function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=val']
@@ -1843,14 +1892,14 @@ function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=v
         for (var i in cookies)
             if (cookies[i].length)
                 ff_cookies += cookies[i] + '; path=/; domain=periscope.tv\n';
-    var date = new Date();
     const spawn = require('child_process').spawn((process.platform === 'win32' ? '' : './') + 'ffmpeg', [
         '-loglevel', 'warning',
         '-cookies', ff_cookies,
         '-i', url,
         '-c', 'copy',
         '-bsf:a', 'aac_adtstoasc',
-        zeros(date.getDate()) + '-' + zeros(date.getMonth() + 1) + '-' + date.getFullYear() + '_' + zeros(date.getHours()) + '-' + zeros(date.getMinutes()) + '_'+name+'.mp4'
+        '-y',
+        name+'.mp4'
     ]);
     if (jcontainer) {
         if (!spawn.pid)
@@ -1872,7 +1921,7 @@ function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=v
         //     console.log('child process exited with code', code);
         // });
         spawn.on('error', function (code) {
-            _arrayBufferToString(data, function (d) {
+            _arrayBufferToString(code, function (d) {
                 console.log('error: ', d);
             });
         });
@@ -1896,7 +1945,7 @@ function getDescription(stream) {
     var title = emoji.replace_unified(stream.status || 'Untitled');
     var featured_reason = '';
     if (stream.featured) {
-        title += '<span class="featured" style="background: #' + (stream.featured_category_color || 'FFBD00') + '">' + (stream.featured_category || 'POPULAR') + '</span>';
+        title += '<span class="featured" style="background: ' + (stream.featured_category_color || '#FFBD00') + '">' + (stream.featured_category || 'POPULAR') + '</span>';
         if (stream.featured_reason)
             featured_reason = ' <i>'+stream.featured_reason+'</i>';
     }
@@ -1925,7 +1974,7 @@ function getDescription(stream) {
     });
     var chatLink = $('<a class="chatlink right icon">Chat</a>').click(switchSection.bind(null, 'Chat', stream.id));
     var description = $('<div class="description">\
-                <a href="' + stream.image_url + '" target="_blank"><img lazysrc="' + stream.image_url_small + '"/></a>\
+                <a href="' + stream.image_url + '" target="_blank"><img lazysrc="' + stream.image_url_small + '"/>' + (stream.is_locked ? '<img src="' + IMG_PATH + '/images/lock-white.png" class="lock"/>' : '') + '</a>\
                 <div class="watching right icon" title="Watching">' + (stream.n_watching || 0) + '</div>\
                 <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>'+featured_reason+'\
             </div>')
