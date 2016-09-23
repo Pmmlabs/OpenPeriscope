@@ -1894,14 +1894,17 @@ function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=v
         const fs = require('fs');
         fs.chmodSync('ffmpeg', 0777);
     } catch (e) {}
-    const spawn = require('child_process').spawn((process.platform === 'win32' ? '' : './') + 'ffmpeg', [
+    var windows = process.platform === 'win32',
+        folder_separator = windows ? '\\' : '/';
+    var folder = process.execPath.substring(0,process.execPath.lastIndexOf(folder_separator))+folder_separator;
+    const spawn = require('child_process').spawn((windows ? '' : './') + 'ffmpeg', [
         '-loglevel', 'warning',
         '-cookies', ff_cookies,
         '-i', url,
         '-c', 'copy',
         '-bsf:a', 'aac_adtstoasc',
         '-y',
-        name+'.mp4'
+        folder + name + '.mp4'
     ]);
     if (jcontainer) {
         if (!spawn.pid)
