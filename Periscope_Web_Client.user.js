@@ -1310,7 +1310,7 @@ Chat: function () {
     }
     function processWSmessage (message, div) {
         message.payload = JSON.parse(message.payload);
-        message.body = JSON.parse(message.payload.body);
+        message.body = $.extend(JSON.parse(message.payload.body), message.payload.sender);
         if ($('#autoscroll')[0].checked)
             chat[0].scrollTop = chat[0].scrollHeight;
         switch (message.kind) {
