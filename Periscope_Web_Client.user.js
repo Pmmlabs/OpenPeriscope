@@ -1892,6 +1892,10 @@ function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=v
         for (var i in cookies)
             if (cookies[i].length)
                 ff_cookies += cookies[i] + '; path=/; domain=periscope.tv\n';
+    try {   // for executing from .nw
+        const fs = require('fs');
+        fs.chmodSync('ffmpeg', 0777);
+    } catch (e) {}
     const spawn = require('child_process').spawn((process.platform === 'win32' ? '' : './') + 'ffmpeg', [
         '-loglevel', 'warning',
         '-cookies', ff_cookies,
