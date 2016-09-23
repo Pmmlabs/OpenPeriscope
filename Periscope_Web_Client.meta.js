@@ -11,7 +11,7 @@
 // @connect     periscope.tv
 // @connect     twitter.com
 // @connect     digits.com
-// @require     https://code.jquery.com/jquery-1.11.3.js
+// @require     https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.js
 // @require     https://github.com/brix/crypto-js/raw/master/crypto-js.js
 // @require     http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js
 // @require     http://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js
