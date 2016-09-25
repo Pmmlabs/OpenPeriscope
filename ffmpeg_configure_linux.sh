@@ -13,7 +13,7 @@
 --disable-filters \
 --disable-protocols \
 --enable-protocol=hls,http,https,tcp,tls_gnutls,file \
---enable-gnutls \
+--enable-openssl \
 --enable-decoder=h264,aac \
 --enable-demuxer=hls,mpegts,dnxhd \
 --enable-muxer=mp4 \
