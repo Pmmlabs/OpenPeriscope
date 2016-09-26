@@ -12,7 +12,7 @@
 --disable-devices \
 --disable-filters \
 --disable-protocols \
---enable-protocol=hls,http,https,tcp,tls_gnutls,file \
+--enable-protocol=hls,http,https,tcp,tls_openssl,file \
 --enable-openssl \
 --enable-decoder=h264,aac \
 --enable-demuxer=hls,mpegts,dnxhd \
