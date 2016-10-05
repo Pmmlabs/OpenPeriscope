@@ -28,6 +28,7 @@
 var emoji = new EmojiConvertor();
 NODEJS = typeof GM_xmlhttpRequest == 'undefined';
 var IMG_PATH = 'https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master';
+var settings = JSON.parse(localStorage.getItem('settings')) || {};
 if (NODEJS) {  // for NW.js
     var gui = require('nw.gui');
     gui.App.addOriginAccessWhitelistEntry('https://api.twitter.com/', 'app', 'openperiscope', true);    // allow redirect to app://
@@ -73,6 +74,9 @@ if (NODEJS) {  // for NW.js
         } else if (e.keyCode == 116)    //F5
             location.href='/index.html';
     });
+    // default download path = executable path
+    if (!settings.downloadPath)
+        setSet('downloadPath', process.execPath.substring(0, process.execPath.lastIndexOf(process.platform === 'win32' ? '\\' : '/')));
 }
 //<editor-fold desc="CSS style">
 const css = '<style>\
@@ -544,8 +548,6 @@ const css = '<style>\
     }\
 </style>';
 //</editor-fold>
-
-var settings = JSON.parse(localStorage.getItem('settings')) || {};
 
 if (location.href.indexOf('twitter.com/oauth/openperiscope') > 0) {
     location.href = 'http://example.net/' + location.search;
@@ -1708,6 +1710,12 @@ Edit: function () {
         Notifications.stop();
         Notifications.start();
     });
+    var current_download_path = $('<dt style="margin-right: 10px;">' + settings.downloadPath + '</dt>');
+    var download_path = $('<dt/>').append($('<input type="file" webkitdirectory directory multiple/>').change(function () {
+        setSet('downloadPath', $(this).val());
+        current_download_path.text($(this).val());
+    }));
+
     if (NODEJS)
         var autoDownload = $('<label><input type="checkbox" ' + (settings.followingDownload ? 'checked' : '') + '/> Auto-download broadcasts from subscriptions</label>').click(function (e) {
             setSet('followingDownload', e.target.checked);
@@ -1721,8 +1729,11 @@ Edit: function () {
         '<dt>Username:</dt><input id="uname" type="text" value="' + loginTwitter.user.username + '"><br/>' +
         '<dt>Description:</dt><input id="description" type="text" value="' + loginTwitter.user.description + '"><br/>' +
         '<dt>Avatar:</dt><iframe id="foravatar" name="foravatar" style="display: none;"></iframe>', form, '<br/><br/>',
-        button, '<br><hr color="#E0E0E0" size="1"><h3>OpenPeriscope settings</h3>',  notifications , '<br>', autoDownload, '<br>',
-        'Notifications refresh interval: ', notifications_interval ,' seconds'
+        button, '<br><hr color="#E0E0E0" size="1"><h3>OpenPeriscope settings</h3>',
+        notifications , '<br>',
+        autoDownload, '<br>',
+        'Notifications refresh interval: ', notifications_interval ,' seconds','<br/><br/>',
+        '<dt>Downloads path:</dt>', current_download_path, download_path
     ));
 },
 Console: function () {
@@ -1898,7 +1909,6 @@ function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=v
     } catch (e) {}
     var windows = process.platform === 'win32',
         folder_separator = windows ? '\\' : '/';
-    var folder = process.execPath.substring(0,process.execPath.lastIndexOf(folder_separator))+folder_separator;
     const spawn = require('child_process').spawn((windows ? '' : './') + 'ffmpeg', [
         '-loglevel', 'warning',
         '-cookies', ff_cookies,
@@ -1906,7 +1916,7 @@ function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=v
         '-c', 'copy',
         '-bsf:a', 'aac_adtstoasc',
         '-y',
-        folder + name + '.mp4'
+        settings.downloadPath + folder_separator + name + '.mp4'
     ]);
     if (jcontainer) {
         if (!spawn.pid)
