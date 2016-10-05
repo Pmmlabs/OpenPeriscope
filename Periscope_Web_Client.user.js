@@ -702,7 +702,7 @@ var Notifications = {
                                 }(i), 300 * i);
                             }
                             // Start the record
-                            if (settings.followingDownload && NODEJS) {
+                            if (settings.followingDownload && new_list[i].state == 'RUNNING' && NODEJS) {
                                 getURL(new_list[i].id, function (live, replay, cookies, _name) {
                                     if (live)
                                         download(_name, live);
