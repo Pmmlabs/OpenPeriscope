@@ -1363,7 +1363,7 @@ Chat: function () {
                     var srt = '';
                     for (var i = 0; i < data.length; i++) {
                         var date0 = new Date(data[i].date - start); // date of the current message
-                        var date1 = new Date((i < data.length - 1 ? data[i + 1].date : new Date(broadcast.broadcast.end)) - start); // date of the next message
+                        var date1 = new Date((i < data.length - 1 ? data[i + 1].date : new Date(broadcast.broadcast.end || new Date())) - start); // date of the next message
                         srt += (i + 1) + '\n' +
                             zeros(date0.getUTCHours()) + ':' + zeros(date0.getMinutes()) + ':' + zeros(date0.getSeconds()) + ','+date0.getMilliseconds()+' --> ' +
                             zeros(date1.getUTCHours()) + ':' + zeros(date1.getMinutes()) + ':' + zeros(date1.getSeconds()) + ','+date1.getMilliseconds()+'\n' +
