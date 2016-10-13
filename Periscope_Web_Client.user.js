@@ -546,6 +546,13 @@ const css = '<style>\
         margin-top: 100px;\
         border: none;\
     }\
+    .bullets {\
+        background-image: url("' + IMG_PATH + '/images/bullets-black.png");\
+        width: 14px;\
+        height: 14px;\
+        display: block;\
+        margin: 11px;\
+    }\
 </style>';
 //</editor-fold>
 
@@ -840,6 +847,31 @@ Map: function () {
         })
     };
     L.control.layers(tileLayers).addTo(map);
+    // Split panel opener
+    var splitPanelEnabled = false;
+    L.Control.PanelButton = L.Control.extend({
+        onAdd: function(amap) {
+            return $('<div class="leaflet-control-layers leaflet-control"/>')
+                .append($('<a class="bullets" title="Toggle broadcasts list"/>').click(function(){
+                    if (splitPanelEnabled) {
+                        $('.gutter').remove();
+                        $(amap.getContainer()).css('width','');
+                        mapList.css('width','');
+                    } else {
+                        Split($('.split'), {
+                            sizes: [80, 20],
+                            minSize: [100, 100]
+                        });
+                    }
+                    splitPanelEnabled = !splitPanelEnabled;
+                }))
+                .get(0);
+        },
+
+        onRemove: function(amap) {
+        }
+    });
+    new L.Control.PanelButton().addTo(map);
     // Cluster icons
     var iconCreate = function (prefix) {
         return function (cluster) {
@@ -917,7 +949,8 @@ Map: function () {
                     (stream.state == 'RUNNING' ? live : replay).addLayer(marker);
                 }
             }
-            refreshList(mapList)(r);
+            if (splitPanelEnabled)
+                refreshList(mapList)(r);
         });
         var mapCenter = map.getCenter();
         history.replaceState({
@@ -935,10 +968,6 @@ Map: function () {
             });
     }
     map.on('moveend', refreshMap);
-    Split($('.split'), {
-        sizes: [80, 20],
-        minSize: [100, 100]
-    });
     lazyLoad(mapList);
 },
 ApiTest: function () {
