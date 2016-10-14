@@ -1266,7 +1266,7 @@ Chat: function () {
                         textBox.val(textBox.val() + '@' + $(this).text().substr(1, $(this).text().length - 2) + ' ');
                         textBox.focus();
                     });
-                    html.append(username).append(' ').append(emoji.replace_unified(event.body).replace(/(@\S+)/g, '<b>$1</b>'));
+                    html.append(username, ' ', emoji.replace_unified($('<div/>').text(event.body).html()).replace(/(@\S+)/g, '<b>$1</b>'));
                     if (!event.body)    // for debug
                         console.log('empty body!', event);
                     container.append(html);
