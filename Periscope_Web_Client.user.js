@@ -364,6 +364,7 @@ const css = '<style>\
         margin: 0.5rem 0 1rem 0;\
         background-color: #fff;\
         border-radius: 2px;\
+        min-width: 350px;\
     }\
     .card .description {\
         padding-top: 10px;\
@@ -856,7 +857,7 @@ Map: function () {
                     if (splitPanelEnabled) {
                         $('.gutter').remove();
                         $(amap.getContainer()).css('width','');
-                        mapList.css('width','');
+                        mapList.css('width','0');
                     } else {
                         Split($('.split'), {
                             sizes: [80, 20],
