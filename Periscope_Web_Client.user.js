@@ -574,6 +574,7 @@ if (location.href.indexOf('twitter.com/oauth/openperiscope') > 0) {
         if (loginTwitter) {
             loginTwitter = JSON.parse(loginTwitter);
             Ready(loginTwitter);
+            refreshProfile();
         } else if (session_key && session_secret) {
             SignIn3(session_key, session_secret);
         } else if (oauth_token && oauth_verifier) {
@@ -616,6 +617,7 @@ function lazyLoad(parent) {
         }, 100));
     });
 }
+var selfAvatar;
 function Ready(loginInfo) {
     console.log('ready! ', loginInfo);
     var signOutButton = $('<a class="button">Sign out</a>');
@@ -626,8 +628,9 @@ function Ready(loginInfo) {
     loginInfo.user.profile_image_urls.sort(function (a, b) {
         return a.width * a.height - b.width * b.height;
     });
+    selfAvatar = $('<img src="' + loginInfo.user.profile_image_urls[0].url + '" width="140"/>');
     var left = $('<div id="left"/>').append(signOutButton,
-        '<img src="' + loginInfo.user.profile_image_urls[0].url + '" width="140"/>', userEdit,
+        selfAvatar, userEdit,
         '<div>' + emoji.replace_unified(loginInfo.user.display_name) + '</div>', userLink);
     $(document.body).html(left).append('<div id="right"/>', Progress.elem);
     var menu = [
@@ -825,6 +828,15 @@ var languageSelect = '<dt>Language: <select class="lang">\
             <option>uk</option>\
             <option>zh</option>\
         </select></dt>';
+function refreshProfile() {
+    Api('user', {
+        user_id: loginTwitter.user.id
+    }, function (userResponse) {
+        loginTwitter.user = userResponse.user;
+        localStorage.setItem('loginTwitter', JSON.stringify(loginTwitter));
+        selfAvatar.attr('src', loginTwitter.user.profile_image_urls[0].url);
+    })
+}
 var Inits= {
 Map: function () {
     $(document.head).append('<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />',
@@ -1741,6 +1753,7 @@ Edit: function () {
     var form = $('<form target="foravatar" action="https://api.periscope.tv/api/v2/uploadProfileImage" enctype="multipart/form-data" method="post">' +
         '<input name="image" type="file" accept="image/jpeg,image/png,image/gif">' +
         '<input name="cookie" type="hidden" value="'+loginTwitter.cookie+'"></form>');
+    var hiddenIframe = $('<iframe id="foravatar" name="foravatar" style="display: none;"/>').load(refreshProfile);
     var notifications = $('<label><input type="checkbox" ' + (settings.followingNotifications ? 'checked' : '') + '/> Enable notifications</label>').click(function (e) {
         setSet('followingNotifications', e.target.checked);
         if (e.target.checked)
@@ -1771,7 +1784,7 @@ Edit: function () {
         '<dt>Display name:</dt><input id="dname" type="text" value="' + loginTwitter.user.display_name + '"><br/>' +
         '<dt>Username:</dt><input id="uname" type="text" value="' + loginTwitter.user.username + '"><br/>' +
         '<dt>Description:</dt><input id="description" type="text" value="' + loginTwitter.user.description + '"><br/>' +
-        '<dt>Avatar:</dt><iframe id="foravatar" name="foravatar" style="display: none;"></iframe>', form, '<br/><br/>',
+        '<dt>Avatar:</dt>', hiddenIframe, form, '<br/><br/>',
         button, '<br><hr color="#E0E0E0" size="1"><h3>OpenPeriscope settings</h3>',
         notifications , '<br>',
         autoDownload, '<br>',
