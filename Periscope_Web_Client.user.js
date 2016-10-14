@@ -2096,15 +2096,21 @@ function Api(method, params, callback, callback_fail) {
         onload: function (r) {
             Progress.stop();
             XHR.splice(xhrIndex, 1);
+            var response;
             if (r.status == 200) {
-                var response = JSON.parse(r.responseText);
-                if (callback)
+                try {
+                    response = JSON.parse(r.responseText);
+                } catch (e) {
+                    if ($('#debug').length && $('#debug')[0].checked)
+                        console.warn('JSON parse error:', e);
+                }
+                if (!!response && callback)
                     callback(response);
                 $(window).trigger('scroll');    // for lazy load
             } else if (r.status == 406) {
                 alert(JSON.parse(r.responseText).errors[0].error);
             } else {
-                var response = 'API error: ' + r.status + ' ' + r.responseText;
+                response = 'API error: ' + r.status + ' ' + r.responseText;
                 if (callback_fail && Object.prototype.toString.call(callback_fail) === '[object Function]')
                     callback_fail(response);
             }
