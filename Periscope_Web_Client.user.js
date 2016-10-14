@@ -908,6 +908,8 @@ Map: function () {
         //if (e && e.hard === false) return;    // zoom change case
         var mapBounds = map.getBounds();
         clearXHR();
+        if (mapBounds._northEast.lat == mapBounds._southWest.lat && mapBounds._northEast.lng == mapBounds._southWest.lng)
+            console.warn('Map is out of mind');
         Api('mapGeoBroadcastFeed', {
             "include_replay": true,
             "p1_lat": mapBounds._northEast.lat,
