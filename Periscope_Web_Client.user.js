@@ -1354,10 +1354,21 @@ Chat: function () {
                 renderMessages(message.body, div);
                 break;
             case MESSAGE_KIND.CONTROL:
-                if (message.payload.kind == MESSAGE_KIND.PRESENCE)
-                    $('#presence').text(message.body.occupancy + '/' + message.body.total_participants);
-                else
-                    console.log(message);
+                switch (message.payload.kind) {
+                    case  MESSAGE_KIND.PRESENCE:
+                        $('#presence').text(message.body.occupancy + '/' + message.body.total_participants);
+                        break;
+                    case MESSAGE_KIND.CHAT: // rubbish?
+                        if ($('#debug')[0].checked)
+                            console.log('cap: ', message.payload.cap, message);
+                        break;
+                    case MESSAGE_KIND.CONTROL: // rubbish?
+                        if ($('#debug')[0].checked)
+                            console.log('of: ', message.payload.of, message);
+                        break;
+                    default:
+                        console.log(message);
+                }
                 break;
             default:
                 console.log('default!', message);
