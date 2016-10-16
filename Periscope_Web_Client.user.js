@@ -834,7 +834,11 @@ function refreshProfile() {
     }, function (userResponse) {
         loginTwitter.user = userResponse.user;
         localStorage.setItem('loginTwitter', JSON.stringify(loginTwitter));
-        selfAvatar.attr('src', loginTwitter.user.profile_image_urls[0].url);
+        loginTwitter.user.profile_image_urls.sort(function (a, b) {
+            return a.width * a.height - b.width * b.height;
+        });
+        if (selfAvatar.attr('src') != loginTwitter.user.profile_image_urls[0].url)
+            selfAvatar.attr('src', loginTwitter.user.profile_image_urls[0].url);
     })
 }
 var Inits= {
