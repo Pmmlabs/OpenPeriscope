@@ -1802,9 +1802,12 @@ Console: function () {
         resultConsole.empty();
         var dl = download($('#download_name').val().trim(), $('#download_url').val().trim(), $('#download_cookies').val().trim().split('&'), resultConsole);
         stopButton.show().unbind('click').click(function () {
-            dl.stdin.end('q', dl.kill);
-            $(this).hide();
-            downloadButton.show();
+            try {
+                dl.stdin.end('q', dl.kill);
+            } finally {
+                $(this).hide();
+                downloadButton.show();
+            }
         });
         $(this).hide();
     });
@@ -1970,7 +1973,7 @@ function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=v
     var windows = process.platform === 'win32',
         folder_separator = windows ? '\\' : '/';
     const spawn = require('child_process').spawn((windows ? '' : './') + 'ffmpeg', [
-        '-loglevel', 'warning',
+        '-loglevel', ($('#debug')[0].checked ? 'debug' : 'warning'),
         '-cookies', ff_cookies,
         '-i', url,
         '-c', 'copy',
@@ -1991,14 +1994,9 @@ function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=v
         spawn.stderr.on('data', function (data) {
             _arrayBufferToString(data, function (d) {
                 jcontainer.append(d);
-                if ($('#debug')[0].checked)
-                    console.log(d);
             });
         });
 
-        // ls.on('close', function (code) {
-        //     console.log('child process exited with code', code);
-        // });
         spawn.on('error', function (code) {
             _arrayBufferToString(code, function (d) {
                 console.log('error: ', d);
@@ -2009,6 +2007,27 @@ function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=v
         //     spawn.stdin.write(String.fromCharCode(event.keyCode)+'\r\n');
         //     //spawn.stdin.close();
         // });
+    } else if ($('#debug')[0].checked) {
+        if (spawn.pid) {
+            spawn.stdout.on('data', function (data) {
+                _arrayBufferToString(data, function (d) {
+                    console.log(d);
+                });
+            });
+            spawn.stderr.on('data', function (data) {
+                _arrayBufferToString(data, function (d) {
+                    console.error(d);
+                });
+            });
+            spawn.on('close', function (code) {
+                console.log('child process exited with code', code);
+            });
+            spawn.on('error', function (code) {
+                _arrayBufferToString(code, function (d) {
+                    console.error('error: ', d);
+                });
+            });
+        }
     }
     return spawn;
 }
