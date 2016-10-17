@@ -1930,7 +1930,7 @@ function getURL(id, callback){
         var date_created_str = date_created.getFullYear() + '-' + zeros(date_created.getMonth() + 1) + '-' + zeros(date_created.getDate()) + '_' + zeros(date_created.getHours()) + '.' + zeros(date_created.getMinutes());
         var name = cleanFilename(date_created_str + '_' + r.broadcast.user_display_name + '_'+r.broadcast.status);
         // For live
-        var hls_url = r.hls_url || r.https_hls_url;
+        var hls_url = r.hls_url || r.https_hls_url || r.lhls_url;
         if (hls_url) {
             callback(hls_url, null, null, name);
         }
@@ -1991,6 +1991,8 @@ function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=v
         spawn.stderr.on('data', function (data) {
             _arrayBufferToString(data, function (d) {
                 jcontainer.append(d);
+                if ($('#debug')[0].checked)
+                    console.log(d);
             });
         });
 
