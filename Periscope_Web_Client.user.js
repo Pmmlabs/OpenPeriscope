@@ -1770,13 +1770,8 @@ Edit: function () {
         Notifications.stop();
         Notifications.start();
     });
-    var current_download_path = $('<dt style="margin-right: 10px;">' + settings.downloadPath + '</dt>');
-    var download_path = $('<dt/>').append($('<input type="file" webkitdirectory directory multiple/>').change(function () {
-        setSet('downloadPath', $(this).val());
-        current_download_path.text($(this).val());
-    }));
 
-    if (NODEJS)
+    if (NODEJS) {
         var autoDownload = $('<label><input type="checkbox" ' + (settings.followingDownload ? 'checked' : '') + '/> Auto-download broadcasts from subscriptions</label>').click(function (e) {
             setSet('followingDownload', e.target.checked);
             if (e.target.checked)
@@ -1784,6 +1779,13 @@ Edit: function () {
             else
                 Notifications.stop();
         });
+        var current_download_path = $('<dt style="margin-right: 10px;">' + settings.downloadPath + '</dt>');
+        var download_path = $('<dt/>').append($('<input type="file" webkitdirectory directory/>').change(function () {
+            setSet('downloadPath', $(this).val());
+            current_download_path.text($(this).val());
+        }));
+    }
+
     $('#right').append($('<div id="Edit"/>').append(
         '<dt>Display name:</dt><input id="dname" type="text" value="' + loginTwitter.user.display_name + '"><br/>' +
         '<dt>Username:</dt><input id="uname" type="text" value="' + loginTwitter.user.username + '"><br/>' +
@@ -1793,7 +1795,7 @@ Edit: function () {
         notifications , '<br>',
         autoDownload, '<br>',
         'Notifications refresh interval: ', notifications_interval ,' seconds','<br/><br/>',
-        '<dt>Downloads path:</dt>', current_download_path, download_path
+        (NODEJS ? ['<dt>Downloads path:</dt>', current_download_path, download_path] : '')
     ));
 },
 Console: function () {
