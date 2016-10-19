@@ -2009,25 +2009,23 @@ function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=v
         //     spawn.stdin.write(String.fromCharCode(event.keyCode)+'\r\n');
         //     //spawn.stdin.close();
         // });
-    } else if ($('#debug')[0].checked) {
+    } else {
         if (spawn.pid) {
-            spawn.stdout.on('data', function (data) {
+            ffLog = "";
+            function writeToLog(data) {
                 _arrayBufferToString(data, function (d) {
-                    console.log(d);
+                    ffLog += d;
                 });
+            }
+            spawn.stdout.on('data', writeToLog);
+            spawn.stderr.on('data', writeToLog);
+            spawn.on('close', function (code, signal) {
+                ffLog+="\nClose: code "+code+", signal "+signal;
             });
-            spawn.stderr.on('data', function (data) {
-                _arrayBufferToString(data, function (d) {
-                    console.error(d);
-                });
-            });
-            spawn.on('close', function (code) {
-                console.log('child process exited with code', code);
-            });
-            spawn.on('error', function (code) {
-                _arrayBufferToString(code, function (d) {
-                    console.error('error: ', d);
-                });
+            spawn.on('error', writeToLog.bind("disconnected"));
+            spawn.on('disconnect', writeToLog);
+            spawn.on('exit', function (code, signal) {
+                ffLog+="\nExit: code "+code+", signal "+signal;
             });
         }
     }
