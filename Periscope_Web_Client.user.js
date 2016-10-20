@@ -1758,13 +1758,34 @@ Edit: function () {
         '<input name="image" type="file" accept="image/jpeg,image/png,image/gif">' +
         '<input name="cookie" type="hidden" value="'+loginTwitter.cookie+'"></form>');
     var hiddenIframe = $('<iframe id="foravatar" name="foravatar" style="display: none;"/>').load(refreshProfile);
-    var notifications = $('<label><input type="checkbox" ' + (settings.followingNotifications ? 'checked' : '') + '/> Enable notifications</label>').click(function (e) {
-        setSet('followingNotifications', e.target.checked);
-        if (e.target.checked)
-            Notifications.start();
-        else
-            Notifications.stop();
+
+    var settingsContainer = $('<div/>');
+    var tempSettings;
+    Api('getSettings', {}, function (settingsResponse) {
+        loginTwitter.settings = settingsResponse;
+        localStorage.setItem('loginTwitter', JSON.stringify(loginTwitter));
+        tempSettings = settingsResponse;
+        for (var setting in loginTwitter.settings) {
+            settingsContainer.append($('<label><input type="checkbox" ' + (loginTwitter.settings[setting] ? 'checked' : '') + '/> ' + setting + '</label><br/>').click(function (setting) {
+                return function (e) {
+                    tempSettings[setting] = e.target.checked;
+                }
+            }(setting)));
+        }
     });
+    var buttonSettings = $('<a class="button">Save</a>').click(function () {
+        Api('setSettings', {
+            settings: tempSettings
+        }, function (r) {
+            if (r.success){
+                loginTwitter.settings = tempSettings;
+                localStorage.setItem('loginTwitter', JSON.stringify(loginTwitter));
+            } else
+                alert('Settings not saved!');
+        });
+    });
+
+    var notifications = $('<label><input type="checkbox" ' + (settings.followingNotifications ? 'checked' : '') + '/> Enable notifications</label>');
     var notifications_interval = $('<input type="number" min="2" value="' + (settings.followingInterval || Notifications.default_interval) + '">').change(function () {
         setSet('followingInterval', this.value);
         Notifications.stop();
@@ -1787,11 +1808,16 @@ Edit: function () {
     }
 
     $('#right').append($('<div id="Edit"/>').append(
+        '<h3>Profile edit</h3>',
         '<dt>Display name:</dt><input id="dname" type="text" value="' + loginTwitter.user.display_name + '"><br/>' +
         '<dt>Username:</dt><input id="uname" type="text" value="' + loginTwitter.user.username + '"><br/>' +
         '<dt>Description:</dt><input id="description" type="text" value="' + loginTwitter.user.description + '"><br/>' +
         '<dt>Avatar:</dt>', hiddenIframe, form, '<br/><br/>',
-        button, '<br><hr color="#E0E0E0" size="1"><h3>OpenPeriscope settings</h3>',
+        button, '<br><hr color="#E0E0E0" size="1">',
+        '<h3>Periscope settings</h3>',
+        settingsContainer, buttonSettings,
+        '<hr color="#E0E0E0" size="1">' +
+        '<h3>OpenPeriscope settings</h3>',
         notifications , '<br>',
         autoDownload, '<br>',
         'Notifications refresh interval: ', notifications_interval ,' seconds','<br/><br/>',
