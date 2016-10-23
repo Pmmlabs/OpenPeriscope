@@ -586,7 +586,7 @@ if (location.href.indexOf('twitter.com/oauth/openperiscope') > 0) {
         } else {
             var signInButton = $('<a class="button">Sign in with twitter</a>').click(SignIn1);
             var signInSMSButton = $('<a class="button">Sign in with SMS</a>').click(SignInSMS);
-            $(document.body).html('<input type="text" id="secret" size="60" placeholder="Periscope consumer secret" value="' +
+            $(document.body).html('<input type="text" id="secret" size="60" placeholder="Enter periscope consumer secret here..." value="' +
                 (settings.consumer_secret || '') + '"/><br/>').append(signInButton, signInSMSButton);
         }
         $(document.body).append(Progress.elem);
