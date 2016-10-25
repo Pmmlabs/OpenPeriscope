@@ -1574,8 +1574,39 @@ Chat: function () {
                 if (broadcast.endpoint)
                     openSocket(0);
             } else {
+                if (broadcast.endpoint) {
+                    var cursor = null;
+                    clearInterval(chat_interval);
+                    var prevMessages = [];
+                    chat_interval = setInterval(function () {
+                        GM_xmlhttpRequest({
+                            method: 'POST',
+                            url: broadcast.endpoint + '/chatapi/v1/history',
+                            data: JSON.stringify({
+                                access_token: broadcast.access_token,
+                                cursor: cursor || (Date.now() - 30000) * 1000000 + '',
+                                limit: 1000
+                            }),
+                            onload: function (history) {
+                                if (history.status == 200) {
+                                    history = JSON.parse(history.responseText);
+                                    for (var i in history.messages) {
+                                        var contains = false;
+                                        for (var j = 0; j < prevMessages.length && !contains; j++) // if prevMessages contains meesage
+                                            if (prevMessages[j].signature == history.messages[i].signature)
+                                                contains = true;
+                                        if (!contains)
+                                            processWSmessage(history.messages[i], chat);
+                                    }
+                                    prevMessages = history.messages;
+                                    cursor = history.cursor;
+                                }
+                            }
+                        });
+                    }, 1000);
+                }
                 var sendMessage = function () {
-                    console.log('Sending messages available only in NW.js version');
+                    alert('Sending messages available only in standalone version');
                 };
             }
             $('#sendMessage').off().click(sendMessage.bind(null, null));
