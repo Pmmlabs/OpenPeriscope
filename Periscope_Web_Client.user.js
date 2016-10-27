@@ -11,7 +11,7 @@
 // @connect     periscope.tv
 // @connect     twitter.com
 // @connect     digits.com
-// @require     https://code.jquery.com/jquery-1.11.3.js
+// @require     https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.js
 // @require     https://github.com/brix/crypto-js/raw/master/crypto-js.js
 // @require     http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js
 // @require     http://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js
@@ -1201,7 +1201,7 @@ Chat: function () {
     var historyDiv = $('<div/>');
     if (NODEJS) {
         WebSocket = require('ws');
-        $(window).unload(function(){
+        $(window).on('unload', function(){
             if (ws)
                 ws.close();
         });
@@ -1788,7 +1788,7 @@ Edit: function () {
     var form = $('<form target="foravatar" action="https://api.periscope.tv/api/v2/uploadProfileImage" enctype="multipart/form-data" method="post">' +
         '<input name="image" type="file" accept="image/jpeg,image/png,image/gif">' +
         '<input name="cookie" type="hidden" value="'+loginTwitter.cookie+'"></form>');
-    var hiddenIframe = $('<iframe id="foravatar" name="foravatar" style="display: none;"/>').load(refreshProfile);
+    var hiddenIframe = $('<iframe id="foravatar" name="foravatar" style="display: none;"/>').on('load',refreshProfile);
 
     var settingsContainer = $('<div/>');
     var tempSettings;
