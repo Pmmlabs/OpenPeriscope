@@ -30,8 +30,6 @@ NODEJS = typeof GM_xmlhttpRequest == 'undefined';
 var IMG_PATH = 'https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master';
 var settings = JSON.parse(localStorage.getItem('settings')) || {};
 if (NODEJS) {  // for NW.js
-    var gui = require('nw.gui');
-    gui.App.addOriginAccessWhitelistEntry('https://api.twitter.com/', 'app', 'openperiscope', true);    // allow redirect to app://
     const https = require('https');
     const url = require('url');
     GM_xmlhttpRequest = function (options) {
@@ -2265,7 +2263,7 @@ function SignIn1() {
         $(this).text('Loading...');
         OAuthTwitter('request_token', function (oauth) {
             location.href = 'https://api.twitter.com/oauth/authorize?oauth_token=' + oauth.oauth_token;
-        }, {oauth_callback: (NODEJS ? 'app://openperiscope/index.html' : 'openperiscope')});
+        }, {oauth_callback: (NODEJS ? 'chrome-extension://bjhbjocpihnfbncblmbgdpacnmbkmadm/index.html' : 'openperiscope')});
     }
 }
 function SignOut() {
