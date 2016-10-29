@@ -2130,7 +2130,7 @@ function getDescription(stream) {
     var chatLink = $('<a class="chatlink right icon">Chat</a>').click(switchSection.bind(null, 'Chat', stream.id));
     var description = $('<div class="description">\
                 <a href="' + stream.image_url + '" target="_blank"><img lazysrc="' + stream.image_url_small + '"/>' + (stream.is_locked ? '<img src="' + IMG_PATH + '/images/lock-white.png" class="lock"/>' : '') + '</a>\
-                <div class="watching right icon" title="Watching">' + (stream.n_watching || 0) + '</div>\
+                <div class="watching right icon" title="Watching">' + (stream.n_watching || stream.n_web_watching || stream.n_total_watching || stream.n_total_watched || 0) + '</div>\
                 <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>'+featured_reason+'\
             </div>')
         .append(deleteLink, '<br/>', screenlistLink, userLink, (stream.share_display_names ? ', shared by ' + stream.share_display_names[0] : ''), '<br/>', chatLink,
