@@ -4157,7 +4157,7 @@ Connection: close
                                                 <td>
                                                     string
                                                 </td>
-                                                <td>No</td>
+                                                <td>Yes</td>
                                                 <td>Periscope Broadcast ID</td>
                                                 <td></td>
                                             </tr>
@@ -4167,7 +4167,7 @@ Connection: close
                                                     string
                                                 </td>
                                                 <td>No</td>
-                                                <td></td>
+                                                <td>"session" field of <a href="#/startWatching">startWatching</a> response</td>
                                                 <td></td>
                                             </tr>
                                             <tr>
@@ -4176,7 +4176,7 @@ Connection: close
                                                     integer
                                                 </td>
                                                 <td>No</td>
-                                                <td></td>
+                                                <td>Number of comments</td>
                                                 <td></td>
                                             </tr>
                                             <tr>
@@ -4185,7 +4185,7 @@ Connection: close
                                                     integer
                                                 </td>
                                                 <td>No</td>
-                                                <td></td>
+                                                <td>Number of hearts</td>
                                                 <td></td>
                                             </tr>
                                             </tbody>
@@ -4332,6 +4332,170 @@ Connection: close
 	&quot;success&quot; : true
 }</pre>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div id="/startWatching" class="panel-heading">/startWatching - [TODO - To be documented]
+                                <span class="pull-right badge"><i class="fa fa-lock"
+                                                                  title="This endpoint requires authentication"></i></span>
+                            </div>
+                            <div class="panel-footer">
+                                <code>https://api.periscope.tv/api/v2/startWatching</code>
+                            </div>
+                            <div class="panel-body">
+                                <p>
+                                    Called when user is starting broadcast playback<br/>
+                                </p>
+
+                                <hr>
+
+                                <div id="-startWatching-requests" class="panel panel-success">
+                                    <div id="-startWatching-requests-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#-startWatching-requests" href="#-startWatching-requests-content"
+                                           aria-expanded="false" aria-controls="-startWatching-requests-content">
+                                            Request Parameters
+                                        </a>
+                                    </div>
+                                    <div id="-startWatching-requests-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="-startWatching-requests-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Parameter</th>
+                                                <th>Type</th>
+                                                <th>Optional</th>
+                                                <th>Description</th>
+                                                <th>Default Value</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>cookie</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>No</td>
+                                                <td>Periscope Authentication Cookie</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>auto_play</td>
+                                                <td>
+                                                    boolean
+                                                </td>
+                                                <td>No</td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>life_cycle_token</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>No</td>
+                                                <td>"life_cycle_token" field of <a href="#/accessVideo">accessVideo</a> response</td>
+                                                <td></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div id="-startWatching-responses" class="panel panel-info">
+                                    <div id="-startWatching-responses-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#-startWatching-responses"
+                                           href="#-startWatching-responses-content" aria-expanded="false"
+                                           aria-controls="-startWatching-responses-content">
+                                            Response Values
+                                        </a>
+                                    </div>
+                                    <div id="-startWatching-responses-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="-startWatching-responses-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Key</th>
+                                                <th>Type</th>
+                                                <th>Always Available</th>
+                                                <th>Description</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>session</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td>Session identifier used in <a href="#/pingWatching">pingWatching</a> requests</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div id="-startWatching-errors" class="panel panel-danger">
+                                    <div id="-startWatching-errors-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#-startWatching-errors" href="#-startWatching-errors-content"
+                                           aria-expanded="false" aria-controls="-startWatching-errors-content">
+                                            Error Responses
+                                        </a>
+                                    </div>
+                                    <div id="-startWatching-errors-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="-startWatching-errors-heading">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>Status Code</th>
+                                                <th>Error Text</th>
+                                                <th>Description</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>400</td>
+                                                <td>Bad Request</td>
+                                                <td>Request did not meet requirements - potentially missing parameter
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>401</td>
+                                                <td>Unauthorized</td>
+                                                <td>This endpoint requires authentication and no cookie value was
+                                                    provided, or is invalid
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>404</td>
+                                                <td>Not Found</td>
+                                                <td></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div id="-startWatching-example" class="panel panel-warning">
+                                    <div id="-startWatching-example-heading" class="panel-heading">
+                                        <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"
+                                           data-parent="#-startWatching-example" href="#-startWatching-example-content"
+                                           aria-expanded="false" aria-controls="-startWatching-example-content">
+                                            Example Request and Response
+                                        </a>
+                                    </div>
+                                    <div id="-startWatching-example-content" class="panel-collapse collapse out"
+                                         role="tabpanel" aria-labelledby="-startWatching-example-heading">
                                     </div>
                                 </div>
                             </div>
@@ -13631,6 +13795,15 @@ Connection: close
                                                 <td>Periscope Authentication Cookie</td>
                                                 <td></td>
                                             </tr>
+                                            <tr>
+                                                <td>broadcast_id</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>No</td>
+                                                <td>Broadcast identifier</td>
+                                                <td></td>
+                                            </tr>
                                             </tbody>
                                         </table>
                                     </div>
@@ -13658,7 +13831,62 @@ Connection: close
                                             </tr>
                                             </thead>
                                             <tbody>
-
+                                            <tr>
+                                                <td>session</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td>Empty string</td>
+                                            </tr>
+                                            <tr>
+                                                <td>replay_url</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>No</td>
+                                                <td>URL of replay, HLS format</td>
+                                            </tr>
+                                            <tr>
+                                                <td>type</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td>Empty string</td>
+                                            </tr>
+                                            <tr>
+                                                <td>chat_token</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>life_cycle_token</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td>Token used in <a href="#/startWatching">startWatching</a> request</td>
+                                            </tr>
+                                            <tr>
+                                                <td>broadcast</td>
+                                                <td>
+                                                    <a href="#Broadcast">Broadcast</a>
+                                                </td>
+                                                <td>Yes</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>share_url</td>
+                                                <td>
+                                                    string
+                                                </td>
+                                                <td>Yes</td>
+                                                <td>Link to broadcast on the periscope.tv site</td>
+                                            </tr>
                                             </tbody>
                                         </table>
                                     </div>
