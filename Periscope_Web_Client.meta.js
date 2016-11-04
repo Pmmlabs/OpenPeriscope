@@ -3,7 +3,7 @@
 // @name        Periscope Web Client
 // @namespace   https://greasyfork.org/users/23
 // @description Periscope client based on API requests. Visit example.net for launch.
-// @include     https://api.twitter.com/oauth/openperiscope*
+// @include     https://api.twitter.com/oauth/authorize
 // @include     http://example.net/*
 // @version     1.5
 // @author      Pmmlabs@github
