@@ -2265,7 +2265,7 @@ function SignIn1() {
         $(this).text('Loading...');
         OAuthTwitter('request_token', function (oauth) {
             location.href = 'https://api.twitter.com/oauth/authorize?oauth_token=' + oauth.oauth_token;
-        }, {oauth_callback: (NODEJS ? 'app://openperiscope/index.html' : 'openperiscope')});
+        }, {oauth_callback: (NODEJS ? 'twittersdk://openperiscope/index.html' : 'openperiscope')});
     }
 }
 function SignOut() {
