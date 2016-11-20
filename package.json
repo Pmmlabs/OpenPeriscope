@@ -1,16 +1,18 @@
 {
   "name": "openperiscope",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Unofficial Periscope client",
   "license": "GPL-2.0",
   "repository": "Pmmlabs/OpenPeriscope",
   "dependencies": {
     "ws": "*"
   },
+  "inject-js-end": "inject.js",
   "main": "chrome-extension://bjhbjocpihnfbncblmbgdpacnmbkmadm/index.html",
   "chromium-args":"--user-data-dir=userdata",
   "window": {
     "icon": "images/openperiscope.png",
+    "toolbar": true,
     "frame": true,
     "position": "center",
     "width": 800,
