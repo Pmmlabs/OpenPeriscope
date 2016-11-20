@@ -7,7 +7,7 @@
   "dependencies": {
     "ws": "*"
   },
-  "inject-js-end": "inject.js",
+  "inject_js_end": "inject.js",
   "main": "chrome-extension://bjhbjocpihnfbncblmbgdpacnmbkmadm/index.html",
   "chromium-args":"--user-data-dir=userdata",
   "window": {
