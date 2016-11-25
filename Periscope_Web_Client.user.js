@@ -1816,7 +1816,13 @@ Edit: function () {
         });
     });
 
-    var notifications = $('<label><input type="checkbox" ' + (settings.followingNotifications ? 'checked' : '') + '/> Enable notifications</label>');
+    var notifications = $('<label><input type="checkbox" ' + (settings.followingNotifications ? 'checked' : '') + '/> Enable notifications</label>').click(function (e) {
+        setSet('followingNotifications', e.target.checked);
+        if (e.target.checked)
+            Notifications.start();
+        else
+            Notifications.stop();
+    });
     var notifications_interval = $('<input type="number" min="2" value="' + (settings.followingInterval || Notifications.default_interval) + '">').change(function () {
         setSet('followingInterval', this.value);
         Notifications.stop();
