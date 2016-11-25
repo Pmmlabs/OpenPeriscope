@@ -1440,7 +1440,7 @@ Chat: function () {
                         .get(0).click();
                 });
             });
-            title.html((!broadcast.signer_token?'Read-only | ':'') + '<a href="https://www.periscope.tv/w/' + broadcast.broadcast.id + '" target="_blank">' + emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
+            title.html((broadcast.read_only?'Read-only | ':'') + '<a href="https://www.periscope.tv/w/' + broadcast.broadcast.id + '" target="_blank">' + emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
                 + emoji.replace_unified(broadcast.broadcast.user_display_name) + ' ')
                 .append(userLink,
                     broadcast.hls_url ? ' | <a href="' + broadcast.hls_url + '">M3U Link</a>' : '',
@@ -1483,6 +1483,8 @@ Chat: function () {
                 historyLoad('');
                 $(this).remove();
             }));
+            if (broadcast.read_only)
+                chat.append('<div class="error">*** Chatroom is full! You in read only mode!</div>');
             // Chat reading & posting
             if (NODEJS) {
                 var openSocket = function (failures) {
