@@ -1486,7 +1486,13 @@ Chat: function () {
                 $(this).remove();
             }));
             if (broadcast.read_only)
-                chat.append('<div class="error">*** Chatroom is full! You in read only mode!</div>');
+                switch (broadcast.type) {
+                    case "StreamTypeOnlyFriends":
+                        chat.append('<div class="error">*** This chat is for friends only!</div>');
+                        break;
+                    default:
+                        chat.append('<div class="error">*** Chatroom is full! You in read only mode!</div>');
+                }
             // Chat reading & posting
             if (NODEJS) {
                 var openSocket = function (failures) {
