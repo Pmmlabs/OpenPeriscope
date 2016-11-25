@@ -1251,6 +1251,10 @@ Chat: function () {
                 })
             );
     }
+    function userlistRemove(user){
+        var id = user.id || user.remoteID || user.user_id;
+        userlist.find('#'+id).remove();
+    }
     function renderMessages(event, container) {
         if (event.occupants) {  // "presense" for websockets
             userlist.empty();
@@ -1374,13 +1378,11 @@ Chat: function () {
                     case  MESSAGE_KIND.PRESENCE:
                         $('#presence').text(message.body.occupancy + '/' + message.body.total_participants);
                         break;
-                    case MESSAGE_KIND.CHAT: // rubbish?
-                        if ($('#debug')[0].checked)
-                            console.log('cap: ', message.payload.cap, message);
+                    case MESSAGE_KIND.CHAT: // smb joined
+                        userlistAdd(message.body); // message.payload.cap
                         break;
-                    case MESSAGE_KIND.CONTROL: // rubbish?
-                        if ($('#debug')[0].checked)
-                            console.log('of: ', message.payload.of, message);
+                    case MESSAGE_KIND.CONTROL: // smb left
+                        userlistRemove(message.body); //message.payload.of
                         break;
                     default:
                         console.log(message);
