@@ -79,12 +79,14 @@ if (NODEJS) {  // for NW.js
         setSet('downloadPath', process.execPath.substring(0, process.execPath.lastIndexOf(process.platform === 'win32' ? '\\' : '/')));
     if (settings.windowSize)
         window.resizeTo(settings.windowSize.width, settings.windowSize.height);
-    $(window).resize(function () {
-        setSet('windowSize', {
-            width: $(this).width(),
-            height: $(this).height()
-        });
-    })
+    setTimeout(function(){
+        $(window).resize(function (e) {
+            setSet('windowSize', {
+                width: $(this).width(),
+                height: $(this).height()
+            });
+        })
+    }, 1000);
 }
 //<editor-fold desc="CSS style">
 const css = '<style>\
@@ -195,7 +197,7 @@ const css = '<style>\
         height: 36px;\
         overflow: hidden;\
     }\
-    .button, .card, .contextmenu {\
+    .button, .card, .contextmenu, .searcher {\
         box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);\
     }\
     .button:hover {\
@@ -562,6 +564,15 @@ const css = '<style>\
         display: block;\
         margin: 11px;\
     }\
+    .searcher {\
+        background: white;\
+        padding: 0 10px;\
+    }\
+    .searcher input, .searcher input:focus {\
+        border: none;\
+        box-shadow: none;\
+        margin: 0;\
+    }\
 </style>';
 //</editor-fold>
 
@@ -856,7 +867,7 @@ Map: function () {
     var mapList = $('<div class="split"/>');
     $('#right').append($('<div id="Map"/>').append('<div id="map" class="split"/>',mapList));
     // Set center
-    map = L.map('map').setView([0, 0], 2);
+    map = L.map('map', {zoomControl: false}).setView([0, 0], 2);
 
     // Layers list
     var tileLayers = {
@@ -897,6 +908,42 @@ Map: function () {
         }
     });
     new L.Control.PanelButton().addTo(map);
+    // Search
+    var searcher = false;
+    L.Control.Searcher = L.Control.extend({
+        onAdd: function (amap) {
+            return $('<div class="leaflet-control searcher"/>')
+                .append($('<input type="text" placeholder="Search..."/>')
+                    .mousemove(function () {return false})
+                    .dblclick(function () {return false})
+                    .keypress(function (e) {
+                        if (e.keyCode == 13) {
+                            var $this = $(this);
+                            $.get('https://maps.googleapis.com/maps/api/geocode/json', {
+                                address: $(this).val()
+                            }, function (r) {
+                                if (r.results.length) {
+                                    amap.fitBounds([
+                                        [r.results[0].geometry.viewport.southwest.lat, r.results[0].geometry.viewport.southwest.lng],
+                                        [r.results[0].geometry.viewport.northeast.lat, r.results[0].geometry.viewport.northeast.lng]
+                                    ]);
+                                } else {
+                                    $this.css('transition', '');
+                                    $this.css('color', 'red');
+                                    setTimeout(function () {
+                                        $this.css('transition', 'color 4s ease-out');
+                                        $this.css('color', '');
+                                    }, 100);
+                                }
+                            });
+                            return false;
+                        }
+                    }))
+                .get(0);
+        }
+    });
+    new L.Control.Searcher({position: 'topleft'}).addTo(map);
+    new L.Control.Zoom().addTo(map);
     // Cluster icons
     var iconCreate = function (prefix) {
         return function (cluster) {
