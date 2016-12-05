@@ -77,6 +77,14 @@ if (NODEJS) {  // for NW.js
     // default download path = executable path
     if (!settings.downloadPath)
         setSet('downloadPath', process.execPath.substring(0, process.execPath.lastIndexOf(process.platform === 'win32' ? '\\' : '/')));
+    if (settings.windowSize)
+        window.resizeTo(settings.windowSize.width, settings.windowSize.height);
+    $(window).resize(function () {
+        setSet('windowSize', {
+            width: $(this).width(),
+            height: $(this).height()
+        });
+    })
 }
 //<editor-fold desc="CSS style">
 const css = '<style>\
