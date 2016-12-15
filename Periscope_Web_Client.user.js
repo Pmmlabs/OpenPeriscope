@@ -2019,19 +2019,20 @@ function getM3U(id, jcontainer) {
             var params = '';
             var ffmpeg_cookies = '';
             if (cookies && cookies.length) {
-                params += '?';
                 for (var i in cookies) {
                     params += cookies[i].Name.replace('CloudFront-', '') + '=' + cookies[i].Value + '&';
                     ffmpeg_cookies += cookies[i].Name + '=' + cookies[i].Value + '&';
                 }
                 params += 'Expires=0';
             }
-            replay_url += params;
             GM_xmlhttpRequest({
                 method: 'GET',
                 url: replay_url,
+                headers: {
+                    Cookie: params
+                },
                 onload: function (m3u_text) {
-                    m3u_text = m3u_text.responseText.replace(/(chunk_\d+\.ts)/g, replay_base_url + '$1' + params);
+                    m3u_text = m3u_text.responseText.replace(/(chunk_\d+\.ts)/g, replay_base_url + '$1?' + params);
                     var filename = 'playlist.m3u8';
                     var link = $('<a href="data:text/plain;charset=utf-8,' + encodeURIComponent(m3u_text) + '" download="' + filename + '">Download replay M3U</a>').click(saveAs.bind(null, m3u_text, filename));
                     var clipboardLink = $('<a data-clipboard-text="' + replay_url + '">Copy URL</a>');
