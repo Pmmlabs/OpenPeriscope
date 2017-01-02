@@ -1939,6 +1939,14 @@ Console: function () {
                 downloadButton.show();
             }
         });
+        var gui = require('nw.gui');
+        gui.Window.get().removeAllListeners('close').on('close', function(){
+            try {
+                dl.stdin.end('q', dl.kill);
+            } finally {
+                gui.App.quit();
+            }
+        });
         $(this).hide();
     });
     var stopButton = $('<a class="button">Stop</a>').hide();
