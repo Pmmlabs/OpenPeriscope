@@ -1907,6 +1907,12 @@ Edit: function () {
             setSet('downloadPath', $(this).val());
             current_download_path.text($(this).val());
         }));
+        var download_format = $('<dt/>').append($('<select>' +
+            '<option value="mp4" '+(settings.downloadFormat=='mp4'?'selected':'')+'>MP4</option>' +
+            '<option value="ts" '+(settings.downloadFormat=='ts'?'selected':'')+'>TS</option>' +
+            '</select>').change(function () {
+            setSet('downloadFormat', $(this).val());
+        }));
     }
 
     $('#right').append($('<div id="Edit"/>').append(
@@ -1923,7 +1929,8 @@ Edit: function () {
         notifications , '<br>',
         autoDownload, '<br>',
         'Notifications refresh interval: ', notifications_interval ,' seconds','<br/><br/>',
-        (NODEJS ? ['<dt>Downloads path:</dt>', current_download_path, download_path] : '')
+        (NODEJS ? ['<dt>Downloads path:</dt>', current_download_path, download_path,
+                   '<dt>Download format:</dt>', download_format] : '')
     ));
 },
 Console: function () {
@@ -2116,9 +2123,9 @@ function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=v
         '-cookies', ff_cookies,
         '-i', url,
         '-c', 'copy',
-        '-bsf:a', 'aac_adtstoasc',
+        (settings.downloadFormat != 'ts' ? '-bsf:a' : '-f'), (settings.downloadFormat != 'ts' ? 'aac_adtstoasc' : 'mpegts'),
         '-y',
-        settings.downloadPath + folder_separator + name + '.mp4'
+        settings.downloadPath + folder_separator + name + '.' + (settings.downloadFormat || 'mp4')
     ]);
     if (jcontainer) {
         if (!spawn.pid)
