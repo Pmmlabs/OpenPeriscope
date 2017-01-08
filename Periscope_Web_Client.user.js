@@ -1264,7 +1264,7 @@ Chat: function () {
 
     function userlistAdd(user){
         var id = user.id || user.remoteID || user.user_id;
-        if (!userlist.find('#'+id).length)
+        if (!userlist.find('#'+id).length && (user.display_name || user.displayName))
             userlist.append($('<div class="user" id="' + id + '">' + emoji.replace_unified(user.display_name || user.displayName) + ' </div>')
                 .append($('<div class="username">(' + user.username + ')</div>')
                     .click(switchSection.bind(null, 'User', id)))
