@@ -1831,8 +1831,9 @@ Edit: function () {
         });
         var current_download_path = $('<dt style="margin-right: 10px;">' + settings.downloadPath + '</dt>');
         var download_path = $('<dt/>').append($('<input type="file" webkitdirectory directory/>').change(function () {
-            setSet('downloadPath', $(this).val());
-            current_download_path.text($(this).val());
+            var path = this.files[0].path.replace(/[\\\/][^\\\/]+$/,'');
+            setSet('downloadPath', path);
+            current_download_path.text(path);
         }));
     }
 
