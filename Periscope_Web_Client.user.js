@@ -5,7 +5,7 @@
 // @description Periscope client based on API requests. Visit example.net for launch.
 // @include     https://api.twitter.com/oauth/authorize
 // @include     http://example.net/*
-// @version     1.6
+// @version     1.7
 // @author      Pmmlabs@github
 // @grant       GM_xmlhttpRequest
 // @connect     periscope.tv
@@ -75,6 +75,16 @@ if (NODEJS) {  // for NW.js
     // default download path = executable path
     if (!settings.downloadPath)
         setSet('downloadPath', process.execPath.substring(0, process.execPath.lastIndexOf(process.platform === 'win32' ? '\\' : '/')));
+    if (settings.windowSize)
+        window.resizeTo(settings.windowSize.width, settings.windowSize.height);
+    setTimeout(function(){
+        $(window).resize(function (e) {
+            setSet('windowSize', {
+                width: $(this).width(),
+                height: $(this).height()
+            });
+        })
+    }, 1000);
 }
 //<editor-fold desc="CSS style">
 const css = '<style>\
@@ -185,7 +195,7 @@ const css = '<style>\
         height: 36px;\
         overflow: hidden;\
     }\
-    .button, .card, .contextmenu {\
+    .button, .card, .contextmenu, .searcher {\
         box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);\
     }\
     .button:hover {\
@@ -552,6 +562,15 @@ const css = '<style>\
         display: block;\
         margin: 11px;\
     }\
+    .searcher {\
+        background: white;\
+        padding: 0 10px;\
+    }\
+    .searcher input, .searcher input:focus {\
+        border: none;\
+        box-shadow: none;\
+        margin: 0;\
+    }\
 </style>';
 //</editor-fold>
 
@@ -846,7 +865,7 @@ Map: function () {
     var mapList = $('<div class="split"/>');
     $('#right').append($('<div id="Map"/>').append('<div id="map" class="split"/>',mapList));
     // Set center
-    map = L.map('map').setView([0, 0], 2);
+    map = L.map('map', {zoomControl: false}).setView([0, 0], 2);
 
     // Layers list
     var tileLayers = {
@@ -887,6 +906,42 @@ Map: function () {
         }
     });
     new L.Control.PanelButton().addTo(map);
+    // Search
+    var searcher = false;
+    L.Control.Searcher = L.Control.extend({
+        onAdd: function (amap) {
+            return $('<div class="leaflet-control searcher"/>')
+                .append($('<input type="text" placeholder="Search..."/>')
+                    .mousemove(function () {return false})
+                    .dblclick(function () {return false})
+                    .keypress(function (e) {
+                        if (e.keyCode == 13) {
+                            var $this = $(this);
+                            $.get('https://maps.googleapis.com/maps/api/geocode/json', {
+                                address: $(this).val()
+                            }, function (r) {
+                                if (r.results.length) {
+                                    amap.fitBounds([
+                                        [r.results[0].geometry.viewport.southwest.lat, r.results[0].geometry.viewport.southwest.lng],
+                                        [r.results[0].geometry.viewport.northeast.lat, r.results[0].geometry.viewport.northeast.lng]
+                                    ]);
+                                } else {
+                                    $this.css('transition', '');
+                                    $this.css('color', 'red');
+                                    setTimeout(function () {
+                                        $this.css('transition', 'color 4s ease-out');
+                                        $this.css('color', '');
+                                    }, 100);
+                                }
+                            });
+                            return false;
+                        }
+                    }))
+                .get(0);
+        }
+    });
+    new L.Control.Searcher({position: 'topleft'}).addTo(map);
+    new L.Control.Zoom().addTo(map);
     // Cluster icons
     var iconCreate = function (prefix) {
         return function (cluster) {
@@ -1207,7 +1262,7 @@ Chat: function () {
 
     function userlistAdd(user){
         var id = user.id || user.remoteID || user.user_id;
-        if (!userlist.find('#'+id).length)
+        if (!userlist.find('#'+id).length && (user.display_name || user.displayName))
             userlist.append($('<div class="user" id="' + id + '">' + emoji.replace_unified(user.display_name || user.displayName) + ' </div>')
                 .append($('<div class="username">(' + user.username + ')</div>')
                     .click(switchSection.bind(null, 'User', id)))
@@ -1248,6 +1303,10 @@ Chat: function () {
                     new Clipboard('.contextmenu div');
                 })
             );
+    }
+    function userlistRemove(user){
+        var id = user.id || user.remoteID || user.user_id;
+        userlist.find('#'+id).remove();
     }
     function renderMessages(event, container) {
         if (event.occupants) {  // "presense" for websockets
@@ -1372,13 +1431,11 @@ Chat: function () {
                     case  MESSAGE_KIND.PRESENCE:
                         $('#presence').text(message.body.occupancy + '/' + message.body.total_participants);
                         break;
-                    case MESSAGE_KIND.CHAT: // rubbish?
-                        if ($('#debug')[0].checked)
-                            console.log('cap: ', message.payload.cap, message);
+                    case MESSAGE_KIND.CHAT: // smb joined
+                        userlistAdd(message.body); // message.payload.cap
                         break;
-                    case MESSAGE_KIND.CONTROL: // rubbish?
-                        if ($('#debug')[0].checked)
-                            console.log('of: ', message.payload.of, message);
+                    case MESSAGE_KIND.CONTROL: // smb left
+                        userlistRemove(message.body); //message.payload.of
                         break;
                     default:
                         console.log(message);
@@ -1438,7 +1495,7 @@ Chat: function () {
                         .get(0).click();
                 });
             });
-            title.html((!broadcast.signer_token?'Read-only | ':'') + '<a href="https://www.periscope.tv/w/' + broadcast.broadcast.id + '" target="_blank">' + emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
+            title.html((broadcast.read_only?'Read-only | ':'') + '<a href="https://www.periscope.tv/w/' + broadcast.broadcast.id + '" target="_blank">' + emoji.replace_unified(broadcast.broadcast.status || 'Untitled') + '</a> | '
                 + emoji.replace_unified(broadcast.broadcast.user_display_name) + ' ')
                 .append(userLink,
                     broadcast.hls_url ? ' | <a href="' + broadcast.hls_url + '">M3U Link</a>' : '',
@@ -1481,6 +1538,14 @@ Chat: function () {
                 historyLoad('');
                 $(this).remove();
             }));
+            if (broadcast.read_only)
+                switch (broadcast.type) {
+                    case "StreamTypeOnlyFriends":
+                        chat.append('<div class="error">*** This chat is for friends only!</div>');
+                        break;
+                    default:
+                        chat.append('<div class="error">*** Chatroom is full! You in read only mode!</div>');
+                }
             // Chat reading & posting
             if (NODEJS) {
                 var openSocket = function (failures) {
@@ -1814,7 +1879,13 @@ Edit: function () {
         });
     });
 
-    var notifications = $('<label><input type="checkbox" ' + (settings.followingNotifications ? 'checked' : '') + '/> Enable notifications</label>');
+    var notifications = $('<label><input type="checkbox" ' + (settings.followingNotifications ? 'checked' : '') + '/> Enable notifications</label>').click(function (e) {
+        setSet('followingNotifications', e.target.checked);
+        if (e.target.checked)
+            Notifications.start();
+        else
+            Notifications.stop();
+    });
     var notifications_interval = $('<input type="number" min="2" value="' + (settings.followingInterval || Notifications.default_interval) + '">').change(function () {
         setSet('followingInterval', this.value);
         Notifications.stop();
@@ -1835,6 +1906,12 @@ Edit: function () {
             setSet('downloadPath', path);
             current_download_path.text(path);
         }));
+        var download_format = $('<dt/>').append($('<select>' +
+            '<option value="mp4" '+(settings.downloadFormat=='mp4'?'selected':'')+'>MP4</option>' +
+            '<option value="ts" '+(settings.downloadFormat=='ts'?'selected':'')+'>TS</option>' +
+            '</select>').change(function () {
+            setSet('downloadFormat', $(this).val());
+        }));
     }
 
     $('#right').append($('<div id="Edit"/>').append(
@@ -1851,7 +1928,8 @@ Edit: function () {
         notifications , '<br>',
         autoDownload, '<br>',
         'Notifications refresh interval: ', notifications_interval ,' seconds','<br/><br/>',
-        (NODEJS ? ['<dt>Downloads path:</dt>', current_download_path, download_path] : '')
+        (NODEJS ? ['<dt>Downloads path:</dt>', current_download_path, download_path,
+                   '<dt>Download format:</dt>', download_format] : '')
     ));
 },
 Console: function () {
@@ -1865,6 +1943,14 @@ Console: function () {
             } finally {
                 $(this).hide();
                 downloadButton.show();
+            }
+        });
+        var gui = require('nw.gui');
+        gui.Window.get().removeAllListeners('close').on('close', function(){
+            try {
+                dl.stdin.end('q', dl.kill);
+            } finally {
+                gui.App.quit();
             }
         });
         $(this).hide();
@@ -1947,19 +2033,20 @@ function getM3U(id, jcontainer) {
             var params = '';
             var ffmpeg_cookies = '';
             if (cookies && cookies.length) {
-                params += '?';
                 for (var i in cookies) {
-                    params += cookies[i].Name.replace('CloudFront-', '') + '=' + cookies[i].Value + '&';
+                    params += cookies[i].Name.replace('CloudFront-', '') + '=' + cookies[i].Value + '; ';
                     ffmpeg_cookies += cookies[i].Name + '=' + cookies[i].Value + '&';
                 }
                 params += 'Expires=0';
             }
-            replay_url += params;
             GM_xmlhttpRequest({
                 method: 'GET',
                 url: replay_url,
+                headers: {
+                    Cookie: params
+                },
                 onload: function (m3u_text) {
-                    m3u_text = m3u_text.responseText.replace(/(chunk_\d+\.ts)/g, replay_base_url + '$1' + params);
+                    m3u_text = m3u_text.responseText.replace(/(chunk_\d+\.ts)/g, replay_base_url + '$1');
                     var filename = 'playlist.m3u8';
                     var link = $('<a href="data:text/plain;charset=utf-8,' + encodeURIComponent(m3u_text) + '" download="' + filename + '">Download replay M3U</a>').click(saveAs.bind(null, m3u_text, filename));
                     var clipboardLink = $('<a data-clipboard-text="' + replay_url + '">Copy URL</a>');
@@ -2035,9 +2122,9 @@ function download(name, url, cookies, jcontainer) { // cookies=['key=val','key=v
         '-cookies', ff_cookies,
         '-i', url,
         '-c', 'copy',
-        '-bsf:a', 'aac_adtstoasc',
+        (settings.downloadFormat != 'ts' ? '-bsf:a' : '-f'), (settings.downloadFormat != 'ts' ? 'aac_adtstoasc' : 'mpegts'),
         '-y',
-        settings.downloadPath + folder_separator + name + '.mp4'
+        settings.downloadPath + folder_separator + name + '.' + (settings.downloadFormat || 'mp4')
     ]);
     if (jcontainer) {
         if (!spawn.pid)

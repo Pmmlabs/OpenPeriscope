@@ -16,6 +16,7 @@ You can use pre-built executables from [Releases page](https://github.com/Pmmlab
  npm install
  nw . 
  ```
+If you want to update pre-built version, you can use [this instructions](https://github.com/Pmmlabs/OpenPeriscope/wiki#how-to-update-portable-version-exe)
 
 ### Using as userscript
 
