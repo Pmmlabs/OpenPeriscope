@@ -20,6 +20,6 @@ OPENSSL="./openssl-1.0.1t/dist/"
 --enable-openssl \
 --enable-decoder=h264,aac \
 --enable-demuxer=hls,mpegts,dnxhd \
---enable-muxer=mp4 \
+--enable-muxer=mp4,mpegts \
 --enable-parser=h264,aac \
 --enable-bsf=aac_adtstoasc
