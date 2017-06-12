@@ -722,10 +722,9 @@ var Notifications = {
                                         var start = date_created.getFullYear() + '-' + zeros(date_created.getMonth() + 1) + '-' + zeros(date_created.getDate()) + '_' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes());
                                         new Notification(new_list[i].user_display_name + (new_list[i].state == 'RUNNING' ? ' is live now' : ' uploaded replay'), {
                                             body: '[' + start + '] ' + (new_list[i].status || 'Untitled'),
-                                            icon: new_list[i].image_url,
-                                            data: new_list[i].id
+                                            icon: new_list[i].image_url
                                         }).onclick = function () {
-                                            window.open('https://www.periscope.tv/w/' + this.data);
+                                            window.open('https://www.periscope.tv/w/' + new_list[i].id);
                                             this.close();
                                         };
                                     };
