@@ -588,7 +588,7 @@ if (location.href == 'https://api.twitter.com/oauth/authorize') {
         session_key = localStorage.getItem('session_key'),
         session_secret = localStorage.getItem('session_secret'),
         loginTwitter = localStorage.getItem('loginTwitter');
-    
+
     $(function() {
         if (loginTwitter) {
             loginTwitter = JSON.parse(loginTwitter);
@@ -733,12 +733,12 @@ var Notifications = {
                             // Start the record
                             if (settings.followingDownload && new_list[i].state == 'RUNNING' && NODEJS) {
                                 getURL(new_list[i].id, function (live, replay, cookies, _name, _user_id, _user_name) {
+                                    var ffmpeg_cookies = [];
+                                    for (var i in cookies)
+                                        ffmpeg_cookies.push(cookies[i].Name + '=' + cookies[i].Value);
                                     if (live)
-                                        download(_name, live, null, _user_id, _user_name);
+                                        download(_name, live, ffmpeg_cookies, _user_id, _user_name);
                                     else if (replay) {
-                                        var ffmpeg_cookies = [];
-                                        for (var i in cookies)
-                                            ffmpeg_cookies.push(cookies[i].Name + '=' + cookies[i].Value);
                                         download(_name, replay, ffmpeg_cookies, _user_id, _user_name);
                                     }
                                 })
@@ -2029,24 +2029,24 @@ function refreshList(jcontainer, title) {  // use it as callback arg
 function getM3U(id, jcontainer) {
     jcontainer.find('.links').empty();
     getURL(id, function (hls_url, replay_url, cookies, _name, _user_id, _user_name) {
+        var params = '';
+        var ffmpeg_cookies = '';
+        if (cookies && cookies.length) {
+            for (var i in cookies) {
+                params += cookies[i].Name.replace('CloudFront-', '') + '=' + cookies[i].Value + '; ';
+                ffmpeg_cookies += cookies[i].Name + '=' + cookies[i].Value + '&';
+            }
+            params += 'Expires=0';
+        }
         if (hls_url) {
             var clipboardLink = $('<a data-clipboard-text="' + hls_url + '">Copy URL</a>');
             jcontainer.find('.links').append('<a href="' + hls_url + '">Live M3U link</a>',
-                NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', {url: hls_url, name: _name, user_id: _user_id, user_name: _user_name}))] : '',
+                NODEJS ? [' | ', $('<a>Download</a>').click(switchSection.bind(null, 'Console', {url: hls_url, cookies: ffmpeg_cookies, name: _name, user_id: _user_id, user_name: _user_name}))] : '',
                 ' | ', clipboardLink);
             new Clipboard(clipboardLink.get(0));
         }
         if (replay_url) {
             var replay_base_url = replay_url.replace(/playlist.*m3u8/ig, '');
-            var params = '';
-            var ffmpeg_cookies = '';
-            if (cookies && cookies.length) {
-                for (var i in cookies) {
-                    params += cookies[i].Name.replace('CloudFront-', '') + '=' + cookies[i].Value + '; ';
-                    ffmpeg_cookies += cookies[i].Name + '=' + cookies[i].Value + '&';
-                }
-                params += 'Expires=0';
-            }
             GM_xmlhttpRequest({
                 method: 'GET',
                 url: replay_url,
@@ -2090,7 +2090,7 @@ function getURL(id, callback){
         // For live
         var hls_url = r.hls_url || r.https_hls_url || r.lhls_url;
         if (hls_url) {
-            callback(hls_url, null, null, name, r.broadcast.user_id, r.broadcast.username);
+            callback(hls_url, null, r.cookies, name, r.broadcast.user_id, r.broadcast.username);
         }
         // For replay
         var replay_url = r.replay_url;
