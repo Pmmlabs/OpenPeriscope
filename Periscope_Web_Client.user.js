@@ -704,7 +704,7 @@ var Notifications = {
             this.old_list = JSON.parse(localStorage.getItem('followingBroadcastFeed')) || [];
             if (!settings.followingInterval)
                 setSet('followingInterval', this.default_interval);
-            if (settings.followingNotifications || settings.followingDownload)
+            if (settings.followingNotifications || settings.automaticDownload)
                 this.interval = setInterval(Api.bind(null, 'followingBroadcastFeed', {}, function (new_list) {
                     for (var i in new_list) {
                         var contains = false;
@@ -731,17 +731,27 @@ var Notifications = {
                                 }(i), 300 * i);
                             }
                             // Start the record
-                            if (settings.followingDownload && new_list[i].state == 'RUNNING' && NODEJS) {
-                                getURL(new_list[i].id, function (live, replay, cookies, _name, _user_id, _user_name) {
-                                    var ffmpeg_cookies = [];
-                                    for (var i in cookies)
-                                        ffmpeg_cookies.push(cookies[i].Name + '=' + cookies[i].Value);
-                                    if (live)
-                                        download(_name, live, ffmpeg_cookies, _user_id, _user_name);
-                                    else if (replay) {
-                                        download(_name, replay, ffmpeg_cookies, _user_id, _user_name);
-                                    }
-                                })
+                            if (settings.automaticDownload && new_list[i].state == 'RUNNING' && NODEJS) {
+                                var downloadBroadcast = false;
+
+                                if (settings.privateDownload && new_list[i].is_locked)
+                                    downloadBroadcast = true;
+                                else if (settings.sharedDownload && new_list[i].share_user_ids)
+                                    downloadBroadcast = true;
+                                else if (settings.followingDownload && !new_list[i].share_user_ids)
+                                    downloadBroadcast = true;
+
+                                if (downloadBroadcast) {
+                                    getURL(new_list[i].id, function (live, replay, cookies, _name, _user_id, _user_name) {
+                                        var ffmpeg_cookies = [];
+                                        for (var i in cookies)
+                                            ffmpeg_cookies.push(cookies[i].Name + '=' + cookies[i].Value);
+                                        if (live)
+                                            download(_name, live, ffmpeg_cookies, _user_id, _user_name);
+                                        else if (replay)
+                                            download(_name, replay, ffmpeg_cookies, _user_id, _user_name);
+                                    });
+                                }
                             }
                         }
                     }
@@ -1898,12 +1908,21 @@ Edit: function () {
     });
 
     if (NODEJS) {
-        var autoDownload = $('<label><input type="checkbox" ' + (settings.followingDownload ? 'checked' : '') + '/> Auto-download broadcasts from subscriptions</label>').click(function (e) {
-            setSet('followingDownload', e.target.checked);
+        var autoDownload = $('<label><input type="checkbox" ' + (settings.automaticDownload ? 'checked' : '') + '/> Enable automatic downloading of the following items</label>').click(function (e) {
+            setSet('automaticDownload', e.target.checked);
             if (e.target.checked)
                 Notifications.start();
             else
                 Notifications.stop();
+        });
+        var download_private = $('<label><input type="checkbox" style="margin-left: 1.5em;" ' + (settings.privateDownload ? 'checked' : '') + '/> Private broadcasts</label>').click(function (e) {
+            setSet('privateDownload', e.target.checked);
+        });
+        var download_following = $('<label><input type="checkbox" style="margin-left: 1.5em;"' + (settings.followingDownload ? 'checked' : '') + '/> Following broadcasts</label>').click(function (e) {
+            setSet('followingDownload', e.target.checked);
+        });
+        var download_shared = $('<label><input type="checkbox" style="margin-left: 1.5em;"' + (settings.sharedDownload ? 'checked' : '') + '/> Shared broadcasts</label>').click(function (e) {
+            setSet('sharedDownload', e.target.checked);
         });
         var current_download_path = $('<dt style="margin-right: 10px;">' + settings.downloadPath + '</dt>');
         var download_path = $('<dt/>').append($('<input type="file" webkitdirectory directory/>').change(function () {
@@ -1929,8 +1948,11 @@ Edit: function () {
         settingsContainer, buttonSettings,
         '<hr color="#E0E0E0" size="1">' +
         '<h3>OpenPeriscope settings</h3>',
-        notifications , '<br>',
+        notifications , '<br><br>',
         autoDownload, '<br>',
+        download_private, '<br>',
+        download_following, '<br>',
+        download_shared, '<br><br>',
         'Notifications refresh interval: ', notifications_interval ,' seconds','<br/><br/>',
         (NODEJS ? ['<dt>Downloads path:</dt>', current_download_path, download_path,
                    '<dt>Download format:</dt>', download_format] : '')
