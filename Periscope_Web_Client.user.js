@@ -933,7 +933,8 @@ Map: function () {
                         if (e.keyCode == 13) {
                             var $this = $(this);
                             $.get('https://maps.googleapis.com/maps/api/geocode/json', {
-                                address: $(this).val()
+                                address: $(this).val(),
+                                key: 'AIzaSyChqVpIwX4UYEh-1Rza_OqTl1OwYfupWBE'  // key quota is 2500 requests per day \_(-_-)_/
                             }, function (r) {
                                 if (r.results.length) {
                                     amap.fitBounds([
