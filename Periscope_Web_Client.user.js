@@ -2262,7 +2262,7 @@ function getDescription(stream) {
                 <div class="watching right icon" title="Watching">' + (stream.n_watching || stream.n_web_watching || stream.n_total_watching || stream.n_total_watched || 0) + '</div>\
                 <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>'+featured_reason+'\
             </div>')
-        .append(deleteLink, '<br/>', screenlistLink, userLink, (stream.share_display_names ? ', shared by ' + stream.share_display_names[0] : ''), '<br/>', chatLink,
+        .append(deleteLink, '<br/>', screenlistLink, userLink, (stream.share_display_names ? ', shared by ' + stream.share_display_names[0] : ''), (stream.channel_name ? ', on channel ' + stream.channel_name : ''), '<br/>', chatLink,
             '<span class="date icon" title="Created">' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth() + 1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes()) + '</span>'
             + (duration ? '<span class="time icon" title="Duration">' + zeros(duration.getUTCHours()) + ':' + zeros(duration.getMinutes()) + ':' + zeros(duration.getSeconds()) + '</span>' : '')
             + (stream.friend_chat ? '<span class="friend_chat" title="Chat only for friends"/>' : '')
