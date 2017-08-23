@@ -2165,6 +2165,8 @@ function download(name, url, cookies, user_id, user_name, jcontainer) { // cooki
         '-cookies', ff_cookies,
         '-i', url,
         '-c', 'copy',
+        '-movflags', 'faststart',
+        '-pix_fmt', 'yuv420p',
         (settings.downloadFormat != 'ts' ? '-bsf:a' : '-f'), (settings.downloadFormat != 'ts' ? 'aac_adtstoasc' : 'mpegts'),
         '-y',
         output_dir + name + '.' + (settings.downloadFormat || 'mp4')
