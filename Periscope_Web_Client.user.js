@@ -1955,7 +1955,7 @@ Edit: function () {
         download_following, '<br>',
         download_shared, '<br><br>',
         'Notifications refresh interval: ', notifications_interval ,' seconds','<br/><br/>',
-        (NODEJS ? ['<dt>Downloads path:</dt>', current_download_path, download_path,
+        (NODEJS ? ['<dt>Downloads path:</dt>', current_download_path, download_path, '<br/><br/>',
                    '<dt>Download format:</dt>', download_format] : '')
     ));
 },
