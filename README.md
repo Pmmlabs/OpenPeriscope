@@ -71,4 +71,5 @@ Docs by @cjhbtn, actualized by me: http://static.pmmlabs.ru/OpenPeriscope
 1. Split.js https://github.com/nathancahill/Split.js
 
 ### Donate
-Buy me a beer: [paypal.me/pmmlabs](https://paypal.me/pmmlabs)
+Buy me a beer: [paypal.me/pmmlabs](https://paypal.me/pmmlabs)<br>
+Bitcoin: [1F1hXcaTjS1UFUqqMzLvVyz4wDSbRJU4Tn](bitcoin:1F1hXcaTjS1UFUqqMzLvVyz4wDSbRJU4Tn) 
