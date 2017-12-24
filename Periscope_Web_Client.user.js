@@ -580,7 +580,7 @@ if (location.href == 'https://api.twitter.com/oauth/authorize') {
     location.href = $('meta[http-equiv="refresh"]').attr('content').substr(6).replace('twittersdk://openperiscope/index.html', 'http://example.net/');
 } else {
     $('style').remove();
-    $(document.head).append(css);
+    $(document.head).append(css).append('<meta name="referrer" content="no-referrer" />');
 
     document.title = 'OpenPeriscope';
     var oauth_token = localStorage.getItem('oauth_token'),
@@ -2336,25 +2336,31 @@ function Api(method, params, callback, callback_fail) {
         onload: function (r) {
             Progress.stop();
             XHR.splice(xhrIndex, 1);
-            var response;
-            if (r.status == 200) {
-                try {
-                    response = JSON.parse(r.responseText);
-                } catch (e) {
-                    if ($('#debug').length && $('#debug')[0].checked)
-                        console.warn('JSON parse error:', e);
-                }
-                if (!!response && callback)
-                    callback(response);
-                $(window).trigger('scroll');    // for lazy load
-            } else if (r.status == 406) {
-                alert(JSON.parse(r.responseText).errors[0].error);
-            } else {
-                response = 'API error: ' + r.status + ' ' + r.responseText;
-                if (callback_fail && Object.prototype.toString.call(callback_fail) === '[object Function]')
-                    callback_fail(response);
+            var response, debug = $('#debug').length && $('#debug')[0].checked;
+            switch (r.status) {
+                case 200:
+                    try {
+                        response = JSON.parse(r.responseText);
+                    } catch (e) {
+                        if (debug)
+                            console.warn('JSON parse error:', e);
+                    }
+                    if (!!response && callback)
+                        callback(response);
+                    $(window).trigger('scroll');    // for lazy load
+                    break;
+                case 406:
+                    alert(JSON.parse(r.responseText).errors[0].error);
+                    break;
+                case 401:
+                    SignOut();
+                    break;
+                default:
+                    response = 'API error: ' + r.status + ' ' + r.responseText;
+                    if (callback_fail && Object.prototype.toString.call(callback_fail) === '[object Function]')
+                        callback_fail(response);
             }
-            if ($('#debug').length && $('#debug')[0].checked)
+            if (debug)
                 console.log('Method:', method, 'params:', params, 'response:', response);
         }
     });
