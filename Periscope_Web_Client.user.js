@@ -579,6 +579,15 @@ const css = '<style>\
     .button.following:hover {\
         background-color: #06988A;\
     }\
+    span.sProducer {\
+            left: -11px;\
+            top: -9px;\
+            margin-left: -70px;\
+            position: relative;\
+            color: rgba(255, 255, 255, 0.6);\
+            background-color: rgba(0, 0, 0, 0.30);\
+            padding: 2px;\
+    }\
 </style>';
 //</editor-fold>
 
@@ -2268,13 +2277,20 @@ function getDescription(stream) {
             window.open('data:text/html;charset=utf-8,'+encodeURIComponent(html));
         });
     });
+    var getFlag = function (country) {
+        if (country === "en") country = "us";//no emoji flag for en :'(
+        var flagOffset = 127365;
+        var both = String.fromCodePoint(country.codePointAt(0) + flagOffset) + String.fromCodePoint(country.codePointAt(1) + flagOffset);
+        var output = emoji.replace_unified(both);
+        return (output === both) ? output = country : output;
+    }
     var chatLink = $('<a class="chatlink right icon">Chat</a>').click(switchSection.bind(null, 'Chat', stream.id));
     var description = $('<div class="description">\
-                <a href="' + stream.image_url + '" target="_blank"><img lazysrc="' + stream.image_url_small + '"/>' + (stream.is_locked ? '<img src="' + IMG_PATH + '/images/lock-white.png" class="lock"/>' : '') + '</a>\
+                <a href="' + stream.image_url + '" target="_blank"><img lazysrc="' + stream.image_url_small + '"/>' + (stream.is_locked ? '<img src="' + IMG_PATH + '/images/lock-white.png" class="lock"/>' : '') + ((stream.broadcast_source === 'producer' || stream.broadcast_source === 'livecms') ? '<span class="sProducer">Producer</span>': '') + '</a>\
                 <div class="watching right icon" title="Watching">' + (stream.n_watching || stream.n_web_watching || stream.n_total_watching || stream.n_total_watched || 0) + '</div>\
                 <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>'+featured_reason+'\
             </div>')
-        .append(deleteLink, '<br/>', screenlistLink, userLink, (sharedByLink ? [', shared by ', sharedByLink] : ''), (stream.channel_name ? ', on: ' + emoji.replace_unified(stream.channel_name) : ''), '<br/>', chatLink,
+        .append(deleteLink, '<br/>', screenlistLink, userLink, (sharedByLink ? [', shared by ', sharedByLink] : ''), (stream.channel_name ? ', on: ' + emoji.replace_unified(stream.channel_name) : ''), '<br/>', chatLink, '<br/>', ('<span class="lang right" title="Language ' + stream.language + '">' + getFlag(stream.language) + '</span>'),
             '<span class="date icon" title="Created">' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth() + 1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes()) + '</span>'
             + (duration ? '<span class="time icon" title="Duration">' + zeros(duration.getUTCHours()) + ':' + zeros(duration.getMinutes()) + ':' + zeros(duration.getSeconds()) + '</span>' : '')
             + (stream.friend_chat ? '<span class="friend_chat" title="Chat only for friends"/>' : '')
