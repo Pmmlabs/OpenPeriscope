@@ -573,6 +573,12 @@ const css = '<style>\
         box-shadow: none;\
         margin: 0;\
     }\
+    .button.following {\
+            background-color: #37279B;\
+        }\
+    .button.following:hover {\
+        background-color: #685AC0;\
+    }\
 </style>';
 //</editor-fold>
 
@@ -2239,6 +2245,7 @@ function getDescription(stream) {
     var duration = stream.end || stream.timedout ? new Date(new Date(stream.end || stream.timedout) - date_created) : 0;
     var userLink = $('<a class="username">' + emoji.replace_unified(stream.user_display_name) + ' (@' + stream.username + ')</a>');
     userLink.click(switchSection.bind(null, 'User', stream.user_id));
+    var sharedByLink = (stream.share_display_names ?  $('<a class="sharedByUsername">'+ emoji.replace_unified(stream.share_display_names[0]) + '</a>').click(switchSection.bind(null, 'User', stream.share_user_ids[0])) : '');
     if (stream.user_id == loginTwitter.user.id)
         var deleteLink = $('<a class="delete right icon" title="Delete"/>').click(function () {
             Api('deleteBroadcast', {broadcast_id: stream.id}, function (resp) {
@@ -2264,7 +2271,7 @@ function getDescription(stream) {
                 <div class="watching right icon" title="Watching">' + (stream.n_watching || stream.n_web_watching || stream.n_total_watching || stream.n_total_watched || 0) + '</div>\
                 <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>'+featured_reason+'\
             </div>')
-        .append(deleteLink, '<br/>', screenlistLink, userLink, (stream.share_display_names ? ', shared by ' + stream.share_display_names[0] : ''), (stream.channel_name ? ', on channel ' + stream.channel_name : ''), '<br/>', chatLink,
+        .append(deleteLink, '<br/>', screenlistLink, userLink, (sharedByLink? ', shared by ' : ''), sharedByLink, (stream.channel_name ? ', on: ' + emoji.replace_unified(stream.channel_name) : ''), '<br/>', chatLink,
             '<span class="date icon" title="Created">' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth() + 1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes()) + '</span>'
             + (duration ? '<span class="time icon" title="Duration">' + zeros(duration.getUTCHours()) + ':' + zeros(duration.getMinutes()) + ':' + zeros(duration.getSeconds()) + '</span>' : '')
             + (stream.friend_chat ? '<span class="friend_chat" title="Chat only for friends"/>' : '')
@@ -2286,13 +2293,14 @@ function getUserDescription(user) {
         .append($('<div class="username">' + verified_icon + emoji.replace_unified(user.display_name) + ' (@' + user.username + ')</div>').click(switchSection.bind(null, 'User', user.id)))
         .append('Created: ' + (new Date(user.created_at)).toLocaleString()
         + (user.description ? '<div class="userdescription">' + emoji.replace_unified(user.description) +'</div>': '<br/>'))
-        .append($('<a class="button">' + (user.is_following ? 'unfollow' : 'follow') + '</a>').click(function () {
+        .append($('<a class="button'+ (user.is_following ? ' following' : ' follow') +'">' + (user.is_following ? 'unfollow' : 'follow') + '</a>').click(function () {
             var el = this;
             Api(el.innerHTML, { // follow or unfollow
                 user_id: user.id
             }, function (r) {
                 if (r.success)
                     el.innerHTML = el.innerHTML == 'follow' ? 'unfollow' : 'follow';
+                    el.classList.contains("following")? el.setAttribute('class', 'button follow'):el.setAttribute('class', 'button following');
             })
         }))
         .append($('<a class="button">' + (user.is_blocked ? 'unblock' : 'block') + '</a>').click(function () {
