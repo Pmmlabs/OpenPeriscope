@@ -23,10 +23,18 @@
 // @updateURL   https://github.com/Pmmlabs/OpenPeriscope/raw/master/Periscope_Web_Client.meta.js
 // @icon        https://github.com/Pmmlabs/OpenPeriscope/raw/master/images/openperiscope.png
 // @noframes
+// @grant       GM.xmlHttpRequest
+// @grant       GM.getResourceUrl
+// @resource    CSS style.css
 // ==/UserScript==
 
 var emoji = new EmojiConvertor();
-NODEJS = typeof GM_xmlhttpRequest == 'undefined';
+if (typeof GM_xmlhttpRequest === 'undefined' && typeof GM !== 'undefined') {
+    // Greasemonkey 4+
+    GM_xmlhttpRequest = GM.xmlHttpRequest;
+    GM_getResourceUrl = GM.getResourceUrl;
+}
+NODEJS = typeof GM_xmlhttpRequest === 'undefined';
 var IMG_PATH = 'https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master';
 var settings = JSON.parse(localStorage.getItem('settings')) || {};
 if (NODEJS) {  // for NW.js
@@ -93,7 +101,14 @@ if (location.href == 'https://api.twitter.com/oauth/authorize') {
     location.href = $('meta[http-equiv="refresh"]').attr('content').substr(6).replace('twittersdk://openperiscope/index.html', 'http://example.net/');
 } else {
     $('style').remove();
-    $(document.head).append('<link rel="stylesheet" href="' + IMG_PATH + '/style.css" />').append('<meta name="referrer" content="no-referrer" />');
+    $(document.head).append('<meta name="referrer" content="no-referrer" />');
+    if (NODEJS) {
+        $(document.head).append('<link rel="stylesheet" href="/style.css" />')
+    } else {
+        GM_getResourceUrl("CSS").then(function(cssBlobUrl){
+            $(document.head).append('<link rel="stylesheet" href="'+cssBlobUrl+'" />')
+        });
+    }
 
     document.title = 'OpenPeriscope';
     var oauth_token = localStorage.getItem('oauth_token'),
