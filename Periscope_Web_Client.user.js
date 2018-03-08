@@ -580,13 +580,13 @@ const css = '<style>\
         background-color: #06988A;\
     }\
     span.sProducer {\
-            left: -11px;\
-            top: -9px;\
-            margin-left: -70px;\
-            position: relative;\
-            color: rgba(255, 255, 255, 0.6);\
-            background-color: rgba(0, 0, 0, 0.30);\
-            padding: 2px;\
+        left: -11px;\
+        top: -9px;\
+        margin-left: -70px;\
+        position: relative;\
+        color: rgba(255, 255, 255, 0.6);\
+        background-color: rgba(0, 0, 0, 0.3);\
+        padding: 2px;\
     }\
 </style>';
 //</editor-fold>
@@ -2282,8 +2282,8 @@ function getDescription(stream) {
         var flagOffset = 127365;
         var both = String.fromCodePoint(country.codePointAt(0) + flagOffset) + String.fromCodePoint(country.codePointAt(1) + flagOffset);
         var output = emoji.replace_unified(both);
-        return (output === both) ? output = country : output;
-    }
+        return (output === both) ? country : output;
+    };
     var chatLink = $('<a class="chatlink right icon">Chat</a>').click(switchSection.bind(null, 'Chat', stream.id));
     var description = $('<div class="description">\
                 <a href="' + stream.image_url + '" target="_blank"><img lazysrc="' + stream.image_url_small + '"/>' + (stream.is_locked ? '<img src="' + IMG_PATH + '/images/lock-white.png" class="lock"/>' : '') + ((stream.broadcast_source === 'producer' || stream.broadcast_source === 'livecms') ? '<span class="sProducer">Producer</span>': '') + '</a>\
