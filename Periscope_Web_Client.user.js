@@ -1803,12 +1803,13 @@ function getDescription(stream) {
                 <div class="watching right icon" title="Watching">' + (stream.n_watching || stream.n_web_watching || stream.n_total_watching || stream.n_total_watched || 0) + '</div>\
                 <a target="_blank" href="https://www.periscope.tv/w/' + stream.id + '">' + title + '</a>'+featured_reason+'\
             </div>')
-        .append(deleteLink, '<br/>', screenlistLink, userLink, (sharedByLink ? [', shared by ', sharedByLink] : ''), (stream.channel_name ? ', on: ' + emoji.replace_unified(stream.channel_name) : ''), '<br/>', chatLink, '<br/>', ('<span class="lang right" title="Language ' + stream.language + '">' + getFlag(stream.language) + '</span>'),
+        .append(deleteLink, '<br/>', screenlistLink, userLink, (sharedByLink ? [', shared by ', sharedByLink] : ''), (stream.channel_name ? ', on: ' + emoji.replace_unified(stream.channel_name) : ''), '<br/>', chatLink,
             '<span class="date icon" title="Created">' + zeros(date_created.getDate()) + '.' + zeros(date_created.getMonth() + 1) + '.' + date_created.getFullYear() + ' ' + zeros(date_created.getHours()) + ':' + zeros(date_created.getMinutes()) + '</span>'
             + (duration ? '<span class="time icon" title="Duration">' + zeros(duration.getUTCHours()) + ':' + zeros(duration.getMinutes()) + ':' + zeros(duration.getSeconds()) + '</span>' : '')
             + (stream.friend_chat ? '<span class="friend_chat" title="Chat only for friends"/>' : '')
             + (stream.is_locked ? '<span class="is_locked" title="Locked"/>' : ''),
-            (stream.has_location ? $('<br/><span style="cursor:pointer;">' + stream.country + ', ' + stream.city + '</span>').click(switchSection.bind(null, 'Map', stream.ip_lat + ',' + stream.ip_lng)) : ''), '<div class="links" />');
+            '<br/><span class="lang right" title="Language ' + stream.language + '">' + getFlag(stream.language) + '</span>',
+            (stream.has_location ? $('<span style="cursor:pointer;">' + stream.country + ', ' + stream.city + '</span>').click(switchSection.bind(null, 'Map', stream.ip_lat + ',' + stream.ip_lng)) : ''), '<div class="links" />');
     return description[0];
 }
 function getUserDescription(user) {
