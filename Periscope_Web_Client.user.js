@@ -100,7 +100,8 @@ if (location.href == 'https://api.twitter.com/oauth/authorize') {
     if (NODEJS) {
         $(document.head).append('<link rel="stylesheet" href="/style.css" />')
     } else {
-        GM_addStyle(GM_getResourceText("CSS"));
+        var resourceText = GM_getResourceText("CSS").replace(/url\("/g, 'url("' + IMG_PATH);
+        GM_addStyle(resourceText);
     }
 
     document.title = 'OpenPeriscope';
