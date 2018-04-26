@@ -4,7 +4,7 @@
 // @namespace   https://greasyfork.org/users/23
 // @description Periscope client based on API requests. Visit example.net for launch.
 // @include     https://api.twitter.com/oauth/authorize
-// @include     http://example.net/*
+// @include     http*://example.net/*
 // @version     1.8
 // @author      Pmmlabs@github
 // @grant       GM_xmlhttpRequest
@@ -23,4 +23,7 @@
 // @updateURL   https://github.com/Pmmlabs/OpenPeriscope/raw/master/Periscope_Web_Client.meta.js
 // @icon        https://github.com/Pmmlabs/OpenPeriscope/raw/master/images/openperiscope.png
 // @noframes
+// @grant       GM_addStyle
+// @grant       GM_getResourceText
+// @resource    CSS style.css
 // ==/UserScript==

@@ -4,7 +4,7 @@
 // @namespace   https://greasyfork.org/users/23
 // @description Periscope client based on API requests. Visit example.net for launch.
 // @include     https://api.twitter.com/oauth/authorize
-// @include     http://example.net/*
+// @include     http*://example.net/*
 // @version     1.8
 // @author      Pmmlabs@github
 // @grant       GM_xmlhttpRequest
@@ -23,17 +23,12 @@
 // @updateURL   https://github.com/Pmmlabs/OpenPeriscope/raw/master/Periscope_Web_Client.meta.js
 // @icon        https://github.com/Pmmlabs/OpenPeriscope/raw/master/images/openperiscope.png
 // @noframes
-// @grant       GM.xmlHttpRequest
-// @grant       GM.getResourceUrl
+// @grant       GM_addStyle
+// @grant       GM_getResourceText
 // @resource    CSS style.css
 // ==/UserScript==
 
 var emoji = new EmojiConvertor();
-if (typeof GM_xmlhttpRequest === 'undefined' && typeof GM !== 'undefined') {
-    // Greasemonkey 4+
-    GM_xmlhttpRequest = GM.xmlHttpRequest;
-    GM_getResourceUrl = GM.getResourceUrl;
-}
 NODEJS = typeof GM_xmlhttpRequest === 'undefined';
 var IMG_PATH = 'https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master';
 var settings = JSON.parse(localStorage.getItem('settings')) || {};
@@ -105,9 +100,7 @@ if (location.href == 'https://api.twitter.com/oauth/authorize') {
     if (NODEJS) {
         $(document.head).append('<link rel="stylesheet" href="/style.css" />')
     } else {
-        GM_getResourceUrl("CSS").then(function(cssBlobUrl){
-            $(document.head).append('<link rel="stylesheet" href="'+cssBlobUrl+'" />')
-        });
+        GM_addStyle(GM_getResourceText("CSS"));
     }
 
     document.title = 'OpenPeriscope';
