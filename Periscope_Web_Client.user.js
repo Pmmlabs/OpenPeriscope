@@ -409,7 +409,7 @@ Map: function () {
         "Open Street Map": L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: 'Map data &copy; OpenStreetMap'
         }).addTo(map),
-        "Mapbox": L.tileLayer('http://{s}.tiles.mapbox.com/v4/mapbox.streets/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpamV0Zms2ZzAwMGh0Zm01MDR3YmV2cHgifQ.m9a-_eKcMy9A6glxEtuj3Q', {
+        "Mapbox": L.tileLayer('http://{s}.tiles.mapbox.com/v4/mapbox.streets/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWZ4IiwiYSI6IjNFcEppQlkifQ.qQjCuUBY9_739UXnMknMVw', {
             attribution: 'Map data &copy; OpenStreetMap'
         }),
         "Google": L.tileLayer('http://mt{s}.google.com/vt/x={x}&y={y}&z={z}', {
