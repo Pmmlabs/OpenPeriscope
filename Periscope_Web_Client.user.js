@@ -1685,7 +1685,7 @@ function download(name, url, cookies, user_id, user_name, jcontainer) { // cooki
     const spawn = require('child_process').spawn((windows ? '' : './') + 'ffmpeg', [
         '-loglevel', ($('#debug')[0].checked ? 'debug' : 'warning'),
         // ==> [kewalsk] Quick fix for privates.
-        '-headers',  'Cookie: sid='+loginTwitter.cookie+'; User-Agent: Periscope/2699 (iPhone; iOS 8.1.2; Scale/2.00)',
+        '-headers',  'Cookie: sid='+loginTwitter.cookie+'\r\n',
         // '-cookies', ff_cookies,
         // [kewalsk] <==
         '-i', url,
