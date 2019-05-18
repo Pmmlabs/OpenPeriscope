@@ -5,7 +5,7 @@
 // @description Periscope client based on API requests. Visit example.net for launch.
 // @include     https://api.twitter.com/oauth/authorize
 // @include     http*://example.net/*
-// @version     1.8
+// @version     1.9
 // @author      Pmmlabs@github
 // @grant       GM_xmlhttpRequest
 // @connect     periscope.tv
@@ -198,6 +198,8 @@ function Ready(loginInfo) {
         $('#menuCreate').toggle();
     }), 'Debug mode'));
     emoji.img_sets[emoji.img_set].path = 'http://unicodey.com/emoji-data/img-apple-64/';
+    emoji.supports_css = true;
+    emoji.replace_mode = 'css';
     lazyLoad(window);
     $(window).on('popstate', function(event) {
         event = event.originalEvent;
@@ -1686,6 +1688,7 @@ function download(name, url, cookies, user_id, user_name, jcontainer) { // cooki
         '-loglevel', ($('#debug')[0].checked ? 'debug' : 'warning'),
         // ==> [kewalsk] Quick fix for privates.
         '-headers',  'Cookie: sid='+loginTwitter.cookie+'\r\n',
+        '-user-agent', 'Periscope/2699 (iPhone; iOS 8.1.2; Scale/2.00)',
         // '-cookies', ff_cookies,
         // [kewalsk] <==
         '-i', url,

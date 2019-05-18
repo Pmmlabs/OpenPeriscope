@@ -1,5 +1,5 @@
 <img align="right" src="https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master/images/openperiscope.png">
-# OpenPeriscope
+## OpenPeriscope
 Unofficial in-browser client for Periscope (userscript)
 
 ### Using as standalone application

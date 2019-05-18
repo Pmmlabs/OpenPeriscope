@@ -5,7 +5,7 @@
 // @description Periscope client based on API requests. Visit example.net for launch.
 // @include     https://api.twitter.com/oauth/authorize
 // @include     http*://example.net/*
-// @version     1.8
+// @version     1.9
 // @author      Pmmlabs@github
 // @grant       GM_xmlhttpRequest
 // @connect     periscope.tv
