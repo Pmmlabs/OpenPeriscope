@@ -6,7 +6,7 @@ Unofficial in-browser client for Periscope (userscript)
 
 You can use pre-built executables from [Releases page](https://github.com/Pmmlabs/OpenPeriscope/releases), or 
 
-1. Download NW.js v0.12.3: http://dl.nwjs.io/v0.12.3/
+1. Download NW.js >= v0.13: http://dl.nwjs.io/v0.43.6/
 1. Unpack it and add path to PATH enviroment variable
 1. Download and unpack [ffmpeg library](https://github.com/iteufel/nwjs-ffmpeg-prebuilt/releases) to nw.js directory
 1. Download and unpack [ffmpeg static build](https://ffmpeg.zeranoe.com/builds/) to OpenPeriscope directory
