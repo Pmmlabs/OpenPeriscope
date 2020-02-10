@@ -168,10 +168,28 @@ function Ready(loginInfo) {
         return a.width * a.height - b.width * b.height;
     });
     selfAvatar = $('<img src="' + loginInfo.user.profile_image_urls[0].url + '" width="140"/>');
+    // toolbar
+    var backButton = $('<a class="button-flat">🡄</a>');
+    backButton.click(function(){history.back()});
+    var forwardButton = $('<a class="button-flat">🡆</a>');
+    forwardButton.click(function(){history.forward()});
+    var addressBar = $('<input type="text" size="100%"/>')
+        .val(location.href)
+        .mousemove(function () {return false})
+        .dblclick(function () {return false})
+        .keypress(function (e) {
+            if (e.keyCode == 13)
+                location.href = $(this).val();
+        });
+    window.onpopstate = function(event) {
+      addressBar.val(document.location);
+    }
+    var toolbar = $('<div id="toolbar"/>').append(backButton, forwardButton, addressBar).hide();
+
     var left = $('<div id="left"/>').append(signOutButton,
         selfAvatar, userEdit,
         '<div>' + emoji.replace_unified(loginInfo.user.display_name) + '</div>', userLink);
-    $(document.body).html(left).append('<div id="right"/>', Progress.elem);
+    $(document.body).html(toolbar).append(left, '<div id="right"/>', Progress.elem);
     var menu = [
         {text: 'API test', id: 'ApiTest'},
         {text: 'Map', id: 'Map'},
@@ -194,6 +212,8 @@ function Ready(loginInfo) {
     $('#menuCreate').hide(); // Create broadcasts only for developers
     left.append($('<label title="All API requests will be logged to console"/>').append($('<input type="checkbox" id="debug"/>').click(function(){
         $('#menuCreate').toggle();
+        $('#toolbar').toggle();
+        $('body').toggleClass('toolbarVisible');
     }), 'Debug mode'));
     emoji.img_sets[emoji.img_set].path = 'http://unicodey.com/emoji-data/img-apple-64/';
     emoji.supports_css = true;
@@ -299,6 +319,7 @@ function switchSection(section, param, popstate) {
         param = null;
     if (popstate != true)
         history.pushState({section: section, param: param}, section, '/' + section + (param ? '/' + (param.url ? param.url : param) : ''));
+    $('#toolbar > input').val(document.location);
     var sectionContainer = $('#' + section);
     if (!sectionContainer.length)
         Inits[section]();

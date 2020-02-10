@@ -134,6 +134,18 @@ input[type="text"]:focus, textarea:focus {
     background-color: #2bbbad;
 }
 
+.button-flat {
+    padding: 0 16px;
+    text-transform: uppercase;
+    color: #343434;
+    vertical-align: middle;
+    outline: 0
+}
+
+#toolbar {
+    padding: 5px;
+}
+
 .menu {
     cursor: pointer;
     transition: all 0.25s ease 0s;
@@ -190,6 +202,22 @@ input[type="text"]:focus, textarea:focus {
     height: 95%;
     margin-left: 220px;
     transition: margin-left 0.2s ease-out;
+}
+
+#toolbar {
+    position: fixed;
+    z-index: 1;
+    background: white;
+    top:0;
+    background: #fdfdfd;
+}
+
+body.toolbarVisible {
+    padding-top: 50px;
+}
+
+body.toolbarVisible #left {
+   height: calc(100% - 70px);
 }
 
 .username, .leaflet-container a.username {
