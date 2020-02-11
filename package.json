@@ -19,5 +19,8 @@
     "height": 500,
     "min_width": 550,
     "min_height": 200
-  }
+  },
+  "web_accessible_resources": [
+    "index.html"
+  ]
 }
