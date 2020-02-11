@@ -33,8 +33,6 @@ NODEJS = typeof GM_xmlhttpRequest === 'undefined';
 var IMG_PATH = 'https://raw.githubusercontent.com/Pmmlabs/OpenPeriscope/master';
 var settings = JSON.parse(localStorage.getItem('settings')) || {};
 if (NODEJS) {  // for NW.js
-    var gui = require('nw.gui');
-    gui.App.addOriginAccessWhitelistEntry('https://api.twitter.com/', 'app', 'openperiscope', true);    // allow redirect to app://
     const https = require('https');
     const url = require('url');
     GM_xmlhttpRequest = function (options) {
@@ -1451,8 +1449,9 @@ Edit: function () {
         });
         var current_download_path = $('<dt style="margin-right: 10px;">' + settings.downloadPath + '</dt>');
         var download_path = $('<dt/>').append($('<input type="file" webkitdirectory directory/>').change(function () {
-            setSet('downloadPath', $(this).val());
-            current_download_path.text($(this).val());
+            var path = this.files[0].path.replace(/[\\\/][^\\\/]+$/,'');
+            setSet('downloadPath', path);
+            current_download_path.text(path);
         }));
         var download_format = $('<dt/>').append($('<select>' +
             '<option value="mp4" '+(settings.downloadFormat=='mp4'?'selected':'')+'>MP4</option>' +

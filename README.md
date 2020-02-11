@@ -8,7 +8,7 @@ You can use pre-built executables from [Releases page](https://github.com/Pmmlab
 
 1. Download NW.js v0.12.3: http://dl.nwjs.io/v0.12.3/
 1. Unpack it and add path to PATH enviroment variable
-1. Copy ffmpegsumo.dll (libffmpegsumo.so for Linux) from Google Chrome 41 directory to NW.js directory
+1. Download and unpack [ffmpeg library](https://github.com/iteufel/nwjs-ffmpeg-prebuilt/releases) to nw.js directory
 1. Download and unpack [ffmpeg static build](https://ffmpeg.zeranoe.com/builds/) to OpenPeriscope directory
 1. Download and install NPM (bundled with node.js): https://nodejs.org/download/release/latest/
 1. Run in repo directory

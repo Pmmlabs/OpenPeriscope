@@ -7,13 +7,9 @@
   "dependencies": {
     "ws": "*"
   },
-  "inject-js-end": "inject.js",
-  "main": "app://openperiscope/index.html",
-  "webkit": {
-    "plugin": true
-  },
-  "single-instance": false,
-  "chromium-args":"--data-path=userdata",
+  "inject_js_end": "inject.js",
+  "main": "chrome-extension://bjhbjocpihnfbncblmbgdpacnmbkmadm/index.html",
+  "chromium-args":"--user-data-dir=userdata",
   "window": {
     "icon": "images/openperiscope.png",
     "toolbar": true,
